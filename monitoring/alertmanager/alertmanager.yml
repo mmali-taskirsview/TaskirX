@@ -1,0 +1,187 @@
+global:
+  resolve_timeout: 5m
+  # Slack configuration (update with your webhook URL)
+  slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+  # SMTP for email alerts
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_auth_username: 'alerts@taskir.ai'
+  smtp_auth_password: 'your-app-password'
+  smtp_from: 'alerts@taskir.ai'
+
+# The root route with all parameters, which are inherited by the child
+# routes if they are not overwritten.
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+
+  # Nested routes for different severity levels
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-team'
+      group_wait: 0s
+      repeat_interval: 4h
+      routes:
+        - match:
+            alert_type: security
+          receiver: 'security-team'
+        - match:
+            alert_type: database
+          receiver: 'database-team'
+        - match:
+            alert_type: infrastructure
+          receiver: 'infrastructure-team'
+
+    # Warning alerts - batched notification
+    - match:
+        severity: warning
+      receiver: 'engineering-team'
+      group_wait: 30s
+      repeat_interval: 12h
+
+    # Info alerts - low priority
+    - match:
+        severity: info
+      receiver: 'default'
+      group_wait: 1m
+      repeat_interval: 24h
+
+# Inhibition rules to prevent multiple alerts from firing
+inhibit_rules:
+  # Inhibit warning if critical alert already firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service']
+
+  # Inhibit info if warning alert already firing
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'service']
+
+  # Inhibit service unavailable if node down
+  - source_match:
+      alert: 'NodeDown'
+    target_match_re:
+      alert: 'Service.*Down'
+    equal: ['instance']
+
+  # Inhibit high CPU if service restarting
+  - source_match:
+      alert: 'ServiceRestarting'
+    target_match:
+      alert: 'HighCPUUsage'
+    equal: ['instance']
+
+# Receiver configurations
+receivers:
+  # Default receiver - low priority alerts
+  - name: 'default'
+    slack_configs:
+      - channel: '#alerts'
+        title: '[{{ .GroupLabels.severity }}] {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+        actions:
+          - type: button
+            text: 'View in Prometheus'
+            url: 'http://localhost:9090/graph?g0.expr={{ .Alerts.Firing | first | .Labels.expr }}'
+
+  # Critical alerts - all channels
+  - name: 'critical-team'
+    slack_configs:
+      - channel: '#critical-alerts'
+        title: '🚨 [CRITICAL] {{ .GroupLabels.alertname }}'
+        text: |
+          *Service*: {{ .GroupLabels.service }}
+          *Instance*: {{ (index .Alerts 0).Labels.instance }}
+          *Details*: {{ (index .Alerts 0).Annotations.description }}
+          *Value*: {{ (index .Alerts 0).Annotations.value }}
+        send_resolved: true
+        color: 'danger'
+        actions:
+          - type: button
+            text: 'Incident Board'
+            url: 'https://incident.taskir.ai'
+          - type: button
+            text: 'Grafana Dashboard'
+            url: 'http://localhost:3002/d/alerts'
+    pagerduty_configs:
+      - service_key: 'your-pagerduty-key'
+        description: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+        details:
+          firing: '{{ template "pagerduty.default.instances" .Alerts.Firing }}'
+    email_configs:
+      - to: 'oncall@taskir.ai'
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        html: |
+          <h2>{{ .GroupLabels.alertname }}</h2>
+          <p><strong>Service:</strong> {{ .GroupLabels.service }}</p>
+          <p><strong>Status:</strong> {{ .Status }}</p>
+          <table border="1" cellpadding="5">
+            <tr><th>Instance</th><th>Description</th><th>Value</th></tr>
+            {{ range .Alerts }}
+            <tr>
+              <td>{{ .Labels.instance }}</td>
+              <td>{{ .Annotations.description }}</td>
+              <td>{{ .Annotations.value }}</td>
+            </tr>
+            {{ end }}
+          </table>
+
+  # Security team alerts
+  - name: 'security-team'
+    slack_configs:
+      - channel: '#security-alerts'
+        title: '🔒 [SECURITY] {{ .GroupLabels.alertname }}'
+        text: |
+          *Threat*: {{ .GroupLabels.alertname }}
+          *Instance*: {{ (index .Alerts 0).Labels.instance }}
+          *Source IP*: {{ (index .Alerts 0).Labels.source_ip }}
+          *Count*: {{ (index .Alerts 0).Annotations.count }}
+        send_resolved: true
+        color: 'danger'
+    email_configs:
+      - to: 'security@taskir.ai'
+
+  # Database team alerts
+  - name: 'database-team'
+    slack_configs:
+      - channel: '#database-alerts'
+        title: '🗄️ [DATABASE] {{ .GroupLabels.alertname }}'
+        send_resolved: true
+        color: 'danger'
+    email_configs:
+      - to: 'database@taskir.ai'
+
+  # Infrastructure team alerts
+  - name: 'infrastructure-team'
+    slack_configs:
+      - channel: '#infra-alerts'
+        title: '⚙️ [INFRASTRUCTURE] {{ .GroupLabels.alertname }}'
+        send_resolved: true
+        color: 'danger'
+    email_configs:
+      - to: 'infrastructure@taskir.ai'
+
+  # Engineering team - warning level
+  - name: 'engineering-team'
+    slack_configs:
+      - channel: '#warnings'
+        title: '[WARNING] {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'warning'
+
+# Template settings
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

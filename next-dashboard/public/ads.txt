@@ -1,0 +1,3 @@
+taskirx.com, pub-0000000000, DIRECT, f08c47fec0942fa0
+google.com, pub-0000000000, RESELLER, f08c47fec0942fa0
+appnexus.com, 0000, RESELLER, f5ab79cb980f11d1

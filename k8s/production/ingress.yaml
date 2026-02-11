@@ -1,0 +1,143 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: taskir-prod
+  name: taskir-ingress
+  annotations:
+    # ALB Controller
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/load-balancer-name: taskir-prod-alb
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:123456789012:certificate/xxxxx
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+    
+    # Health check
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+    
+    # Request settings
+    alb.ingress.kubernetes.io/deregistration-delay-timeout-seconds: '30'
+    alb.ingress.kubernetes.io/idle-timeout-timeout-seconds: '60'
+    
+    # Tags for AWS resources
+    alb.ingress.kubernetes.io/tags: Environment=prod,Application=taskir
+    
+    # Security headers
+    alb.ingress.kubernetes.io/actions.ssl-redirect: |
+      {
+        "Type": "redirect",
+        "RedirectConfig": {
+          "Protocol": "HTTPS",
+          "Port": "443",
+          "StatusCode": "HTTP_301"
+        }
+      }
+
+spec:
+  ingressClassName: alb
+  
+  rules:
+    # API routes
+    - host: api.taskir.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taskir-backend
+                port:
+                  number: 80
+    
+    # Main domain
+    - host: taskir.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taskir-backend
+                port:
+                  number: 80
+    
+    # Wildcard for subdomains
+    - host: "*.taskir.app"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: taskir-backend
+                port:
+                  number: 80
+
+  tls:
+    - hosts:
+        - taskir.app
+        - "*.taskir.app"
+        - api.taskir.app
+      secretName: taskir-tls-cert
+
+---
+# Alternative: Using AWS ALB Controller (Recommended for EKS)
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend-alb
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    external-dns.alpha.kubernetes.io/hostname: taskir.app,api.taskir.app
+spec:
+  type: ExternalName
+  externalName: taskir-prod-alb-123456789.us-east-1.elb.amazonaws.com
+
+---
+# Network Policy for Ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: taskir-prod
+  name: ingress-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: taskir-backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: aws-load-balancer-controller
+      ports:
+        - protocol: TCP
+          port: 8080
+
+---
+# Certificate Secret for TLS
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: taskir-prod
+  name: taskir-tls-cert
+type: kubernetes.io/tls
+stringData:
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    # Your certificate here
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN PRIVATE KEY-----
+    # Your private key here
+    -----END PRIVATE KEY-----

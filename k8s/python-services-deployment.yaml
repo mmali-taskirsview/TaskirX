@@ -1,0 +1,241 @@
+# Fraud Detection Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fraud-detection-config
+  namespace: taskir
+data:
+  PORT: "6001"
+  LOG_LEVEL: INFO
+  MODEL_VERSION: v2.3.1
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-detection
+  namespace: taskir
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fraud-detection
+  template:
+    metadata:
+      labels:
+        app: fraud-detection
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: fraud-detection
+        image: your-registry/taskir-fraud-detection:latest
+        ports:
+        - containerPort: 6001
+        envFrom:
+        - configMapRef:
+            name: fraud-detection-config
+        - secretRef:
+            name: redis-secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 6001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 6001
+          initialDelaySeconds: 15
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-detection
+  namespace: taskir
+spec:
+  selector:
+    app: fraud-detection
+  ports:
+  - port: 6001
+    targetPort: 6001
+  type: ClusterIP
+
+---
+# Ad Matching Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ad-matching-config
+  namespace: taskir
+data:
+  PORT: "6002"
+  LOG_LEVEL: INFO
+  DEFAULT_STRATEGY: hybrid
+  ENV: production
+  USE_PINECONE: "true"
+  PINECONE_INDEX_NAME: "taskir-ads"
+  PINECONE_ENVIRONMENT: "us-east-1"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ad-matching
+  namespace: taskir
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ad-matching
+  template:
+    metadata:
+      labels:
+        app: ad-matching
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6002"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: ad-matching
+        image: your-registry/taskir-ad-matching:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6002
+        envFrom:
+        - configMapRef:
+            name: ad-matching-config
+        - secretRef:
+            name: redis-secret
+        - secretRef:
+            name: pinecone-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 6002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 6002
+          initialDelaySeconds: 15
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ad-matching
+  namespace: taskir
+spec:
+  selector:
+    app: ad-matching
+  ports:
+  - port: 6002
+    targetPort: 6002
+  type: ClusterIP
+
+---
+# Bid Optimization Service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bid-optimization-config
+  namespace: taskir
+data:
+  PORT: "6003"
+  LOG_LEVEL: INFO
+  EXPLORATION_RATE: "0.1"
+  MIN_BID_MULTIPLIER: "0.5"
+  MAX_BID_MULTIPLIER: "2.0"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bid-optimization
+  namespace: taskir
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bid-optimization
+  template:
+    metadata:
+      labels:
+        app: bid-optimization
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "6003"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: bid-optimization
+        image: your-registry/taskir-bid-optimization:latest
+        ports:
+        - containerPort: 6003
+        envFrom:
+        - configMapRef:
+            name: bid-optimization-config
+        - secretRef:
+            name: redis-secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 6003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 6003
+          initialDelaySeconds: 15
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bid-optimization
+  namespace: taskir
+spec:
+  selector:
+    app: bid-optimization
+  ports:
+  - port: 6003
+    targetPort: 6003
+  type: ClusterIP

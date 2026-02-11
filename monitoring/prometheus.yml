@@ -1,0 +1,135 @@
+---
+# Prometheus Configuration for TaskirX v3
+# Metrics collection for all services with 30-second scrape interval
+
+global:
+  scrape_interval: 30s          # How often to scrape targets
+  evaluation_interval: 30s       # How often to evaluate rules
+  external_labels:
+    monitor: 'taskir-monitoring'
+    environment: 'production'
+    version: '3.0.0'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:9093      # AlertManager endpoint
+
+# Load rules files
+rule_files:
+  - 'alert-rules.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # NestJS Backend Metrics
+  - job_name: 'nestjs-backend'
+    scrape_interval: 15s         # More frequent for application metrics
+    static_configs:
+      - targets: ['nestjs-backend:3000']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'nestjs-backend'
+
+  # PostgreSQL Metrics (via postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:9187']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'taskir-postgres'
+
+  # Redis Metrics (via redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:9121']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'taskir-redis'
+
+  # Docker Metrics (via cAdvisor)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['advisor:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'taskir-docker'
+
+  # Go RTB Engine Metrics
+  - job_name: 'go-bidding'
+    scrape_interval: 5s          # High frequency for real-time bidding stats
+    static_configs:
+      - targets: ['go-bidding:8080']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'go-bidding-engine'
+
+  # Python AI: Ad Matching
+  - job_name: 'ad-matching'
+    static_configs:
+      - targets: ['ad-matching:6002']
+    metrics_path: '/metrics'  # Assumes standard path, might need adjustment if custom
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'ad-matching-service'
+
+  # Python AI: Bid Optimization
+  - job_name: 'bid-optimizer'
+    static_configs:
+      - targets: ['bid-optimizer:6003']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'bid-optimization-service'
+
+  # Python AI: Fraud Detection
+  - job_name: 'fraud-detection'
+    static_configs:
+      - targets: ['fraud-detection:6001']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'fraud-detection-service'
+
+  # ClickHouse Metrics
+  - job_name: 'clickhouse'
+    static_configs:
+      - targets: ['clickhouse:8123']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'taskir-clickhouse'
+
+  # Nginx Metrics (via nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['localhost:4040']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'taskir-nginx'
+
+  # Node Exporter (Host Metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'taskir-host'

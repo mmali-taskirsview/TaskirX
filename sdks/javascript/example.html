@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdxSDK JavaScript - Integration Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .ad-container {
+            border: 2px dashed #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 10px 0;
+        }
+        
+        .native-ad {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .native-ad img {
+            width: 100%;
+            border-radius: 4px;
+        }
+        
+        .native-ad h3 {
+            margin: 10px 0;
+        }
+        
+        .native-ad button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        #video-container video {
+            width: 100%;
+            border-radius: 4px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 AdxSDK JavaScript Integration Example</h1>
+    
+    <div class="info">
+        <strong>⚠️ Setup Instructions:</strong>
+        <ol>
+            <li>Make sure your TaskirX server is running on <code>http://localhost:3000</code></li>
+            <li>Build the SDK: <code>cd sdks/javascript && npm install && npm run build</code></li>
+            <li>Open this file in a browser</li>
+        </ol>
+    </div>
+    
+    <!-- Section 1: SDK Info -->
+    <div class="section">
+        <h2>📦 SDK Information</h2>
+        <div id="sdk-info" class="info">
+            SDK not initialized yet. Click "Initialize SDK" below.
+        </div>
+        <button onclick="initializeSDK()">Initialize SDK</button>
+    </div>
+    
+    <!-- Section 2: Banner Ads -->
+    <div class="section">
+        <h2>🎯 Banner Ad (320x50)</h2>
+        <p>Banner ads are rectangular image ads displayed inline with content.</p>
+        <div id="banner-ad" class="ad-container">
+            Banner ad will appear here
+        </div>
+        <button onclick="loadBannerAd()">Load Banner Ad</button>
+        <div id="banner-status"></div>
+    </div>
+    
+    <!-- Section 3: Native Ads -->
+    <div class="section">
+        <h2>📰 Native Ad</h2>
+        <p>Native ads match the look and feel of your content.</p>
+        <div id="native-ad" class="ad-container">
+            Native ad will appear here
+        </div>
+        <button onclick="loadNativeAd()">Load Native Ad</button>
+        <div id="native-status"></div>
+    </div>
+    
+    <!-- Section 4: Video Ads -->
+    <div class="section">
+        <h2>🎬 Video Ad</h2>
+        <p>Video ads are interactive video content.</p>
+        <div id="video-container" class="ad-container">
+            Video ad will appear here
+        </div>
+        <button onclick="loadVideoAd()">Load Video Ad</button>
+        <div id="video-status"></div>
+    </div>
+    
+    <!-- Section 5: Code Example -->
+    <div class="section">
+        <h2>💻 Code Example</h2>
+        <pre><code>// Initialize SDK
+AdxSDK.init({
+    publisherId: 'publisher@test.com',
+    apiEndpoint: 'http://localhost:3000',
+    enableDebug: true
+});
+
+// Show banner ad
+AdxSDK.showBanner({
+    placementId: 'banner-home',
+    containerId: 'banner-ad',
+    width: 320,
+    height: 50
+});
+
+// Show native ad
+AdxSDK.showNative({
+    placementId: 'native-feed',
+    containerId: 'native-ad',
+    template: `
+        &lt;div class="native-ad"&gt;
+            &lt;img src="{imageUrl}" /&gt;
+            &lt;h3&gt;{title}&lt;/h3&gt;
+            &lt;p&gt;{description}&lt;/p&gt;
+            &lt;button data-adx-click&gt;{callToAction}&lt;/button&gt;
+        &lt;/div&gt;
+    `
+});
+
+// Show video ad
+AdxSDK.showVideo({
+    placementId: 'video-pre-roll',
+    containerId: 'video-container',
+    autoplay: true,
+    muted: true
+});</code></pre>
+    </div>
+    
+    <!-- Load SDK -->
+    <script src="dist/adx-sdk.js"></script>
+    
+    <script>
+        let sdkInitialized = false;
+        
+        // Initialize SDK
+        function initializeSDK() {
+            try {
+                AdxSDK.init({
+                    publisherId: 'publisher@test.com', // Use test publisher
+                    apiEndpoint: 'http://localhost:3000',
+                    enableDebug: true
+                });
+                
+                sdkInitialized = true;
+                
+                document.getElementById('sdk-info').innerHTML = `
+                    <div class="status success">
+                        <strong>✅ SDK Initialized Successfully!</strong><br>
+                        <strong>Publisher ID:</strong> publisher@test.com<br>
+                        <strong>API Endpoint:</strong> http://localhost:3000<br>
+                        <strong>User ID:</strong> ${localStorage.getItem('adx_user_id') || 'Generating...'}<br>
+                        <strong>Debug Mode:</strong> Enabled
+                    </div>
+                `;
+                
+                showStatus('sdk-info', 'SDK ready! You can now load ads.', 'success');
+            } catch (error) {
+                document.getElementById('sdk-info').innerHTML = `
+                    <div class="status error">
+                        <strong>❌ SDK Initialization Failed!</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Load banner ad
+        function loadBannerAd() {
+            if (!sdkInitialized) {
+                showStatus('banner-status', 'Please initialize SDK first!', 'error');
+                return;
+            }
+            
+            showStatus('banner-status', 'Loading banner ad...', 'info');
+            
+            AdxSDK.showBanner({
+                placementId: 'banner-home',
+                containerId: 'banner-ad',
+                width: 320,
+                height: 50
+            }).then(() => {
+                showStatus('banner-status', 'Banner ad loaded successfully! ✅', 'success');
+            }).catch(error => {
+                showStatus('banner-status', `Failed to load banner: ${error.message}`, 'error');
+            });
+        }
+        
+        // Load native ad
+        function loadNativeAd() {
+            if (!sdkInitialized) {
+                showStatus('native-status', 'Please initialize SDK first!', 'error');
+                return;
+            }
+            
+            showStatus('native-status', 'Loading native ad...', 'info');
+            
+            AdxSDK.showNative({
+                placementId: 'native-feed',
+                containerId: 'native-ad',
+                template: `
+                    <div class="native-ad">
+                        <img src="{imageUrl}" alt="Ad" />
+                        <h3>{title}</h3>
+                        <p>{description}</p>
+                        <button data-adx-click>{callToAction}</button>
+                        <small style="color: #999;">Sponsored</small>
+                    </div>
+                `
+            }).then(() => {
+                showStatus('native-status', 'Native ad loaded successfully! ✅', 'success');
+            }).catch(error => {
+                showStatus('native-status', `Failed to load native ad: ${error.message}`, 'error');
+            });
+        }
+        
+        // Load video ad
+        function loadVideoAd() {
+            if (!sdkInitialized) {
+                showStatus('video-status', 'Please initialize SDK first!', 'error');
+                return;
+            }
+            
+            showStatus('video-status', 'Loading video ad...', 'info');
+            
+            AdxSDK.showVideo({
+                placementId: 'video-pre-roll',
+                containerId: 'video-container',
+                autoplay: true,
+                muted: true,
+                controls: true
+            }).then(() => {
+                showStatus('video-status', 'Video ad loaded successfully! ✅', 'success');
+            }).catch(error => {
+                showStatus('video-status', `Failed to load video ad: ${error.message}`, 'error');
+            });
+        }
+        
+        // Helper function to show status messages
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        // Auto-initialize on page load
+        window.addEventListener('load', () => {
+            console.log('Page loaded. SDK ready to initialize.');
+            console.log('Open browser console to see debug logs.');
+        });
+    </script>
+</body>
+</html>

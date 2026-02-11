@@ -1,0 +1,42 @@
+---
+# Grafana Datasources Provisioning
+# Automatically configures Prometheus and Elasticsearch as data sources
+
+apiVersion: 1
+
+datasources:
+  # Prometheus Data Source
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 30s
+      queryTimeout: 60s
+    version: 1
+
+  # Elasticsearch Data Source
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    isDefault: false
+    jsonData:
+      esVersion: '8.10.0'
+      timeField: '@timestamp'
+      logMessageField: 'message'
+      logLevelField: 'level'
+      maxConcurrentShardRequests: 5
+    version: 1
+
+  # ClickHouse Data Source (for analytics)
+  - name: ClickHouse
+    type: grafana-clickhouse-datasource
+    access: proxy
+    url: http://clickhouse:8123
+    isDefault: false
+    jsonData:
+      defaultDatabase: default
+    version: 1

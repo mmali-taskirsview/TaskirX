@@ -1,0 +1,241 @@
+version: '3.9'
+
+services:
+  # Prometheus - Metrics collection and alerting
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: taskir-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9090/-/healthy']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: taskir-grafana
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3002
+    networks:
+      - taskir-network
+    depends_on:
+      prometheus:
+        condition: service_healthy
+
+networks:
+  taskir-network:
+    name: taskir-network
+    external: true
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # AlertManager - Alert routing and notifications
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: taskir-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9093/-/healthy']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Elasticsearch - Log storage and indexing
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+    container_name: taskir-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9200/_cluster/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Logstash - Log processing and enrichment
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.0.0
+    container_name: taskir-logstash
+    ports:
+      - "5000:5000/udp"
+      - "5000:5000/tcp"
+      - "5001:5001/tcp"
+      - "9600:9600"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - logstash-data:/usr/share/logstash/data
+      - /var/log:/var/log:ro
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - LOG_LEVEL=info
+    networks:
+      - monitoring
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9600/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Kibana - Log visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.0.0
+    container_name: taskir-kibana
+    ports:
+      - "5601:5601"
+    volumes:
+      - kibana-data:/usr/share/kibana/data
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=
+      - XPACK_SECURITY_ENABLED=false
+    networks:
+      - monitoring
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5601/api/status']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Jaeger - Distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: taskir-jaeger
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+    volumes:
+      - jaeger-data:/var/lib/jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - MEMORY_MAX_TRACES=10000
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:16686/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Node Exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: taskir-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9100/metrics']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # cAdvisor - Docker container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: taskir-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  jaeger-data:
+    driver: local
+
+networks:
+  taskir-network:
+    name: taskir-network
+    external: true

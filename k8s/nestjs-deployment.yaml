@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nestjs-config
+  namespace: taskir
+data:
+  NODE_ENV: production
+  PORT: "3000"
+  DATABASE_HOST: postgres
+  DATABASE_PORT: "5432"
+  DATABASE_USERNAME: taskir
+  DATABASE_NAME: taskir_adx
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  CLICKHOUSE_HOST: clickhouse
+  CLICKHOUSE_PORT: "8123"
+  CLICKHOUSE_USERNAME: taskir
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nestjs-secret
+  namespace: taskir
+type: Opaque
+stringData:
+  DATABASE_PASSWORD: taskir_secure_password_2026
+  REDIS_PASSWORD: taskir_redis_password_2026
+  CLICKHOUSE_PASSWORD: clickhouse_password_2026
+  JWT_SECRET: your-super-secret-jwt-key-here
+  JWT_REFRESH_SECRET: your-super-secret-refresh-key-here
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nestjs-backend
+  namespace: taskir
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nestjs-backend
+  template:
+    metadata:
+      labels:
+        app: nestjs-backend
+    spec:
+      containers:
+      - name: nestjs
+        image: your-registry/taskir-nestjs:latest
+        ports:
+        - containerPort: 3000
+        envFrom:
+        - configMapRef:
+            name: nestjs-config
+        - secretRef:
+            name: nestjs-secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nestjs-backend
+  namespace: taskir
+spec:
+  selector:
+    app: nestjs-backend
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nestjs-hpa
+  namespace: taskir
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nestjs-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

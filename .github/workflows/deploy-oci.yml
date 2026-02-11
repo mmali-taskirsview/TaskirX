@@ -1,0 +1,159 @@
+name: Deploy to OCI (OKE)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'python-ai-agents/**'
+      - 'go-bidding-engine/**'
+      - 'terraform-oci/**'
+      - '.github/workflows/deploy-oci.yml'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Image tag version'
+        required: true
+        default: 'latest'
+
+env:
+  OCI_REGION: us-ashburn-1
+  OCIR_REGISTRY: ${{ secrets.OCI_REGION }}.ocir.io
+  TENANCY_NAMESPACE: ${{ secrets.OCI_TENANCY_NAMESPACE }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log into OCIR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.OCIR_REGISTRY }}
+          username: ${{ secrets.OCI_TENANCY_NAMESPACE }}/${{ secrets.OCI_USERNAME }}
+          password: ${{ secrets.OCI_AUTH_TOKEN }}
+
+      - name: Build and Push Images
+        env:
+          TAG: ${{ inputs.version_tag || 'latest' }}
+          REGISTRY_PATH: ${{ env.OCIR_REGISTRY }}/${{ secrets.OCI_TENANCY_NAMESPACE }}/taskir
+        run: |
+          services=(
+            "nestjs:./nestjs-backend"
+            "go-bidding:./go-bidding-engine"
+            "dashboard:./next-dashboard"
+            "ad-matching:./python-ai-agents/ad-matching-service"
+            "fraud-detection:./python-ai-agents/fraud-detection-service"
+            "bid-optimization:./python-ai-agents/bid-optimization-service"
+          )
+          
+          for service in "${services[@]}"; do
+            name="${service%%:*}"
+            path="${service##*:}"
+            full_image="$REGISTRY_PATH/taskir-$name:$TAG"
+            
+            echo "Building $name from $path..."
+            docker build -t "$full_image" "$path"
+            docker push "$full_image"
+            echo "Pushed $full_image"
+          done
+
+  deploy-oke:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_USER_OCID }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_TENANCY_OCID }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_PRIVATE_KEY }}
+      OCI_CLI_REGION: ${{ env.OCI_REGION }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install OCI CLI
+        run: |
+          mkdir -p ~/.oci
+          echo "$OCI_CLI_KEY_CONTENT" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          
+          # Install CLI
+          bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --accept-all-defaults
+          echo "/home/runner/bin" >> $GITHUB_PATH
+          
+          # Config
+          cat <<EOF > ~/.oci/config
+          [DEFAULT]
+          user=$OCI_CLI_USER
+          fingerprint=$OCI_CLI_FINGERPRINT
+          key_file=/home/runner/.oci/oci_api_key.pem
+          tenancy=$OCI_CLI_TENANCY
+          region=$OCI_CLI_REGION
+          EOF
+          chmod 600 ~/.oci/config
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.2'
+
+      - name: Update Kubeconfig
+        run: |
+          oci ce cluster create-kubeconfig \
+            --cluster-id ${{ secrets.OKE_CLUSTER_ID }} \
+            --file $HOME/.kube/config \
+            --region ${{ env.OCI_REGION }} \
+            --token-version 2.0.0
+
+      - name: Deploy to OKE
+        env:
+          PINECONE_KEY: ${{ secrets.PINECONE_API_KEY }}
+          TRGT_REGISTRY: ${{ env.OCIR_REGISTRY }}/${{ secrets.OCI_TENANCY_NAMESPACE }}/taskir
+          DOCKER_SERVER: ${{ env.OCIR_REGISTRY }}
+          DOCKER_USER: ${{ secrets.OCI_TENANCY_NAMESPACE }}/${{ secrets.OCI_USERNAME }}
+          DOCKER_PASS: ${{ secrets.OCI_AUTH_TOKEN }}
+        run: |
+          # Create Image Pull Secret
+          kubectl create secret docker-registry ocir-secret \
+            --docker-server=$DOCKER_SERVER \
+            --docker-username=$DOCKER_USER \
+            --docker-password=$DOCKER_PASS \
+            --dry-run=client -o yaml | kubectl apply -f - -n taskir
+
+          # Patch Default Service Account to use the Secret
+          kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "ocir-secret"}]}' -n taskir
+          
+          # Inject secrets
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: pinecone-secret
+            namespace: taskir
+          type: Opaque
+          stringData:
+            PINECONE_API_KEY: $PINECONE_KEY
+          EOF
+
+          # Replace registry placeholder in K8s manifests
+          sed -i "s|your-registry|$TRGT_REGISTRY|g" k8s/*.yaml
+
+          # Apply Infrastrucure
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/postgres-deployment.yaml
+          kubectl apply -f k8s/redis-deployment.yaml
+          kubectl apply -f k8s/clickhouse-deployment.yaml
+          
+          # Apply Applications
+          kubectl apply -f k8s/nestjs-deployment.yaml
+          kubectl apply -f k8s/go-bidding-deployment.yaml
+          kubectl apply -f k8s/python-services-deployment.yaml
+          kubectl apply -f k8s/next-dashboard-deployment.yaml
+          
+          # Apply OCI Ingress
+          kubectl apply -f k8s/ingress-oci.yaml
+          
+          # Rollout
+          kubectl rollout status deployment/go-bidding -n taskir

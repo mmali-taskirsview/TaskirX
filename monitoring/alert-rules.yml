@@ -1,0 +1,384 @@
+---
+# Prometheus Alert Rules for TaskirX v3
+# Alerts for performance, security, and availability issues
+
+groups:
+  - name: application_alerts
+    interval: 30s
+    rules:
+      # API Response Time Alerts
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "API p99 latency is {{ $value }}s (threshold: 0.5s) on {{ $labels.instance }}"
+
+      - alert: CriticalAPILatency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 1.0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Critical API latency detected"
+          description: "API p99 latency is {{ $value }}s (threshold: 1.0s) - immediate action required"
+
+      # Error Rate Alerts
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      - alert: CriticalErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} - threshold exceeded"
+
+      # Authentication Failures
+      - alert: HighAuthenticationFailures
+        expr: rate(auth_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} auth failures per second on {{ $labels.instance }}"
+
+      - alert: BruteForceAttempt
+        expr: rate(auth_failures_total{ip=~".+"}[1m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Potential brute force attack detected"
+          description: "{{ $value }} failed auth attempts from {{ $labels.ip }} per second"
+
+      # Rate Limiting Alerts
+      - alert: HighRateLimitHits
+        expr: rate(rate_limit_exceeded_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate limit violations"
+          description: "{{ $value }} rate limit violations per second on {{ $labels.instance }}"
+
+      # WAF Alerts
+      - alert: WAFRuleViolation
+        expr: rate(waf_blocked_requests_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "WAF rule violations detected"
+          description: "{{ $value }} WAF blocks per second - rule: {{ $labels.rule }}"
+
+      - alert: SQLInjectionAttempt
+        expr: rate(waf_blocked_requests_total{rule="SQL_INJECTION"}[1m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "SQL injection attempt detected"
+          description: "{{ $value }} SQL injection attempts from {{ $labels.ip }}"
+
+      # RTB Engine Alerts
+      - alert: HighBidLatency
+        expr: histogram_quantile(0.99, rate(bid_processing_duration_seconds_bucket[5m])) > 0.005
+        for: 5m
+        labels:
+          severity: warning
+          component: rtb
+        annotations:
+          summary: "High bid processing latency"
+          description: "Bid p99 latency is {{ $value }}s (threshold: 5ms) on {{ $labels.instance }}"
+
+      - alert: CriticalBidLatency
+        expr: histogram_quantile(0.99, rate(bid_processing_duration_seconds_bucket[5m])) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+          component: rtb
+        annotations:
+          summary: "Critical bid processing latency"
+          description: "Bid processing is critically slow - {{ $value }}s (threshold: 10ms)"
+
+      - alert: LowBidAcceptanceRate
+        expr: (rate(bids_accepted_total[5m]) / rate(bids_total[5m])) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: rtb
+        annotations:
+          summary: "Low bid acceptance rate"
+          description: "Only {{ $value | humanizePercentage }} of bids being accepted on {{ $labels.instance }}"
+
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # Database Connection Pool Alerts
+      - alert: HighConnectionPoolUsage
+        expr: pg_stat_activity_count / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "{{ $value | humanizePercentage }} of connections in use on {{ $labels.instance }}"
+
+      - alert: CriticalConnectionPoolUsage
+        expr: pg_stat_activity_count / pg_settings_max_connections > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool critical"
+          description: "{{ $value | humanizePercentage }} of connections in use - potential deadlock risk"
+
+      # Database Query Performance
+      - alert: SlowQueries
+        expr: rate(pg_stat_statements_mean_exec_time[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query time: {{ $value }}ms on {{ $labels.instance }}"
+
+      # Database Replication Lag
+      - alert: HighReplicationLag
+        expr: pg_replication_lag_seconds > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database replication lag"
+          description: "Replication lag is {{ $value }}s on {{ $labels.instance }}"
+
+      # Index Health
+      - alert: MissingIndexes
+        expr: pg_missing_index_scan_count > 100
+        for: 10m
+        labels:
+          severity: info
+          component: database
+        annotations:
+          summary: "Potential missing indexes detected"
+          description: "{{ $value }} scans that could benefit from indexes on {{ $labels.instance }}"
+
+  - name: cache_alerts
+    interval: 30s
+    rules:
+      # Redis Memory Alerts
+      - alert: HighRedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory is {{ $value | humanizePercentage }} of limit on {{ $labels.instance }}"
+
+      - alert: CriticalRedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Critical Redis memory usage"
+          description: "Redis memory is {{ $value | humanizePercentage }} - eviction occurring"
+
+      # Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: (rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Redis Connection Health
+      - alert: RedisConnectionRefused
+        expr: redis_connected_clients == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis connection refused"
+          description: "Cannot connect to Redis on {{ $labels.instance }}"
+
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+      # CPU Alerts
+      - alert: HighCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      - alert: CriticalCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Memory Alerts
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      - alert: CriticalMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} - OOM risk on {{ $labels.instance }}"
+
+      # Disk Space Alerts
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High disk usage"
+          description: "Disk {{ $labels.device }} is {{ $value | humanizePercentage }} full on {{ $labels.instance }}"
+
+      - alert: CriticalDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical disk usage"
+          description: "Disk {{ $labels.device }} is {{ $value | humanizePercentage }} full - immediate action required"
+
+      # Network Alerts
+      - alert: HighNetworkIn
+        expr: rate(node_network_receive_bytes_total[5m]) > 100000000
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High network inbound traffic"
+          description: "Inbound traffic on {{ $labels.device }}: {{ $value | humanize }}Bps"
+
+      - alert: HighNetworkOut
+        expr: rate(node_network_transmit_bytes_total[5m]) > 100000000
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High network outbound traffic"
+          description: "Outbound traffic on {{ $labels.device }}: {{ $value | humanize }}Bps"
+
+  - name: availability_alerts
+    interval: 30s
+    rules:
+      # Service Down Alerts
+      - alert: ServiceDown
+        expr: up{job!="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Service down"
+          description: "{{ $labels.job }} ({{ $labels.instance }}) is down"
+
+      # Deployment Status
+      - alert: HighFailureRate
+        expr: rate(deployments_failed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: availability
+        annotations:
+          summary: "High deployment failure rate"
+          description: "{{ $value | humanizePercentage }} of deployments failing"
+
+  - name: business_logic_alerts
+    interval: 30s
+    rules:
+      # High Fraud Detected (Spike in blocked requests)
+      - alert: HighFraudActivity
+        expr: rate(fraud_blocked_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+          component: fraud-detection
+        annotations:
+          summary: "High volume of fraud detected"
+          description: "Fraud service is blocking {{ $value }} requests per second."
+
+      # Low Bid Rate (Potential issue with campaign matching or optimization)
+      - alert: LowBidRate
+        expr: rate(bids_placed_total[5m]) / rate(bid_requests_total[5m]) < 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: billing-engine
+        annotations:
+          summary: "Abnormally low bid rate"
+          description: "Bid rate has dropped below 5% (Current: {{ $value | humanizePercentage }}). Check Campaign Budget or AI Service."
+
+      # AI Service Integration Failures
+      - alert: AIIntegrationErrors
+        expr: rate(ad_match_errors_total[5m]) + rate(optimization_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          component: integration
+        annotations:
+          summary: "Errors calling Python AI Services"
+          description: "Bidding Engine is failing to connect to AI agents."

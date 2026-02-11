@@ -1,0 +1,49 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskir-ingress-oci
+  namespace: taskir
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - dashboard.taskir.com
+    - api.taskir.com
+    - bidding.taskir.com
+    secretName: taskir-tls-secret
+  rules:
+  - host: dashboard.taskir.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: next-dashboard
+            port:
+              number: 3001
+  - host: api.taskir.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nestjs-backend
+            port:
+              number: 3000
+  - host: bidding.taskir.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: go-bidding
+            port:
+              number: 8080

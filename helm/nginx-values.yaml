@@ -1,0 +1,11 @@
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+      service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+      service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "100"
+    loadBalancerIP: "" # Optional: Bind to specific reserved IP if known
+  config:
+    use-forwarded-headers: "true"
+    compute-full-forwarded-for: "true"
+    use-proxy-protocol: "false" # Set true if OCI LB uses Proxy Protocol

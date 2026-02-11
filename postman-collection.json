@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "TaskirX API",
+    "description": "Real-Time Bidding Ad Exchange Platform - OpenRTB 2.5 Compatible",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\",\n  \"name\": \"Test User\",\n  \"company\": \"Test Company\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.collectionVariables.set('token', pm.response.json().token);"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test1234!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/auth/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campaigns",
+      "item": [
+        {
+          "name": "List Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/api/campaigns?page=1&limit=20",
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/campaigns",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Sale Campaign\",\n  \"status\": \"active\",\n  \"bidding\": {\n    \"strategy\": \"cpm\",\n    \"maxBid\": 5.0\n  },\n  \"targeting\": {\n    \"geo\": {\n      \"countries\": [\"US\", \"CA\"],\n      \"cities\": [\"New York\", \"Los Angeles\"]\n    },\n    \"device\": {\n      \"types\": [\"mobile\", \"desktop\"]\n    }\n  },\n  \"creative\": {\n    \"sizes\": [\"300x250\", \"728x90\"],\n    \"assets\": [\n      {\n        \"type\": \"image\",\n        \"url\": \"https://example.com/banner.jpg\"\n      }\n    ]\n  },\n  \"budget\": {\n    \"total\": 10000,\n    \"daily\": 500\n  },\n  \"schedule\": {\n    \"startDate\": \"2024-01-01T00:00:00Z\",\n    \"endDate\": \"2024-01-31T23:59:59Z\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Campaign",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/campaigns/:id"
+          }
+        },
+        {
+          "name": "Update Campaign",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/campaigns/:id",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Campaign Name\",\n  \"status\": \"paused\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Pause Campaign",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/campaigns/:id/pause"
+          }
+        }
+      ]
+    },
+    {
+      "name": "RTB",
+      "item": [
+        {
+          "name": "Bid Request",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/rtb/bid-request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"test-request-123\",\n  \"imp\": [\n    {\n      \"id\": \"1\",\n      \"bidfloor\": 1.0,\n      \"banner\": {\n        \"w\": 300,\n        \"h\": 250,\n        \"pos\": 0\n      }\n    }\n  ],\n  \"device\": {\n    \"ip\": \"192.168.1.1\",\n    \"ua\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\",\n    \"devicetype\": 1,\n    \"geo\": {\n      \"country\": \"US\",\n      \"city\": \"New York\",\n      \"region\": \"NY\"\n    },\n    \"os\": \"Windows\"\n  },\n  \"site\": {\n    \"domain\": \"example.com\",\n    \"page\": \"https://example.com/article\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Win Notification",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/rtb/win?id=:bidId&price=2.5",
+              "query": [
+                {"key": "id", "value": ":bidId"},
+                {"key": "price", "value": "2.5"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/dashboard?startDate=2024-01-01&endDate=2024-01-31",
+              "query": [
+                {"key": "startDate", "value": "2024-01-01"},
+                {"key": "endDate", "value": "2024-01-31"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Campaign Performance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/analytics/campaigns/:campaignId/performance"
+          }
+        },
+        {
+          "name": "Time Series Data",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/timeseries?metric=impressions&groupBy=hour",
+              "query": [
+                {"key": "metric", "value": "impressions"},
+                {"key": "groupBy", "value": "hour"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Geo Performance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/geo-performance?level=country",
+              "query": [{"key": "level", "value": "country"}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/metrics"
+          }
+        }
+      ]
+    }
+  ]
+}

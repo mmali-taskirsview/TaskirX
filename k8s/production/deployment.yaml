@@ -1,0 +1,356 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: taskir-prod
+  labels:
+    name: taskir-prod
+    environment: production
+
+---
+# Deployment for Backend Application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend
+  labels:
+    app: taskir-backend
+    version: v3
+spec:
+  replicas: 3
+  
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  
+  selector:
+    matchLabels:
+      app: taskir-backend
+  
+  template:
+    metadata:
+      namespace: taskir-prod
+      labels:
+        app: taskir-backend
+        version: v3
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    
+    spec:
+      serviceAccountName: taskir-backend
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+      
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - taskir-backend
+              topologyKey: kubernetes.io/hostname
+      
+      containers:
+        - name: backend
+          image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/taskir-backend:latest
+          imagePullPolicy: Always
+          
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "8080"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: REGION
+              value: "us-east-1"
+            
+            # Database
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: taskir-secrets
+                  key: db-host
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "taskir"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskir-secrets
+                  key: db-password
+            
+            # Redis
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: taskir-secrets
+                  key: redis-host
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskir-secrets
+                  key: redis-password
+            
+            # AWS
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: taskir-config
+                  key: s3-bucket
+            
+            # Monitoring
+            - name: DATADOG_ENABLED
+              value: "false"
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: taskir-secrets
+                  key: sentry-dsn
+                  optional: true
+            
+            # Feature Flags
+            - name: FEATURES_RTB_ENABLED
+              value: "true"
+            - name: FEATURES_ANALYTICS_ENABLED
+              value: "true"
+          
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
+          
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /var/log
+      
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
+      
+      terminationGracePeriodSeconds: 30
+
+---
+# Service for Backend
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend
+  labels:
+    app: taskir-backend
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: LoadBalancer
+  selector:
+    app: taskir-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: http
+      protocol: TCP
+
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskir-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+
+---
+# ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend
+  labels:
+    app: taskir-backend
+
+---
+# ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: taskir-prod
+  name: taskir-config
+  labels:
+    app: taskir-backend
+data:
+  s3-bucket: "taskir-prod-storage-ACCOUNT_ID"
+  log-level: "info"
+  cache-ttl: "3600"
+  api-timeout: "30000"
+
+---
+# Secrets (should be created separately with sensitive data)
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: taskir-prod
+  name: taskir-secrets
+  labels:
+    app: taskir-backend
+type: Opaque
+stringData:
+  # These should be populated from AWS Secrets Manager
+  db-host: "taskir-prod-db.xxxxx.us-east-1.rds.amazonaws.com"
+  db-password: "CHANGE_ME"
+  redis-host: "taskir-prod-redis.xxxxx.ng.0001.use1.cache.amazonaws.com"
+  redis-password: "CHANGE_ME"
+  sentry-dsn: "https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"
+
+---
+# NetworkPolicy - Restrict traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: taskir-backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: taskir-prod
+        - podSelector:
+            matchLabels:
+              app: taskir-frontend
+      ports:
+        - protocol: TCP
+          port: 8080
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: TCP
+          port: 9090
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6379
+        - protocol: UDP
+          port: 53
+
+---
+# PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  namespace: taskir-prod
+  name: taskir-backend-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: taskir-backend

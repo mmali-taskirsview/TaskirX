@@ -1,0 +1,10 @@
+{
+  "sellers": [
+    {
+      "seller_id": "pub-0000000000",
+      "seller_type": "PUBLISHER",
+      "name": "TaskirX Publisher Network",
+      "domain": "taskirx.com"
+    }
+  ]
+}

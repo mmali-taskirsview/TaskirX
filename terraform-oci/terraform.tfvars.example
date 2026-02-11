@@ -1,0 +1,16 @@
+# OCI Authentication
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaaxxxxxx"
+user_ocid        = "ocid1.user.oc1..aaaaaaaaxxxxxx"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_id   = "ocid1.compartment.oc1..aaaaaaaaxxxxxx"
+
+# Cloudflare
+cloudflare_api_token = "your-cloudflare-api-token"
+zone_id              = "your-cloudflare-zone-id"
+domain_name          = "taskir.com"
+
+# Pinecone
+pinecone_api_key     = "your-pinecone-api-key"
+pinecone_environment = "us-east-1"

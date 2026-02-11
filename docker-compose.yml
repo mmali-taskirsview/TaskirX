@@ -1,0 +1,233 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: taskir-postgres
+    environment:
+      POSTGRES_DB: taskir_adx
+      POSTGRES_USER: taskir
+      POSTGRES_PASSWORD: taskir_secure_password_2026
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/seed-data.sql:/docker-entrypoint-initdb.d/seed-data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskir"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: taskir-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass taskir_redis_password_2026
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # ClickHouse Analytics
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: taskir-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: analytics
+      CLICKHOUSE_USER: taskir
+      CLICKHOUSE_PASSWORD: clickhouse_password_2026
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # NestJS Backend
+  nestjs-backend:
+    build:
+      context: ./nestjs-backend
+      dockerfile: Dockerfile
+    container_name: taskir-nestjs
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./nestjs-backend/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Python Fraud Detection Service
+  fraud-detection:
+    build:
+      context: ./python-ai-agents/fraud-detection-service
+      dockerfile: Dockerfile
+    container_name: taskir-fraud-detection
+    ports:
+      - "6001:6001"
+    environment:
+      ENV: development
+      PORT: 6001
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Python Ad Matching Service (AI Agent)
+  ad-matching:
+    build:
+      context: ./python-ai-agents/ad-matching-service
+      dockerfile: Dockerfile
+    container_name: taskir-ad-matching
+    ports:
+      - "6002:6002"
+    environment:
+      ENV: development
+      PORT: 6002
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Python Bid Optimization Service (AI Agent)
+  bid-optimizer:
+    build:
+      context: ./python-ai-agents/bid-optimization-service
+      dockerfile: Dockerfile
+    container_name: taskir-bid-optimizer
+    ports:
+      - "6003:6003"
+    environment:
+      ENV: development
+      PORT: 6003
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Go Bidding Engine
+  go-bidding:
+    build:
+      context: ./go-bidding-engine
+      dockerfile: Dockerfile
+    container_name: taskir-go-bidding
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: taskir_redis_password_2026
+      BACKEND_API_URL: http://nestjs-backend:3000
+      AI_SERVICE_URL: http://ad-matching:6002/api
+      FRAUD_SERVICE_URL: http://fraud-detection:6001/api
+      OPTIMIZATION_SERVICE_URL: http://bid-optimizer:6003/api
+    depends_on:
+      redis:
+        condition: service_healthy
+      nestjs-backend:
+        condition: service_started
+      ad-matching:
+        condition: service_started
+      fraud-detection:
+        condition: service_started
+      bid-optimizer:
+        condition: service_started
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Next.js Dashboard
+  next-dashboard:
+    build:
+      context: ./next-dashboard
+      dockerfile: Dockerfile
+    container_name: taskir-dashboard
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      BACKEND_URL: http://nestjs-backend:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3000/api
+    depends_on:
+      - nestjs-backend
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+  # Test API (Database Connection Testing)
+  test-api:
+    build:
+      context: ./test-api
+      dockerfile: Dockerfile
+    container_name: taskir-test-api
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: taskir
+      DATABASE_PASSWORD: taskir_secure_password_2026
+      DATABASE_NAME: taskir_adx
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: taskir_redis_password_2026
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - taskir-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+
+networks:
+  taskir-network:
+    driver: bridge
+
