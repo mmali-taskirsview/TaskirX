@@ -127,7 +127,11 @@ class AdMatcher:
         # Create text representation of each campaign
         campaign_texts = []
         for campaign in self.campaigns:
-            text = " ".join(campaign["categories"] + campaign["keywords"])
+            categories = campaign.get("categories", []) or []
+            keywords = campaign.get("keywords", []) or []
+            text = " ".join(categories + keywords).strip()
+            if not text:
+                text = campaign.get("description", "")
             campaign_texts.append(text)
         
         # Fit TF-IDF

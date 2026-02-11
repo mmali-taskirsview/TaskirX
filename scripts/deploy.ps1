@@ -518,11 +518,18 @@ function Main {
         }
         default {
             Write-Error "Unknown action: $Action. Use 'plan', 'apply', 'destroy', or 'verify'"
+
+    Write-Host "Deployment script completed" -ForegroundColor Green
+}
+
+# Execute
+Main
+
             exit 1
         }
     }
-    
-    Write-Success "Deployment script completed"
+
+    Write-Host "Deployment script completed" -ForegroundColor Green
 }
 
 # Execute

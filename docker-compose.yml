@@ -101,6 +101,8 @@ services:
       PORT: 6001
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: taskir_redis_password_2026
+      IP_REPUTATION_API_KEY: local-dev-key
     depends_on:
       redis:
         condition: service_healthy
@@ -121,6 +123,7 @@ services:
       PORT: 6002
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: taskir_redis_password_2026
     depends_on:
       redis:
         condition: service_healthy

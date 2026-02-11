@@ -31,6 +31,7 @@
     "@nestjs/swagger": "^7.1.17",
     "@nestjs/throttler": "^5.1.1",
     "@nestjs/typeorm": "^10.0.1",
+  "@willsoto/nestjs-prometheus": "^6.0.2",
     "@sendgrid/mail": "^8.1.6",
     "@tensorflow/tfjs": "^4.16.0",
     "axios": "^1.6.5",

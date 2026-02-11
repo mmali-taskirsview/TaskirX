@@ -2,7 +2,8 @@
 # Usage: ./validate-phase-2.ps1
 
 $ErrorActionPreference = "Stop"
-$BaseUrl = "http://localhost:3000"
+$ApiBaseUrl = "http://localhost:3000/api"
+$InternalBaseUrl = "http://localhost:3000"
 
 function Invoke-Api {
     param(
@@ -53,7 +54,7 @@ $LoginBody = @{
     email = "admin@taskirx.com"
     password = "Admin123!"
 }
-$LoginResponse = Invoke-Api -Url "$BaseUrl/auth/login" -Method "POST" -Body $LoginBody
+$LoginResponse = Invoke-Api -Url "$ApiBaseUrl/auth/login" -Method "POST" -Body $LoginBody
 
 if (-not $LoginResponse.access_token) {
     Write-Error "Login failed. Check if backend is running."
@@ -73,7 +74,7 @@ $SegmentBody = @{
     segments = $Segments
 }
 
-$SegmentResponse = Invoke-Api -Url "$BaseUrl/targeting/user-segments" -Method "POST" -Body $SegmentBody -Token $Token
+$SegmentResponse = Invoke-Api -Url "$ApiBaseUrl/targeting/user-segments" -Method "POST" -Body $SegmentBody -Token $Token
 Write-Host "User Segments set for $TestUserId" -ForegroundColor Green
 
 # 3. Set Geo Rules
@@ -86,13 +87,13 @@ $GeoBody = @{
     }
 }
 
-$GeoResponse = Invoke-Api -Url "$BaseUrl/targeting/geo-rules" -Method "POST" -Body $GeoBody -Token $Token
+$GeoResponse = Invoke-Api -Url "$ApiBaseUrl/targeting/geo-rules" -Method "POST" -Body $GeoBody -Token $Token
 Write-Host "Geo Rules set for US (1.5x Multiplier)" -ForegroundColor Green
 
 # 4. Verify Active Campaigns Internal Endpoint
 Write-Host "`n4. Verifying Internal Active Campaigns Endpoint..." -ForegroundColor Yellow
 try {
-    $ActiveCampaigns = Invoke-RestMethod -Uri "$BaseUrl/internal/campaigns/active" -Method "GET"
+    $ActiveCampaigns = Invoke-RestMethod -Uri "$ApiBaseUrl/internal/campaigns/active" -Method "GET"
     $Count = $ActiveCampaigns.Count
     Write-Host "Internal Endpoint Accessible: Found $Count active campaigns" -ForegroundColor Green
 } catch {

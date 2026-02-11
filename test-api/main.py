@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import redis
 import logging
-from .config import settings
+from config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

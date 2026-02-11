@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
 import { CampaignsController } from './campaigns.controller';
 import { CampaignsService } from './campaigns.service';
-import { Campaign, CampaignStatus } from './campaign.entity';
+import { CampaignStatus } from './campaign.entity';
 
 describe('CampaignsController', () => {
   let controller: CampaignsController;
-  let service: CampaignsService;
 
   const mockCampaign: any = {
     id: 'uuid-1',
@@ -51,7 +51,7 @@ describe('CampaignsController', () => {
     }).compile();
 
     controller = module.get<CampaignsController>(CampaignsController);
-    service = module.get<CampaignsService>(CampaignsService);
+  module.get<CampaignsService>(CampaignsService);
   });
 
   it('should be defined', () => {

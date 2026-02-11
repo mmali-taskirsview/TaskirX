@@ -71,6 +71,10 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 3
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "go mod tidy && go mod download && go mod verify"]
 
 ---
 apiVersion: v1

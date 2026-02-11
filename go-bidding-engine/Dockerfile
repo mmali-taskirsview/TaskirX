@@ -6,6 +6,10 @@ WORKDIR /app
 # Install dependencies
 RUN apk add --no-cache git
 
+# Use a proxy mirror to avoid blocked Go module hosts in some networks
+ENV GOPROXY=https://goproxy.io,direct
+ENV GOSUMDB=off
+
 # Copy go mod and source files
 COPY go.mod ./
 COPY . .

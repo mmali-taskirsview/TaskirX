@@ -4,11 +4,17 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Configure npm for better network reliability
+RUN npm config set registry https://registry.npmjs.org/
+RUN npm config set fetch-retry-mintimeout 20000
+RUN npm config set fetch-retry-maxtimeout 120000
+RUN npm config set fetch-timeout 300000
+
 # Copy package files
 COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .

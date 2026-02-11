@@ -21,6 +21,7 @@ python-json-logger==2.0.7
 
 # HTTP Client
 httpx==0.26.0
+requests==2.32.3
 aioredis==2.0.1
 
 # Database & Cache
