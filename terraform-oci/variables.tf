@@ -15,7 +15,16 @@ variable "cloudflare_api_token" {
 variable "domain_name" {
   default = "taskir.com"
 }
-variable "zone_id" {}
+variable "zone_id" {
+  description = "The Cloudflare Zone ID"
+  type        = string
+}
+
+variable "cloudflare_zone_id" {
+  description = "The Cloudflare Zone ID (Alias for zone_id for consistency)"
+  type        = string
+  default     = "" # Optional if passed via tfvars
+}
 
 # Pinecone Configuration
 variable "pinecone_api_key" {

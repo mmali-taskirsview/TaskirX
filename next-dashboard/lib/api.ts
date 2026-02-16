@@ -56,8 +56,20 @@ export const api = {
   deleteCampaign: (id: string) => apiClient.delete(`/campaigns/${id}`),
   
   // Analytics
-  getAnalytics: (params?: any) => apiClient.get('/analytics', { params }),
-  getDashboardStats: () => apiClient.get('/analytics/dashboard'),
+  getAnalytics: (params?: any) => apiClient.get('/analytics', { params }), // General query (if supported)
+  getDashboardStats: (params?: { dateFrom?: string; dateTo?: string }) => 
+    apiClient.get('/analytics/dashboard', { params }),
+  getCampaignStats: (id: string, params?: { dateFrom?: string; dateTo?: string }) =>
+    apiClient.get(`/analytics/campaign/${id}`, { params }),
+  getRevenue: (params?: { dateFrom?: string; dateTo?: string }) =>
+    apiClient.get('/analytics/revenue', { params }),
+  getTopCampaigns: (limit?: number) =>
+    apiClient.get('/analytics/top-campaigns', { params: { limit } }),
+  
+  // Analytics Tracking
+  trackImpression: (data: any) => apiClient.post('/analytics/track/impression', data),
+  trackClick: (data: any) => apiClient.post('/analytics/track/click', data),
+  trackConversion: (data: any) => apiClient.post('/analytics/track/conversion', data),
   
   // SSP Dashboard & Analytics
   getSSPDashboard: (publisherId?: string) => 

@@ -5,9 +5,12 @@ metadata:
   name: fraud-detection-config
   namespace: taskir
 data:
+  CLICKHOUSE_HOST: clickhouse
+  CLICKHOUSE_PORT: "8123"
   PORT: "6001"
   LOG_LEVEL: INFO
   MODEL_VERSION: v2.3.1
+  IP_REPUTATION_API_KEY: "dummy-key-for-now"
   REDIS_HOST: redis
   REDIS_PORT: "6379"
 
@@ -18,7 +21,7 @@ metadata:
   name: fraud-detection
   namespace: taskir
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: fraud-detection
@@ -33,7 +36,7 @@ spec:
     spec:
       containers:
       - name: fraud-detection
-        image: your-registry/taskir-fraud-detection:latest
+        image: sin.ocir.io/axoodqjqcaam/taskir-fraud-detection:latest
         ports:
         - containerPort: 6001
         envFrom:
@@ -43,11 +46,11 @@ spec:
             name: redis-secret
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "128Mi"
+            cpu: "50m"
           limits:
-            memory: "2Gi"
-            cpu: "2000m"
+            memory: "1Gi"
+            cpu: "1000m"
         livenessProbe:
           httpGet:
             path: /api/health
@@ -83,6 +86,8 @@ metadata:
   name: ad-matching-config
   namespace: taskir
 data:
+  CLICKHOUSE_HOST: clickhouse
+  CLICKHOUSE_PORT: "8123"
   PORT: "6002"
   LOG_LEVEL: INFO
   DEFAULT_STRATEGY: hybrid
@@ -100,7 +105,7 @@ metadata:
   name: ad-matching
   namespace: taskir
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ad-matching
@@ -115,7 +120,7 @@ spec:
     spec:
       containers:
       - name: ad-matching
-        image: your-registry/taskir-ad-matching:latest
+        image: sin.ocir.io/axoodqjqcaam/taskir-ad-matching:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 6002
@@ -128,8 +133,8 @@ spec:
             name: pinecone-secret
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: "128Mi"
+            cpu: "50m"
           limits:
             memory: "1Gi"
             cpu: "1000m"
@@ -168,6 +173,8 @@ metadata:
   name: bid-optimization-config
   namespace: taskir
 data:
+  CLICKHOUSE_HOST: clickhouse
+  CLICKHOUSE_PORT: "8123"
   PORT: "6003"
   LOG_LEVEL: INFO
   EXPLORATION_RATE: "0.1"
@@ -183,7 +190,7 @@ metadata:
   name: bid-optimization
   namespace: taskir
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: bid-optimization
@@ -198,7 +205,7 @@ spec:
     spec:
       containers:
       - name: bid-optimization
-        image: your-registry/taskir-bid-optimization:latest
+        image: sin.ocir.io/axoodqjqcaam/taskir-bid-optimization:latest
         ports:
         - containerPort: 6003
         envFrom:
@@ -208,11 +215,11 @@ spec:
             name: redis-secret
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "128Mi"
+            cpu: "50m"
           limits:
-            memory: "2Gi"
-            cpu: "2000m"
+            memory: "1Gi"
+            cpu: "1000m"
         livenessProbe:
           httpGet:
             path: /api/health

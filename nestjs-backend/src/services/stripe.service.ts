@@ -263,7 +263,25 @@ export class StripeService {
       `stripe:subscription:${userId}`,
       'data',
     );
-    return data ? JSON.parse(data) : null;
+    if (!data) {
+      return null;
+    }
+
+    const parsed = JSON.parse(data);
+    parsed.createdAt = parsed.createdAt ? new Date(parsed.createdAt) : parsed.createdAt;
+    parsed.nextBillingDate = parsed.nextBillingDate
+      ? new Date(parsed.nextBillingDate)
+      : parsed.nextBillingDate;
+    parsed.currentPeriodStart = parsed.currentPeriodStart
+      ? new Date(parsed.currentPeriodStart)
+      : parsed.currentPeriodStart;
+    parsed.currentPeriodEnd = parsed.currentPeriodEnd
+      ? new Date(parsed.currentPeriodEnd)
+      : parsed.currentPeriodEnd;
+    parsed.upgradedAt = parsed.upgradedAt ? new Date(parsed.upgradedAt) : parsed.upgradedAt;
+    parsed.canceledAt = parsed.canceledAt ? new Date(parsed.canceledAt) : parsed.canceledAt;
+
+    return parsed;
   }
 
   /**

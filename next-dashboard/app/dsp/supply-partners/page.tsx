@@ -68,7 +68,7 @@ export default function SupplyPartnersPage() {
   const [editingPartner, setEditingPartner] = useState<SupplyPartner | null>(null)
   const [formData, setFormData] = useState({
     name: '',
-    type: 'rtb',
+    type: 'exchange',
     endpointUrl: '',
     qpsLimit: 10000,
     timeoutMs: 100,
@@ -91,7 +91,7 @@ export default function SupplyPartnersPage() {
           id: '1',
           name: 'Google Ad Exchange',
           status: 'active',
-          type: 'rtb',
+          type: 'exchange',
           endpointUrl: 'https://adx.google.com/openrtb',
           qpsLimit: 50000,
           timeoutMs: 100,
@@ -247,10 +247,10 @@ export default function SupplyPartnersPage() {
 
   const getTypeBadge = (type: string) => {
     switch (type) {
-      case 'rtb':
-        return <Badge variant="outline" className="text-blue-500 border-blue-500">RTB</Badge>
-      case 'header_bidding':
-        return <Badge variant="outline" className="text-purple-500 border-purple-500">Header Bidding</Badge>
+      case 'exchange':
+        return <Badge variant="outline" className="text-blue-500 border-blue-500">Exchange</Badge>
+      case 'ssp':
+        return <Badge variant="outline" className="text-purple-500 border-purple-500">SSP</Badge>
       case 'direct':
         return <Badge variant="outline" className="text-green-500 border-green-500">Direct</Badge>
       default:
@@ -314,8 +314,8 @@ export default function SupplyPartnersPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="rtb">RTB (OpenRTB)</SelectItem>
-                        <SelectItem value="header_bidding">Header Bidding</SelectItem>
+                        <SelectItem value="exchange">Ad Exchange</SelectItem>
+                        <SelectItem value="ssp">SSP</SelectItem>
                         <SelectItem value="direct">Direct</SelectItem>
                       </SelectContent>
                     </Select>

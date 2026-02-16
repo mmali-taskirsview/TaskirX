@@ -466,7 +466,24 @@ export class OnboardingService {
 
   private async getOnboardingData(userId: string): Promise<any> {
     const data = await this.redisClient.hget(`onboarding:${userId}`, 'data');
-    return data ? JSON.parse(data) : null;
+    if (!data) {
+      return null;
+    }
+
+    const parsed = JSON.parse(data);
+    if (parsed?.timeline) {
+      parsed.timeline.startedAt = parsed.timeline.startedAt
+        ? new Date(parsed.timeline.startedAt)
+        : parsed.timeline.startedAt;
+      parsed.timeline.currentStageStartedAt = parsed.timeline.currentStageStartedAt
+        ? new Date(parsed.timeline.currentStageStartedAt)
+        : parsed.timeline.currentStageStartedAt;
+      parsed.timeline.estimatedCompletionAt = parsed.timeline.estimatedCompletionAt
+        ? new Date(parsed.timeline.estimatedCompletionAt)
+        : parsed.timeline.estimatedCompletionAt;
+    }
+
+    return parsed;
   }
 
   private getStageConfig(stage: number): any {

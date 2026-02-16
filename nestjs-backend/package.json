@@ -62,8 +62,9 @@
     "@typescript-eslint/parser": "^8.54.0",
     "eslint": "^9.39.2",
     "jest": "^30.2.0",
-    "socket.io": "^4.8.3",
-    "supertest": "^7.2.2",
+  "socket.io": "^4.8.3",
+  "supertest": "^7.2.2",
+  "pg-mem": "^3.0.5",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

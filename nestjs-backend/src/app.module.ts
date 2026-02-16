@@ -17,6 +17,14 @@ import { TargetingModule } from './modules/targeting/targeting.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
+import { AdvancedController } from './modules/advanced.controller';
+import { PaymentsController } from './modules/payments.controller';
+import { OnboardingController } from './modules/onboarding.controller';
+import { AnalyticsService } from './services/analytics.service';
+import { BiddingOptimizationService } from './services/bidding-optimization.service';
+import { BillingService } from './services/billing.service';
+import { OnboardingService } from './services/onboarding.service';
+import { StripeService } from './services/stripe.service';
 
 @Module({
   imports: [
@@ -86,6 +94,13 @@ import { AppController } from './app.controller';
     RedisModule,
     TargetingModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AdvancedController, PaymentsController, OnboardingController],
+  providers: [
+    AnalyticsService,
+    BiddingOptimizationService,
+    BillingService,
+    OnboardingService,
+    StripeService,
+  ],
 })
 export class AppModule {}

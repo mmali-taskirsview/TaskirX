@@ -52,7 +52,7 @@ if (Test-Path "terraform-oci/terraform.tfvars") {
     }
 }
 
-if ($orgKeyPath -and (Test-Path $ociKeyPath)) {
+if (Test-Path $ociKeyPath) {
     Write-Status -Item "OCI Key" -Status "OK" -Details "Found at $ociKeyPath"
 } else {
     Write-Status -Item "OCI Key" -Status "WARNING" -Details "Not found at $ociKeyPath. Ensure your terraform.tfvars points to a valid pem file."

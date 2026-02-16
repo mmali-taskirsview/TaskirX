@@ -16,7 +16,7 @@ import { BidPrediction, ModelPerformance } from '../services/bidding.types';
 
 @ApiTags('advanced')
 @ApiBearerAuth()
-@Controller('api/advanced')
+@Controller('advanced')
 export class AdvancedController {
   constructor(
     private readonly analyticsService: AnalyticsService,

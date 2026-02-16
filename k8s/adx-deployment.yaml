@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: adx-ingress-service
+  namespace: default
+  annotations:
+    service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+    service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+    service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "100"
+    # Attach the Cloudflare-Only NSG ID here (you get this from terraform output)
+    # oci.oraclecloud.com/load-balancer-nsg-ids: "ocid1.networksecuritygroup.oc1..." 
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: adx-engine
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adx-engine
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: adx-engine
+  template:
+    metadata:
+      labels:
+        app: adx-engine
+    spec:
+      containers:
+      - name: adx-engine
+        image: <region>.ocir.io/<tenancy>/adx-engine:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: adx-secrets
+              key: pinecone-api-key
+        - name: PINECONE_ENV
+          value: "us-west1-gcp"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"

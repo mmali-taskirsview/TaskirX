@@ -20,19 +20,20 @@ import {
 } from 'lucide-react'
 
 interface DashboardStats {
+  totalRequests: number
   totalBids: number
   totalWins: number
   totalSpend: number
   winRate: number
   avgCpm: number
-  avgBidPrice: number
   activeSupplyPartners: number
   activeDeals: number
+  activeAudiences: number
   activeBidStrategies: number
-  totalAudiences: number
-  todayBids: number
-  todayWins: number
-  todaySpend: number
+  // Frontend/UI specific (optional/derived)
+  todayBids?: number
+  todayWins?: number
+  todaySpend?: number
 }
 
 export default function DSPDashboardPage() {
@@ -44,22 +45,29 @@ export default function DSPDashboardPage() {
     try {
       setLoading(true)
       const response = await api.getDSPDashboard()
-      setStats(response.data)
+      setStats({
+        ...response.data,
+        // Default missing fields for UI compatibility
+        todayBids: 0,
+        todayWins: 0,
+        todaySpend: 0,
+        // avgBidPrice: derived or mock
+      })
       setError(null)
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard')
       // Set mock data for demo
       setStats({
+        totalRequests: 25000000,
         totalBids: 15847293,
         totalWins: 2847584,
         totalSpend: 145892.47,
         winRate: 17.97,
         avgCpm: 2.85,
-        avgBidPrice: 0.00285,
         activeSupplyPartners: 12,
         activeDeals: 28,
         activeBidStrategies: 15,
-        totalAudiences: 42,
+        activeAudiences: 42,
         todayBids: 1247583,
         todayWins: 224584,
         todaySpend: 12458.92
@@ -215,7 +223,7 @@ export default function DSPDashboardPage() {
             <Users className="h-4 w-4 text-pink-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAudiences}</div>
+            <div className="text-2xl font-bold">{stats?.activeAudiences}</div>
             <p className="text-xs text-muted-foreground">Targeting segments</p>
           </CardContent>
         </Card>

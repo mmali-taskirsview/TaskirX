@@ -1,15 +1,15 @@
-resource "pinecone_index" "taskir_ads" {
-  name      = "taskir-ads"
-  dimension = 1536 # For OpenAI embeddings or similar
-  metric    = "cosine"
+resource "pinecone_index" "ad_vectors" {
+  name = "ad-vectors"
+  dimension = 1536
+  metric = "cosine"
   spec = {
     serverless = {
-      cloud = "aws" 
+      cloud = "aws"
       region = "us-east-1"
     }
   }
 }
 
-output "pinecone_index_host" {
-  value = pinecone_index.taskir_ads.host
+output "pinecone_host" {
+  value = pinecone_index.ad_vectors.host
 }

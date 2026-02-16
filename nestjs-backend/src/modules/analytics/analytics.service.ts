@@ -88,6 +88,20 @@ export class AnalyticsService implements OnModuleInit {
     }
   }
 
+  private normalizeTimestamp(timestamp?: Date | string | number): Date {
+    if (!timestamp) {
+      return new Date();
+    }
+
+    const dateObj = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    if (Number.isNaN(dateObj.getTime())) {
+      this.logger.warn(`Invalid timestamp provided (${timestamp}); defaulting to now.`);
+      return new Date();
+    }
+
+    return dateObj;
+  }
+
   async getCampaignStats(campaignId: string, dateFrom: Date, dateTo: Date): Promise<any> {
     const campaign = await this.campaignRepository.findOne({ where: { id: campaignId } });
     if (!campaign) {
@@ -295,9 +309,9 @@ export class AnalyticsService implements OnModuleInit {
     publisherId: string;
     deviceType: string;
     country: string;
-    timestamp: Date | string;
+    timestamp?: Date | string;
   }): Promise<void> {
-    const dateObj = new Date(data.timestamp);
+    const dateObj = this.normalizeTimestamp(data.timestamp);
     const formattedDate = dateObj.toISOString().replace('T', ' ').substring(0, 19);
     const query = `INSERT INTO analytics.impressions (id, campaignId, publisherId, deviceType, country, timestamp) VALUES ('${crypto.randomUUID()}', '${data.campaignId}', '${data.publisherId}', '${data.deviceType}', '${data.country}', '${formattedDate}')`;
     await this.executeQuery(query);
@@ -306,9 +320,9 @@ export class AnalyticsService implements OnModuleInit {
   async trackClick(data: {
     impressionId: string;
     campaignId: string;
-    timestamp: Date | string;
+    timestamp?: Date | string;
   }): Promise<void> {
-    const dateObj = new Date(data.timestamp);
+    const dateObj = this.normalizeTimestamp(data.timestamp);
     const formattedDate = dateObj.toISOString().replace('T', ' ').substring(0, 19);
     const query = `INSERT INTO analytics.clicks (id, impressionId, campaignId, timestamp) VALUES ('${crypto.randomUUID()}', '${data.impressionId}', '${data.campaignId}', '${formattedDate}')`;
     await this.executeQuery(query);
@@ -318,9 +332,9 @@ export class AnalyticsService implements OnModuleInit {
     clickId: string;
     campaignId: string;
     conversionValue: number;
-    timestamp: Date | string;
+    timestamp?: Date | string;
   }): Promise<void> {
-    const dateObj = new Date(data.timestamp);
+    const dateObj = this.normalizeTimestamp(data.timestamp);
     const formattedDate = dateObj.toISOString().replace('T', ' ').substring(0, 19);
     const query = `INSERT INTO analytics.conversions (id, clickId, campaignId, value, timestamp) VALUES ('${crypto.randomUUID()}', '${data.clickId}', '${data.campaignId}', ${data.conversionValue}, '${formattedDate}')`;
     await this.executeQuery(query);

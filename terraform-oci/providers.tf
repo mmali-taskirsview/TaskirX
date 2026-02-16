@@ -12,7 +12,7 @@ terraform {
     }
     pinecone = {
       source = "pinecone-io/pinecone"
-      version = "0.4.2"
+      version = ">= 0.1.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"

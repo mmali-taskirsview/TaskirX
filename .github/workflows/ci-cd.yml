@@ -82,9 +82,12 @@ jobs:
       - name: Install
         working-directory: ./nestjs-backend
         run: npm ci
-      - name: Test
+      - name: Unit Tests
         working-directory: ./nestjs-backend
         run: npm test
+      - name: E2E Tests
+        working-directory: ./nestjs-backend
+        run: npm run test:e2e
 
   # ============================================================================
   # UNIT TESTS

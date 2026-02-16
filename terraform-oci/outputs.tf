@@ -10,9 +10,9 @@ output "cluster_name" {
   value = var.cluster_name
 }
 
-output "pinecone_host" {
-  value = pinecone_index.taskir_ads.host
-}
+# output "pinecone_host" {
+#   value = pinecone_index.taskir_ads.host
+# }
 
 output "vcn_id" {
   value = oci_core_vcn.taskir_vcn.id

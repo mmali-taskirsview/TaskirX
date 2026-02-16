@@ -7,7 +7,7 @@ data:
   PORT: "8080"
   REDIS_HOST: redis
   REDIS_PORT: "6379"
-  BACKEND_API_URL: http://nestjs-backend:3000
+  BACKEND_API_URL: http://nestjs-backend:3000/api
   AI_SERVICE_URL: http://ad-matching:6002/api
   FRAUD_SERVICE_URL: http://fraud-detection:6001/api
   OPTIMIZATION_SERVICE_URL: http://bid-optimization:6003/api
@@ -29,7 +29,7 @@ metadata:
   name: go-bidding
   namespace: taskir
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: go-bidding
@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
       - name: go-bidding
-        image: your-registry/taskir-go-bidding:latest
+        image: sin.ocir.io/axoodqjqcaam/taskir-go-bidding:latest
         ports:
         - containerPort: 8080
         envFrom:
@@ -54,11 +54,11 @@ spec:
             name: go-bidding-secret
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "250m"
+            memory: "64Mi"
+            cpu: "50m"
           limits:
-            memory: "512Mi"
-            cpu: "1000m"
+            memory: "256Mi"
+            cpu: "250m"
         livenessProbe:
           httpGet:
             path: /health
@@ -71,10 +71,6 @@ spec:
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 3
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "go mod tidy && go mod download && go mod verify"]
 
 ---
 apiVersion: v1
@@ -101,8 +97,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: go-bidding
-  minReplicas: 5
-  maxReplicas: 20
+  minReplicas: 1
+  maxReplicas: 1
   metrics:
   - type: Resource
     resource:

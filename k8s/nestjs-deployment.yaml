@@ -27,7 +27,7 @@ stringData:
   DATABASE_PASSWORD: taskir_secure_password_2026
   REDIS_PASSWORD: taskir_redis_password_2026
   CLICKHOUSE_PASSWORD: clickhouse_password_2026
-  JWT_SECRET: your-super-secret-jwt-key-here
+  JWT_SECRET: super-long-secure-taskir-jwt-secret-key-2026-v2
   JWT_REFRESH_SECRET: your-super-secret-refresh-key-here
 
 ---
@@ -37,7 +37,7 @@ metadata:
   name: nestjs-backend
   namespace: taskir
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: nestjs-backend
@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
       - name: nestjs
-        image: your-registry/taskir-nestjs:latest
+        image: sin.ocir.io/axoodqjqcaam/taskir-nestjs:latest
         ports:
         - containerPort: 3000
         envFrom:
@@ -58,20 +58,20 @@ spec:
             name: nestjs-secret
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "256Mi"
+            cpu: "100m"
           limits:
-            memory: "2Gi"
-            cpu: "2000m"
+            memory: "1Gi"
+            cpu: "1000m"
         livenessProbe:
           httpGet:
-            path: /health
+            path: /api/health/live
             port: 3000
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health
+            path: /api/health/ready
             port: 3000
           initialDelaySeconds: 10
           periodSeconds: 5
@@ -101,8 +101,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: nestjs-backend
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 1
+  maxReplicas: 1
   metrics:
   - type: Resource
     resource:

@@ -359,9 +359,15 @@ function Deploy-K8s-Manifests {
         "python-services-deployment.yaml", # AI Agents
         "nestjs-deployment.yaml",
         "go-bidding-deployment.yaml",
-        "next-dashboard-deployment.yaml",
-        "ingress.yaml"
+        "next-dashboard-deployment.yaml"
     )
+
+    # Select appropriate ingress for the environment
+    if ($Environment -eq "oci") {
+        $manifests += "ingress-oci.yaml"
+    } else {
+        $manifests += "ingress.yaml"
+    }
 
     foreach ($file in $manifests) {
         $path = Join-Path ".\k8s" $file
@@ -448,22 +454,21 @@ Deployment Details:
   Date:         $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
   Action:       $Action
   Dry Run:      $DryRun
-  Auto Approve: $AutoApprove
 
 Infrastructure Status:
-  Terraform:    ✅ Deployed
-  Kubernetes:   ✅ Deployed
-  Helm:         ✅ Deployed
-  Database:     ✅ Configured
+  Terraform:    Deployed
+  Kubernetes:   Deployed
+  Helm:         Deployed
+  Database:     Configured
 
 Endpoints:
 "@
 
     if (-not $DryRun) {
         Push-Location $TerraformPath
-        $rdsEndpoint = terraform output -raw rds_endpoint 2>/dev/null
-        $s3Bucket = terraform output -raw s3_bucket_name 2>/dev/null
-        $cloudfrontDomain = terraform output -raw cloudfront_domain 2>/dev/null
+        $rdsEndpoint = terraform output -raw rds_endpoint 2>$null
+        $s3Bucket = terraform output -raw s3_bucket_name 2>$null
+        $cloudfrontDomain = terraform output -raw cloudfront_domain 2>$null
         Pop-Location
         
         $report += "  RDS:          $rdsEndpoint`n"
@@ -471,7 +476,7 @@ Endpoints:
         $report += "  CDN:          $cloudfrontDomain`n"
     }
 
-    $report += "`n✅ Deployment completed successfully`n"
+    $report += "`nDeployment completed`n"
     
     Write-Host $report
     
@@ -518,19 +523,15 @@ function Main {
         }
         default {
             Write-Error "Unknown action: $Action. Use 'plan', 'apply', 'destroy', or 'verify'"
-
-    Write-Host "Deployment script completed" -ForegroundColor Green
-}
-
-# Execute
-Main
-
             exit 1
         }
     }
 
     Write-Host "Deployment script completed" -ForegroundColor Green
 }
+
+# Execute
+Main
 
 # Execute
 Main
