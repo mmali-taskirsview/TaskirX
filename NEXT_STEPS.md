@@ -30,6 +30,13 @@ In your GitHub Repo Settings -> Secrets -> Actions, add:
 - `OCI_TENANCY_OCID`: Your tenancy ID.
 - `OCI_USER_OCID`: Your user ID.
 
+### 4. Verify Performance Tests
+Locust tests are now fully functional and validating all core endpoints:
+- SSP Auction: 200 OK
+- DSP Bidding: 201 OK
+- Analytics: All tracking endpoints (Impression, Click, Conversion) validated with 200/201.
+- Authentication: Locust now automatically handles user registration/login to support protected endpoints.
+
 ---
 
 ## Alternative Path: Local Deployment (Advanced)
