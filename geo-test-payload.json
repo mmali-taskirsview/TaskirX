@@ -1,0 +1,25 @@
+{
+  "id": "req-geo-001",
+  "publisher_id": "pub-001",
+  "ad_slot": {
+    "id": "slot-001",
+    "dimensions": [300, 250],
+    "position": "above-fold",
+    "formats": ["banner"]
+  },
+  "user": {
+    "id": "user-001",
+    "country": "US",
+    "age": 25
+  },
+  "device": {
+    "type": "mobile",
+    "os": "ios",
+    "geo": {
+      "lat": 40.7128,
+      "lon": -74.0060,
+      "country": "US",
+      "city": "New York"
+    }
+  }
+}

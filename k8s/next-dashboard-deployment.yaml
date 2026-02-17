@@ -4,14 +4,15 @@ metadata:
   name: next-dashboard-config
   namespace: taskir
 data:
+  NEXT_PUBLIC_USE_MOCK_DATA: "false"
   NODE_ENV: production
   PORT: "3001"
-  NEXT_PUBLIC_API_URL: https://api.taskir.com
-  NEXT_PUBLIC_BIDDING_URL: https://bidding.taskir.com/api
-  NEXT_PUBLIC_BACKEND_URL: https://api.taskir.com/api
-  NEXT_PUBLIC_FRAUD_URL: https://api.taskir.com/fraud/api
-  NEXT_PUBLIC_MATCHING_URL: https://api.taskir.com/matching/api
-  NEXT_PUBLIC_OPTIMIZATION_URL: https://api.taskir.com/optimization/api
+  NEXT_PUBLIC_API_URL: https://api.taskirx.com
+  NEXT_PUBLIC_BIDDING_URL: https://bidding.taskirx.com/api
+  NEXT_PUBLIC_BACKEND_URL: https://api.taskirx.com/api
+  NEXT_PUBLIC_FRAUD_URL: https://api.taskirx.com/fraud/api
+  NEXT_PUBLIC_MATCHING_URL: https://api.taskirx.com/matching/api
+  NEXT_PUBLIC_OPTIMIZATION_URL: https://api.taskirx.com/optimization/api
 
 ---
 apiVersion: apps/v1

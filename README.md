@@ -1,11 +1,13 @@
 # 🚀 TaskirX - Polyglot High-Performance Ad Exchange
 
-[![Status](https://img.shields.io/badge/Status-Phase%204%20Complete-success)](.)
+[![Status](https://img.shields.io/badge/Status-LIVE-brightgreen)](https://dashboard.taskirx.com)
 [![Backend](https://img.shields.io/badge/Backend-NestJS%20%7C%20Go%20%7C%20Python-blue)](.)
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Next.js-blueviolet)](.)
 [![Database](https://img.shields.io/badge/Data-PostgreSQL%20%7C%20ClickHouse%20%7C%20Redis-green)](.)
 
 **TaskirX** is a next-generation Ad Exchange platform architected for extreme scale and intelligence. It moves beyond a monolithic NodeJS app to a microservices architecture leveraging the best tool for each job: **Go** for low-latency bidding, **Python** for AI/ML, **NestJS** for robust business logic, and **ClickHouse** for real-time analytics.
+
+### 🌐 Live Platform: [TaskirX.com](https://dashboard.taskirx.com)
 
 ## 🏗️ Architecture
 

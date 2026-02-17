@@ -9,6 +9,20 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value
   const userRole = request.cookies.get('user-role')?.value // 'advertiser' | 'publisher' | 'admin'
 
+  // If user is already authenticated and visits /login, redirect to dashboard
+  if (pathname === '/login' && token && userRole) {
+    if (userRole === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+    if (userRole === 'advertiser') {
+      return NextResponse.redirect(new URL('/client', request.url))
+    }
+    if (userRole === 'publisher') {
+      return NextResponse.redirect(new URL('/publisher', request.url))
+    }
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // Public paths that don't require authentication
   const publicPaths = ['/login', '/register', '/forgot-password', '/']
   if (publicPaths.some(path => pathname === path || pathname.startsWith('/api/auth'))) {

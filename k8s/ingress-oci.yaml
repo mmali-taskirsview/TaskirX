@@ -12,12 +12,14 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - dashboard.taskir.com
-    - api.taskir.com
-    - bidding.taskir.com
+    - taskirx.com
+    - www.taskirx.com
+    - dashboard.taskirx.com
+    - api.taskirx.com
+    - bidding.taskirx.com
     secretName: taskir-tls-secret
   rules:
-  - host: dashboard.taskir.com
+  - host: taskirx.com
     http:
       paths:
       - path: /
@@ -27,7 +29,27 @@ spec:
             name: next-dashboard
             port:
               number: 3001
-  - host: api.taskir.com
+  - host: www.taskirx.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: next-dashboard
+            port:
+              number: 3001
+  - host: dashboard.taskirx.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: next-dashboard
+            port:
+              number: 3001
+  - host: api.taskirx.com
     http:
       paths:
       - path: /
@@ -37,7 +59,7 @@ spec:
             name: nestjs-backend
             port:
               number: 3000
-  - host: bidding.taskir.com
+  - host: bidding.taskirx.com
     http:
       paths:
       - path: /

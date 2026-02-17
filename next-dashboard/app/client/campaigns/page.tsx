@@ -21,6 +21,7 @@ import {
   BarChart3,
   Loader2,
 } from 'lucide-react'
+import { CreateCampaignModal } from '@/components/campaigns/CreateCampaignModal'
 
 interface Campaign {
   id: string | number;
@@ -49,43 +50,44 @@ export default function ClientCampaigns() {
   const [typeFilter, setTypeFilter] = useState('All Types')
   const [showCreateModal, setShowCreateModal] = useState(false)
 
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const response = await api.getCampaigns()
-        const data = response.data || response || []
-        
-        // Transform API data to expected format
-        const transformed = data.map((c: any) => ({
-          id: c.id,
-          name: c.name || 'Unnamed Campaign',
-          status: c.status || 'draft',
-          type: c.type || c.adFormat || 'Display Banner',
-          budget: Number(c.budget) || 0,
-          spent: Number(c.spent) || Number(c.totalSpent) || 0,
-          impressions: Number(c.impressions) || 0,
-          clicks: Number(c.clicks) || 0,
-          conversions: Number(c.conversions) || 0,
-          ctr: Number(c.ctr) || (c.impressions > 0 ? ((c.clicks / c.impressions) * 100) : 0),
-          cpc: Number(c.cpc) || (c.clicks > 0 ? (c.spent / c.clicks) : 0),
-          roas: Number(c.roas) || 0,
-          startDate: c.startDate || c.createdAt || new Date().toISOString(),
-          endDate: c.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        }))
-        
-        setCampaigns(transformed)
-      } catch (error) {
-        console.error('Failed to fetch campaigns:', error)
-        // Fallback to demo data if API fails
-        setCampaigns([
-          { id: 1, name: 'Summer Sale 2026', status: 'active', type: 'Display Banner', budget: 50000, spent: 32450, impressions: 2400000, clicks: 48000, conversions: 1840, ctr: 2.0, cpc: 0.68, roas: 4.2, startDate: '2026-01-15', endDate: '2026-02-28' },
-          { id: 2, name: 'App Install Campaign', status: 'active', type: 'Rewarded Video', budget: 30000, spent: 18320, impressions: 1200000, clicks: 36000, conversions: 2400, ctr: 3.0, cpc: 0.51, roas: 5.8, startDate: '2026-01-20', endDate: '2026-03-15' },
-        ])
-      } finally {
-        setLoading(false)
-      }
+  const fetchCampaigns = async () => {
+    setLoading(true)
+    try {
+      const response = await api.getCampaigns()
+      const data = response.data || response || []
+      
+      // Transform API data to expected format
+      const transformed = data.map((c: any) => ({
+        id: c.id,
+        name: c.name || 'Unnamed Campaign',
+        status: c.status || 'draft',
+        type: c.type || c.adFormat || 'Display Banner',
+        budget: Number(c.budget) || 0,
+        spent: Number(c.spent) || Number(c.totalSpent) || 0,
+        impressions: Number(c.impressions) || 0,
+        clicks: Number(c.clicks) || 0,
+        conversions: Number(c.conversions) || 0,
+        ctr: Number(c.ctr) || (c.impressions > 0 ? ((c.clicks / c.impressions) * 100) : 0),
+        cpc: Number(c.cpc) || (c.clicks > 0 ? (c.spent / c.clicks) : 0),
+        roas: Number(c.roas) || 0,
+        startDate: c.startDate || c.createdAt || new Date().toISOString(),
+        endDate: c.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }))
+      
+      setCampaigns(transformed)
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error)
+      // Fallback to demo data if API fails
+      setCampaigns([
+        { id: 1, name: 'Summer Sale 2026', status: 'active', type: 'Display Banner', budget: 50000, spent: 32450, impressions: 2400000, clicks: 48000, conversions: 1840, ctr: 2.0, cpc: 0.68, roas: 4.2, startDate: '2026-01-15', endDate: '2026-02-28' },
+        { id: 2, name: 'App Install Campaign', status: 'active', type: 'Rewarded Video', budget: 30000, spent: 18320, impressions: 1200000, clicks: 36000, conversions: 2400, ctr: 3.0, cpc: 0.51, roas: 5.8, startDate: '2026-01-20', endDate: '2026-03-15' },
+      ])
+    } finally {
+      setLoading(false)
     }
-    
+  }
+
+  useEffect(() => {
     fetchCampaigns()
   }, [])
 
@@ -302,6 +304,13 @@ export default function ClientCampaigns() {
           </table>
         </div>
       </div>
+
+      {/* Create Campaign Modal */}
+      <CreateCampaignModal 
+        open={showCreateModal} 
+        onOpenChange={setShowCreateModal} 
+        onSuccess={fetchCampaigns}
+      />
     </div>
   )
 }

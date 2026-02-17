@@ -10,31 +10,40 @@ param(
     [switch]$DryRun = $false
 )
 
-# Auto-detect Terraform path for OCI
-if ($Environment -eq "oci" -and $TerraformPath -eq "./terraform") {
-    $TerraformPath = "./terraform-oci"
-    Write-Info "Switched Terraform path to ./terraform-oci for OCI environment"
+# Detect local bin directory and add to PATH if detected
+if (Test-Path "$PSScriptRoot/../bin") {
+    $LocalBinDir = Resolve-Path "$PSScriptRoot/../bin"
+    if ($env:Path -notlike "*$LocalBinDir*") {
+        Write-Host "[INFO] Adding detected local bin directory to PATH: $LocalBinDir" -ForegroundColor Blue
+        $env:Path = "$LocalBinDir;$env:Path"
+    }
 }
 
-# Color output for better visibility
+# Helper Functions
 function Write-Success {
     param([string]$Message)
-    Write-Host "✅ $Message" -ForegroundColor Green
+    Write-Host "[SUCCESS] $Message" -ForegroundColor Green
 }
 
 function Write-Error {
     param([string]$Message)
-    Write-Host "❌ $Message" -ForegroundColor Red
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
 function Write-Warning {
     param([string]$Message)
-    Write-Host "⚠️  $Message" -ForegroundColor Yellow
+    Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "ℹ️  $Message" -ForegroundColor Blue
+    Write-Host "[INFO] $Message" -ForegroundColor Blue
+}
+
+# Auto-detect Terraform path for OCI
+if ($Environment -eq "oci" -and $TerraformPath -eq "./terraform") {
+    $TerraformPath = "./terraform-oci"
+    Write-Info "Switched Terraform path to ./terraform-oci for OCI environment"
 }
 
 # Prerequisites check
@@ -486,10 +495,7 @@ Endpoints:
 
 # Main execution
 function Main {
-    Write-Host ""
-    Write-Host "╔════════════════════════════════════════════════════════════════════╗"
-    Write-Host "║          TASKIR DEPLOYMENT AUTOMATION SCRIPT                       ║"
-    Write-Host "╚════════════════════════════════════════════════════════════════════╝"
+    Write-Host "TASKIR DEPLOYMENT AUTOMATION SCRIPT"
     Write-Host ""
     
     Write-Info "Configuration:"
@@ -502,36 +508,33 @@ function Main {
     Initialize-Terraform
     Test-TerraformConfig
     
-    switch ($Action.ToLower()) {
-        "plan" {
-            Plan-Terraform
-        }
-        "apply" {
-            Plan-Terraform
-            Apply-Terraform
-            Deploy-Helm
-            Deploy-Kubernetes
-            Test-Deployment
-            Backup-Database
-            Generate-Report
-        }
-        "destroy" {
-            Destroy-Terraform
-        }
-        "verify" {
-            Test-Deployment
-        }
-        default {
-            Write-Error "Unknown action: $Action. Use 'plan', 'apply', 'destroy', or 'verify'"
-            exit 1
-        }
+    $act = $Action.ToLower()
+    
+    if ($act -eq "plan") {
+        Plan-Terraform
+    }
+    elseif ($act -eq "apply") {
+        Plan-Terraform
+        Apply-Terraform
+        Deploy-Helm
+        Deploy-Kubernetes
+        Test-Deployment
+        Backup-Database
+        Generate-Report
+    }
+    elseif ($act -eq "destroy") {
+        Destroy-Terraform
+    }
+    elseif ($act -eq "verify") {
+        Test-Deployment
+    }
+    else {
+        Write-Host "Unknown action: $Action"
+        exit 1
     }
 
-    Write-Host "Deployment script completed" -ForegroundColor Green
+    Write-Host "Deployment script finished."
 }
 
-# Execute
-Main
-
-# Execute
+# START EXECUTION
 Main

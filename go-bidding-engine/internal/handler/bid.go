@@ -30,10 +30,10 @@ func (h *BidHandler) HandleBid(c *gin.Context) {
 	metrics.BidRequestsTotal.Inc()
 
 	var req model.BidRequest
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid request format",
+			"error":   "Invalid request format",
 			"details": err.Error(),
 		})
 		return
@@ -66,8 +66,8 @@ func (h *BidHandler) HandleBid(c *gin.Context) {
 // HandleHealth returns service health status
 func (h *BidHandler) HandleHealth(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status": "healthy",
-		"service": "go-bidding-engine",
+		"status":    "healthy",
+		"service":   "go-bidding-engine",
 		"timestamp": time.Now(),
 	})
 }
@@ -87,18 +87,21 @@ func (h *BidHandler) HandleMetrics(c *gin.Context) {
 
 // HandleRefresh refreshes campaigns from backend
 func (h *BidHandler) HandleRefresh(c *gin.Context) {
-	backendURL := c.DefaultQuery("backend_url", "http://localhost:4000")
-	
+	backendURL := c.Query("backend_url")
+	if backendURL == "" {
+		backendURL = h.biddingService.GetBackendBaseURL()
+	}
+
 	if err := h.biddingService.RefreshCampaigns(backendURL); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to refresh campaigns",
+			"error":   "Failed to refresh campaigns",
 			"details": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Campaigns refreshed successfully",
+		"message":   "Campaigns refreshed successfully",
 		"timestamp": time.Now(),
 	})
 }

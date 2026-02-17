@@ -24,7 +24,7 @@ export default function HomePage() {
                 Login
               </Link>
               <Link 
-                href="/client"
+                href="/login"
                 className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:shadow-lg transition"
               >
                 Get Started
@@ -45,41 +45,24 @@ export default function HomePage() {
             Real-time bidding, fraud detection, and intelligent optimization—all in one place.
           </p>
           
-          {/* Dashboard Selection Cards */}
-          <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto mt-12">
+          {/* Launch App Button */}
+          <div className="mt-12 flex justify-center">
             <Link 
-              href="/client"
-              className="group rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-8 text-left transition-transform hover:scale-105"
+              href="/login"
+              className="group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-10 py-5 text-xl font-bold text-white transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] bg-[length:200%_200%] animate-gradient"
             >
-              <div className="flex items-center justify-between">
-                <Users className="h-10 w-10 text-blue-200" />
-                <ArrowRight className="h-6 w-6 text-blue-200 transition-transform group-hover:translate-x-1" />
+              <div className="flex items-center space-x-3">
+                <Shield className="h-6 w-6" />
+                <span>Launch App</span>
+                <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
               </div>
-              <h2 className="mt-4 text-2xl font-bold text-white">Client Dashboard</h2>
-              <p className="mt-2 text-blue-100">
-                Manage campaigns, analytics, creatives & ROI
-              </p>
-            </Link>
-
-            <Link 
-              href="/admin"
-              className="group rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 p-8 text-left transition-transform hover:scale-105"
-            >
-              <div className="flex items-center justify-between">
-                <Shield className="h-10 w-10 text-purple-200" />
-                <ArrowRight className="h-6 w-6 text-purple-200 transition-transform group-hover:translate-x-1" />
-              </div>
-              <h2 className="mt-4 text-2xl font-bold text-white">Admin Console</h2>
-              <p className="mt-2 text-purple-100">
-                Platform management, revenue & fraud control
-              </p>
             </Link>
           </div>
           
-          <div className="mt-6">
-            <Link href="/dashboard" className="text-gray-400 hover:text-gray-300 text-sm">
-              Access legacy dashboard →
-            </Link>
+          <div className="mt-8 text-center">
+             <p className="text-gray-500 text-sm">
+               Unified Access for Advertisers, Publishers & Admins
+             </p>
           </div>
         </div>
 

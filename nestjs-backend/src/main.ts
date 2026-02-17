@@ -15,9 +15,9 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.NODE_ENV === 'production' 
       ? [
-          'https://dashboard.taskir.com', 
-          'https://api.taskir.com',
-          /\.taskir\.com$/ // Allow all subdomains
+          'https://dashboard.taskirx.com', 
+          'https://api.taskirx.com',
+          /\.taskirx\.com$/ // Allow all subdomains
         ]
       : true,
     credentials: true,

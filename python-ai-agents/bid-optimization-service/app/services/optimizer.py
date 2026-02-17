@@ -3,8 +3,10 @@ Bid Optimization Service - Core Optimization Engine
 """
 import time
 import logging
+import json
+import redis
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -22,6 +24,25 @@ from app.models.schemas import (
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class BanditArmState:
+    multiplier: float
+    alpha: float = 1.0
+    beta: float = 1.0
+    trials: int = 0
+    successes: int = 0
+
+    @property
+    def estimated_success_rate(self) -> float:
+        return self.successes / self.trials if self.trials else 0.5
+
+    def to_dict(self):
+        return asdict(self)
+    
+    @staticmethod
+    def from_dict(data):
+        return BanditArmState(**data)
 
 
 class BidOptimizer:
@@ -43,6 +64,21 @@ class BidOptimizer:
         self.total_bid_multiplier = 0.0
         self.cache_hits = 0
         self.bid_multipliers = self._build_bid_multipliers()
+        
+        # Initialize Redis
+        try:
+            self.redis = redis.Redis(
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
+                db=settings.REDIS_DB,
+                password=settings.REDIS_PASSWORD,
+                decode_responses=True
+            )
+            self.redis.ping()
+            logger.info(f"Connected to Redis at {settings.REDIS_HOST}:{settings.REDIS_PORT}")
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            self.redis = None
 
     # Alias for API endpoint method name compat
     def optimize_bid(self, request: BidOptimizationRequest) -> BidRecommendation:
@@ -114,12 +150,49 @@ class BidOptimizer:
         )
 
     def _get_bandit_state(self, campaign_id: str) -> Dict[float, "BanditArmState"]:
-        if campaign_id not in self.bandit_states:
-            self.bandit_states[campaign_id] = {
-                multiplier: BanditArmState(multiplier=multiplier)
-                for multiplier in self.bid_multipliers
+        # Try to get from local cache first
+        if campaign_id in self.bandit_states:
+             return self.bandit_states[campaign_id]
+
+        # Try to get from Redis
+        if self.redis:
+            try:
+                data = self.redis.get(f"campaign:{campaign_id}:bandit")
+                if data:
+                    serialized = json.loads(data)
+                    state = {
+                        float(k): BanditArmState.from_dict(v) 
+                        for k, v in serialized.items()
+                    }
+                    self.bandit_states[campaign_id] = state
+                    return state
+            except Exception as e:
+                logger.error(f"Redis error fetching bandit state: {e}")
+
+        # Initialize new state if not found
+        state = {
+            multiplier: BanditArmState(multiplier=multiplier)
+            for multiplier in self.bid_multipliers
+        }
+        self.bandit_states[campaign_id] = state
+        
+        # Persist initial state
+        self._save_bandit_state(campaign_id, state)
+        
+        return state
+
+    def _save_bandit_state(self, campaign_id: str, state: Dict[float, "BanditArmState"]):
+        if not self.redis:
+            return
+            
+        try:
+            serialized = {
+                str(k): v.to_dict() 
+                for k, v in state.items()
             }
-        return self.bandit_states[campaign_id]
+            self.redis.set(f"campaign:{campaign_id}:bandit", json.dumps(serialized))
+        except Exception as e:
+            logger.error(f"Redis error saving bandit state: {e}")
 
     def _get_time_of_day_multiplier(self) -> float:
         hour = datetime.now().hour
@@ -146,6 +219,9 @@ class BidOptimizer:
             arm.alpha += 1
         else:
             arm.beta += 1
+            
+        # Persist update
+        self._save_bandit_state(campaign_id, state)
 
     def calculate_budget_pacing(self, request: BudgetPacingRequest) -> BudgetPacingRecommendation:
         budget = request.budget_status
@@ -231,19 +307,6 @@ class BidOptimizer:
     def is_healthy(self) -> bool:
         return len(self.bid_multipliers) > 0
 
-
-@dataclass
-class BanditArmState:
-    multiplier: float
-    alpha: float = 1.0
-    beta: float = 1.0
-    trials: int = 0
-    successes: int = 0
-
-    @property
-    def estimated_success_rate(self) -> float:
-        return self.successes / self.trials if self.trials else 0.5
-    
 
 # Global optimizer instance
 optimizer = BidOptimizer()

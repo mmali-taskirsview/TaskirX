@@ -5,10 +5,11 @@ Write-Host "Opening TaskirX Cloud Dashboards..." -ForegroundColor Cyan
 
 # Define Cloud URLs
 $Urls = @(
-    "https://dashboard.taskir.com",
-    "https://api.taskir.com/api",
-    "https://bidding.taskir.com/health",
+    "https://taskirx.com",
+    "https://api.taskirx.com/health",
+    "https://bidding.taskirx.com/health",
     "https://cloud.oracle.com",
+
     "https://dash.cloudflare.com",
     "https://app.pinecone.io"
 )

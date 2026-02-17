@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: taskir-tls-secret
+  namespace: taskir
+spec:
+  secretName: taskir-tls-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: taskirx.com
+  dnsNames:
+  - taskirx.com
+  - www.taskirx.com
+  - dashboard.taskirx.com
+  - api.taskirx.com
+  - bidding.taskirx.com

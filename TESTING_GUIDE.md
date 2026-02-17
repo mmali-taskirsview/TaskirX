@@ -1000,9 +1000,9 @@ When deployed to Oracle Cloud, testing endpoints change from `localhost` to your
 
 | Service        | Local URL                | Production URL (OCI)          |
 |----------------|--------------------------|-------------------------------|
-| Dashboard      | http://localhost:3001    | https://dashboard.taskir.com  |
-| API Backend    | http://localhost:3000    | https://api.taskir.com        |
-| Bidding Engine | http://localhost:8080    | https://bidding.taskir.com    |
+| Dashboard      | http://localhost:3001    | https://dashboard.taskirx.com  |
+| API Backend    | http://localhost:3000    | https://api.taskirx.com        |
+| Bidding Engine | http://localhost:8080    | https://bidding.taskirx.com    |
 
 **Manual Health Verification**:
 ```bash

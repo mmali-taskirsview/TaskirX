@@ -53,6 +53,7 @@ class AdMatcher:
                 host=settings.REDIS_HOST,
                 port=settings.REDIS_PORT,
                 db=settings.REDIS_DB,
+                password=settings.REDIS_PASSWORD,
                 decode_responses=True
             )
             self.redis.ping()
@@ -103,11 +104,11 @@ class AdMatcher:
     
     def _generate_mock_campaigns(self) -> List[Dict]:
         """Generate mock campaigns for demonstration"""
+        import random
         categories = ["tech", "fashion", "travel", "food", "sports", "gaming", "finance", "health"]
         campaigns = []
         
         for i in range(100):
-            import random
             cat_sample = random.sample(categories, k=random.randint(1, 3))
             campaigns.append({
                 "id": f"camp-{i}",
@@ -115,7 +116,14 @@ class AdMatcher:
                 "advertiser_id": f"adv-{i%10}",
                 "description": f"Best {cat_sample[0]} products for you",
                 "categories": cat_sample,
-                "ctr": random.uniform(0.01, 0.15)
+                "ctr": random.uniform(0.01, 0.15),
+                "cvr": random.uniform(0.005, 0.05),
+                "bid_price": round(random.uniform(0.5, 5.0), 2),
+                "status": "active",
+                "avg_revenue_per_conversion": round(random.uniform(5.0, 50.0), 2),
+                "creative_url": f"https://cdn.example.com/creatives/{i}.jpg",
+                "landing_url": f"https://example.com/products/{i}",
+                "keywords": [f"keyword-{k}" for k in range(3)]
             })
         return campaigns
     
@@ -181,7 +189,7 @@ class AdMatcher:
         
         # Check if user has interacted with this campaign before
         if user.user_id:
-            interactions = self.user_interactions.get(user.user_id, {})
+            interactions = self._get_user_history(user.user_id)
             converted = interactions.get("converted", [])
             clicked = interactions.get("clicked", [])
             viewed = interactions.get("viewed", [])
@@ -305,14 +313,14 @@ class AdMatcher:
         collab_score = 0.5 
         
         # 4. Performance Score (Historical CTR)
-        perf_score = campaign.get("ctr", 0.0) * 10 # Normalize 0.1 CTR to 1.0
+        perf_score = min(campaign.get("ctr", 0.0) * 10, 1.0) # Normalize 0.1 CTR to 1.0
         
         # Calculate weighted average based on strategy
         if strategy == MatchingStrategy.CONTENT_BASED:
             overall = (content_score * 0.8) + (perf_score * 0.2)
         elif strategy == MatchingStrategy.COLLABORATIVE:
             overall = (collab_score * 0.8) + (perf_score * 0.2)
-        elif strategy == MatchingStrategy.PERFORMANCE:
+        elif strategy == MatchingStrategy.PERFORMANCE_BASED:
             overall = perf_score
         else: # HYBRID (Default)
             overall = (
@@ -321,7 +329,7 @@ class AdMatcher:
                 (perf_score * 0.3)
             )
             
-        return overall, collab_score, content_score, perf_score
+        return min(overall, 1.0), collab_score, content_score, perf_score
     
     def _filter_campaigns(self, request: MatchRequest) -> List[Dict]:
         """Filter campaigns based on targeting and constraints"""

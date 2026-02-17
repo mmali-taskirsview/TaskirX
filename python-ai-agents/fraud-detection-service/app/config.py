@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     CLICKHOUSE_DB: str = "taskirx_analytics"
     
     # IP Reputation
-    IP_REPUTATION_API_KEY: str = None
+    IP_REPUTATION_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"

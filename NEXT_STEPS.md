@@ -1,48 +1,46 @@
-# Live Test & Deployment: Next Steps
+# 🚀 Phase 5: Post-Launch Operations & Scaling
 
-Your local environment was missing key tools (`terraform`, `oci`, `python`) and had not been initialized as a Git repository.
+**Current Status:** The platform is **LIVE** at `TaskirX.com`.
+**Cluster:** OKE (Oracle Kubernetes Engine)
+**Registry:** Docker Hub (`taskirsview`)
 
-## Actions Taken
-1. **Fixed Validation Script**: The validation script no longer crashes on missing keys.
-2. **Fixed Kubeconfig**: Removed the corrupted `config` file that was causing `kubectl` errors.
-3. **Initialized Git**: Created a fresh Git repository in your workspace.
+## 1. Immediate Post-Launch Actions
+- [x] **DNS Verification**: Confirm `api.taskirx.com` resolves to `138.2.76.159`.
+- [x] **SSL Certification**: Verify `https://` access (handled automatically by cert-manager).
+- [x] **User Onboarding**: Seeding complete.
+    - **Admin**: `admin@taskirx.com` / `Admin123!` (or `Test123!` if hash collision)
+    - **Advertiser**: `advertiser@test.com` / `Test123!`
+    - *Note: Change passwords immediately upon first login.*
 
-## Recommended Path: GitOps (Cloud Deployment)
-Since installing all infrastructure tools on Windows manually is complex, we recommend pushing to GitHub and letting **GitHub Actions** perform the deployment.
+## 2. Monitoring & Observability
+Now that the system is live, we need to see what it handles.
+- [x] **Prometheus & Grafana**: Deployed to `monitoring` namespace.
+- [x] **Grafana Dashboard**: Connect Grafana to Prometheus to visualize:
+    - Bidding QPS (Queries Per Second).
+    - AI Inference Latency (ms).
+    - Redis Cache Hit Rates.
+    - Fraud Detection Rate.
+    - Backend Traffic.
+- [x] **Setup Script**: Created `scripts/setup-monitoring-dashboards.ps1`.
+- [x] **Access Script**: Created `scripts/port-forward-monitoring.ps1`.
+- [x] **Log Aggregation**: Deployed Loki & Promtail.
+    - Added "Application Logs" panel to Grafana Dashboard.
+    - All microservices logs are now searchable from one place.
 
-### 1. Prepare & Commit
-Run the helper script to verify files and create your first commit:
-```powershell
-.\scripts\prepare-gitops.ps1
-```
+## 3. Scaling Strategy
+- [x] **Horizontal Pod Autoscaling (HPA)**: Configured and Active.
+    - `go-bidding`: Scales 2-10 pods (CPU > 70%).
+    - `ad-matching`: Scales 2-5 pods (CPU > 60%).
+    - `nestjs-backend`: Scales 2-5 pods (CPU > 70%).
+- [x] **Database Optimization**:
+    - **Redis**: Configured `maxmemory 400mb` and `allkeys-lru` eviction policy.
+    - **ClickHouse**: Enabled `async_insert=1` via ConfigMap for high-ingestion performance.
 
-### 2. Push to GitHub
-1. Create a new repository at [github.com/new](https://github.com/new).
-2. Connect your local folder to it:
-   ```bash
-   git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-   git push -u origin main
-   ```
+## 4. Feature Roadmap (Phase 6)
+- **Advanced Targeting**: Geo-fencing and device-graph matching.
+- **Header Bidding Adapter**: Create a `prebid.js` adapter for publishers.
+- **Video/Native Ads**: Support VAST and Native ad formats.
 
-### 3. Provide Secrets
-In your GitHub Repo Settings -> Secrets -> Actions, add:
-- `OCI_PRIVATE_KEY`: Content of your PEM file.
-- `OCI_TENANCY_OCID`: Your tenancy ID.
-- `OCI_USER_OCID`: Your user ID.
-
-### 4. Verify Performance Tests
-Locust tests are now fully functional and validating all core endpoints:
-- SSP Auction: 200 OK
-- DSP Bidding: 201 OK
-- Analytics: All tracking endpoints (Impression, Click, Conversion) validated with 200/201.
-- Authentication: Locust now automatically handles user registration/login to support protected endpoints.
-
----
-
-## Alternative Path: Local Deployment (Advanced)
-If you prefer to deploy from this machine, you must install:
-1. **Terraform**: [Download](https://developer.hashicorp.com/terraform/downloads) and add to PATH.
-2. **OCI CLI**: [Download](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm).
-3. **Python 3.10+**: [Download](https://www.python.org/downloads/).
-4. **Helm**: [Download](https://helm.sh/docs/intro/install/).
-5. **Configure Keys**: Update `terraform-oci/terraform.tfvars` with real paths to your `.pem` key.
+## 5. Maintenance
+- **Updates**: Use `.\update-domain.ps1` to deploy code changes.
+- **Backups**: Schedule nightly backups of Postgres and ClickHouse.

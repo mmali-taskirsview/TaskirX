@@ -130,16 +130,18 @@ POST /api/campaigns
     "maxBid": 5.0
   },
   "targeting": {
-    "geo": {
-      "countries": ["US", "CA"],
-      "cities": ["New York", "Los Angeles"]
-    },
-    "device": {
-      "types": ["mobile", "desktop"]
-    },
-    "demographics": {
-      "ageRange": { "min": 25, "max": 45 }
-    }
+    "countries": ["US", "CA"],
+    "devices": ["mobile", "desktop"],
+    "geoFences": [
+      {
+        "lat": 40.7128,
+        "lon": -74.0060,
+        "radius": 10,
+        "name": "NYC Radius"
+      }
+    ],
+    "minAge": 25,
+    "maxAge": 45
   },
   "creative": {
     "sizes": ["300x250", "728x90"],

@@ -71,6 +71,8 @@ services:
       - "3000:3000"
     env_file:
       - ./nestjs-backend/.env.docker
+    environment:
+      NODE_ENV: development
     depends_on:
       postgres:
         condition: service_healthy
@@ -142,6 +144,12 @@ services:
     environment:
       ENV: development
       PORT: 6003
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: taskir_redis_password_2026
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - taskir-network
     restart: unless-stopped
@@ -159,7 +167,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: taskir_redis_password_2026
-      BACKEND_API_URL: http://nestjs-backend:3000
+      BACKEND_API_URL: http://nestjs-backend:3000/api
       AI_SERVICE_URL: http://ad-matching:6002/api
       FRAUD_SERVICE_URL: http://fraud-detection:6001/api
       OPTIMIZATION_SERVICE_URL: http://bid-optimizer:6003/api

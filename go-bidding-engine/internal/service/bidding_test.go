@@ -82,14 +82,14 @@ var _ cache.Cache = (*MockCache)(nil)
 func TestProcessBid_FraudCheck(t *testing.T) {
 	mockCache := NewMockCache()
 	service := NewBiddingService(mockCache, "http://backend")
-	
+
 	// Mock Fraud Service
 	fraudServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req model.FraudCheckRequest
 		json.NewDecoder(r.Body).Decode(&req)
-		
+
 		isFraud := req.IPAddress == "1.2.3.4" // Flag this specific IP
-		
+
 		resp := model.FraudCheckResponse{
 			RequestID: req.RequestID,
 			IsFraud:   isFraud,
@@ -97,30 +97,36 @@ func TestProcessBid_FraudCheck(t *testing.T) {
 		json.NewEncoder(w).Encode(resp)
 	}))
 	defer fraudServer.Close()
-	
+
 	// Mock AI Service (needed because it's initialized in NewBiddingService)
 	aiServer := createMockAIServer()
 	defer aiServer.Close()
 	service.SetAIServiceURL(aiServer.URL)
-	
+
 	service.SetFraudServiceURL(fraudServer.URL)
 
 	campaign := &model.Campaign{
-		ID:       "camp-1",
-		BidPrice: 1.0,
+		ID:        "camp-1",
+		BidPrice:  1.0,
 		Targeting: model.Targeting{Countries: []string{"US"}},
-		Status:   "active",
-		Budget:   1000,
+		Status:    "active",
+		Budget:    1000,
+		Creative: model.Creative{
+			Type:   "banner",
+			URL:    "http://ads.com/banner.jpg",
+			Width:  300,
+			Height: 250,
+		},
 	}
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaign})
 
 	// Case 1: Legitimate User
 	reqLegit := &model.BidRequest{
-		ID: "req-legit",
+		ID:     "req-legit",
 		Device: model.Device{IP: "5.6.7.8", Type: "mobile"},
-		User: model.User{Country: "US"},
+		User:   model.User{Country: "US"},
 	}
-	
+
 	resp, err := service.ProcessBid(reqLegit)
 	if err != nil {
 		t.Errorf("Expected bid for legit user, got error: %v", err)
@@ -131,11 +137,11 @@ func TestProcessBid_FraudCheck(t *testing.T) {
 
 	// Case 2: Fraudulent User
 	reqFraud := &model.BidRequest{
-		ID: "req-fraud",
+		ID:     "req-fraud",
 		Device: model.Device{IP: "1.2.3.4", Type: "mobile"},
-		User: model.User{Country: "US"},
+		User:   model.User{Country: "US"},
 	}
-	
+
 	respFraud, errFraud := service.ProcessBid(reqFraud)
 	if errFraud == nil {
 		t.Error("Expected error for fraud user, got nil")
@@ -150,7 +156,7 @@ func TestProcessBid_FraudCheck(t *testing.T) {
 func TestProcessBid_BidOptimization(t *testing.T) {
 	mockCache := NewMockCache()
 	service := NewBiddingService(mockCache, "http://backend")
-	
+
 	// Mock Optimization Service
 	optServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := model.BidRecommendation{
@@ -161,12 +167,12 @@ func TestProcessBid_BidOptimization(t *testing.T) {
 		json.NewEncoder(w).Encode(resp)
 	}))
 	defer optServer.Close()
-	
+
 	// Mock other services
 	aiServer := createMockAIServer()
 	defer aiServer.Close()
 	service.SetAIServiceURL(aiServer.URL)
-	
+
 	// Dummy fraud service (always allow)
 	fraudServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.FraudCheckResponse{IsFraud: false})
@@ -178,25 +184,25 @@ func TestProcessBid_BidOptimization(t *testing.T) {
 
 	baseBid := 1.0
 	campaign := &model.Campaign{
-		ID:       "camp-opt",
-		BidPrice: baseBid, 
+		ID:        "camp-opt",
+		BidPrice:  baseBid,
 		Targeting: model.Targeting{Countries: []string{"US"}},
-		Status:   "active",
-		Budget:   1000,
+		Status:    "active",
+		Budget:    1000,
 	}
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaign})
 
 	req := &model.BidRequest{
-		ID: "req-opt",
+		ID:     "req-opt",
 		Device: model.Device{Type: "mobile", IP: "10.0.0.1"},
-		User: model.User{Country: "US"},
+		User:   model.User{Country: "US"},
 	}
 
 	resp, err := service.ProcessBid(req)
 	if err != nil {
 		t.Fatalf("ProcessBid failed: %v", err)
 	}
-	
+
 	if resp.BidPrice != 2.50 {
 		t.Errorf("Expected optimized bid 2.50, got %f", resp.BidPrice)
 	}
@@ -275,7 +281,7 @@ func TestProcessBid_UserSegments(t *testing.T) {
 			Countries: []string{"US"},
 		},
 	}
-	
+
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaignA, campaignB})
 
 	userID := "user-vip"
@@ -284,10 +290,10 @@ func TestProcessBid_UserSegments(t *testing.T) {
 	req := &model.BidRequest{
 		ID: "req-vip",
 		User: model.User{
-			ID:         userID,
-			Country:    "US",
+			ID:      userID,
+			Country: "US",
 			// Must include "luxury" to pass hard filter if we want to test segment boost on top
-			Categories: []string{"luxury"}, 
+			Categories: []string{"luxury"},
 		},
 		Device: model.Device{Type: "mobile"},
 	}
@@ -296,7 +302,7 @@ func TestProcessBid_UserSegments(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected bid, got error: %v", err)
 	}
-	
+
 	// Expect Campaign A to win due to boost (11.0 > 10.5)
 	if resp.CampaignID != "camp-seg" {
 		t.Errorf("Expected Campaign A (camp-seg) to win due to segment boost, but got %s (BidPrice: %f)", resp.CampaignID, resp.BidPrice)
@@ -336,7 +342,7 @@ func TestProcessBid_AIScoring(t *testing.T) {
 		// Verify request content
 		var aiReq model.AIMatchRequest
 		json.NewDecoder(r.Body).Decode(&aiReq)
-		
+
 		// Return specific recommendation
 		resp := model.AIMatchResponse{
 			Recommendations: []model.AIAdRecommendation{
@@ -358,19 +364,19 @@ func TestProcessBid_AIScoring(t *testing.T) {
 
 	// Campaign A: No AI Boost
 	camp1 := &model.Campaign{
-		ID:       "camp-generic",
-		BidPrice: 10.0,
-		Budget:   1000.0,
+		ID:        "camp-generic",
+		BidPrice:  10.0,
+		Budget:    1000.0,
 		Targeting: model.Targeting{Countries: []string{"US"}},
 	}
 	// Campaign B: Will get AI Boost
 	camp2 := &model.Campaign{
-		ID:       "camp-ai",
-		BidPrice: 8.0, // Lower base bid/score
-		Budget:   1000.0,
+		ID:        "camp-ai",
+		BidPrice:  8.0, // Lower base bid/score
+		Budget:    1000.0,
 		Targeting: model.Targeting{Countries: []string{"US"}},
 	}
-	
+
 	mockCache.SetActiveCampaigns([]*model.Campaign{camp1, camp2})
 
 	req := &model.BidRequest{
@@ -381,15 +387,140 @@ func TestProcessBid_AIScoring(t *testing.T) {
 
 	// 3. Execution
 	resp, err := service.ProcessBid(req)
-	
+
 	// 4. Verification
 	if err != nil {
 		t.Fatalf("ProcessBid failed: %v", err)
 	}
-	
+
 	// Without AI: camp-generic (10.0) > camp-ai (8.0)
 	// With AI: camp-ai (8.0 * (1+0.5) = 12.0) > camp-generic (10.0)
 	if resp.CampaignID != "camp-ai" {
 		t.Errorf("Expected 'camp-ai' to win due to ML boost. Winner was: %s", resp.CampaignID)
 	}
+}
+
+func TestProcessBid_VideoVAST(t *testing.T) {
+	mockCache := NewMockCache()
+	service := NewBiddingService(mockCache, "http://backend-url")
+
+	// Create Video Campaign
+	videoCamp := &model.Campaign{
+		ID:        "camp-video",
+		BidPrice:  5.0,
+		Budget:    1000,
+		Targeting: model.Targeting{Countries: []string{"US"}},
+		Creative: model.Creative{
+			Type:     "video",
+			URL:      "http://ads.com/video.mp4",
+			Duration: 30,
+			MimeType: "video/mp4",
+			Width:    640,
+			Height:   480,
+		},
+		Status: "active",
+	}
+
+	mockCache.SetActiveCampaigns([]*model.Campaign{videoCamp})
+
+	// Setup Mock Services (Fraud/AI/Opt) to pass through
+	setupMockServices(service)
+
+	req := &model.BidRequest{
+		ID:     "req-video-1",
+		User:   model.User{Country: "US"},
+		Device: model.Device{Type: "mobile", IP: "10.0.0.1"},
+	}
+
+	resp, err := service.ProcessBid(req)
+	if err != nil {
+		t.Fatalf("ProcessBid failed: %v", err)
+	}
+
+	if resp.AdMarkup == "" {
+		t.Error("Expected VAST AdMarkup for video campaign, got empty string")
+	}
+
+	if resp.CreativeURL != "http://ads.com/video.mp4" {
+		t.Errorf("Expected CreativeURL http://ads.com/video.mp4, got %s", resp.CreativeURL)
+	}
+}
+
+func TestProcessBid_Native(t *testing.T) {
+	mockCache := NewMockCache()
+	service := NewBiddingService(mockCache, "http://backend-url")
+
+	// Create Native Campaign
+	nativeCamp := &model.Campaign{
+		ID:        "camp-native",
+		BidPrice:  3.5,
+		Budget:    1000,
+		Targeting: model.Targeting{Countries: []string{"US"}},
+		Creative: model.Creative{
+			Type:        "native",
+			Title:       "Native Title",
+			Description: "Native Description",
+			URL:         "http://ads.com/main.jpg",
+			IconURL:     "http://ads.com/icon.png",
+			CTAText:     "Install Now",
+			Width:       1200,
+			Height:      627,
+		},
+		Status: "active",
+	}
+
+	mockCache.SetActiveCampaigns([]*model.Campaign{nativeCamp})
+	setupMockServices(service)
+
+	req := &model.BidRequest{
+		ID:     "req-native-1",
+		User:   model.User{Country: "US"},
+		Device: model.Device{Type: "mobile", IP: "10.0.0.1"},
+	}
+
+	resp, err := service.ProcessBid(req)
+	if err != nil {
+		t.Fatalf("ProcessBid failed: %v", err)
+	}
+
+	if resp.AdMarkup == "" {
+		t.Error("Expected Native JSON AdMarkup, got empty string")
+	}
+
+	// Simple check for native structure
+	var markup map[string]interface{}
+	if err := json.Unmarshal([]byte(resp.AdMarkup), &markup); err != nil {
+		t.Errorf("Failed to parse Native JSON: %v", err)
+	}
+
+	nativeData, ok := markup["native"].(map[string]interface{})
+	if !ok {
+		t.Error("Missing 'native' key in markup")
+	}
+
+	assets, ok := nativeData["assets"].([]interface{})
+	if !ok || len(assets) < 5 {
+		t.Error("Expected at least 5 assets in native ad")
+	}
+}
+
+// Helper to setup mock services efficiently
+func setupMockServices(s *BiddingService) {
+	// Fraud: always safe
+	fraud := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(model.FraudCheckResponse{IsFraud: false})
+	}))
+	s.SetFraudServiceURL(fraud.URL)
+
+	// AI: no specific boost
+	ai := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(model.AIMatchResponse{})
+	}))
+	s.SetAIServiceURL(ai.URL)
+
+	// Opt: no change
+	opt := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(model.BidRecommendation{RecommendedBid: 0}) // 0 means no opt
+	}))
+	s.SetOptimizationServiceURL(opt.URL)
 }

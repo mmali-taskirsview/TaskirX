@@ -6,6 +6,15 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export class ColumnNumericTransformer {
+  to(data: number): number {
+    return data;
+  }
+  from(data: string): number {
+    return parseFloat(data);
+  }
+}
+
 export enum CampaignStatus {
   DRAFT = 'draft',
   ACTIVE = 'active',
@@ -42,13 +51,13 @@ export class Campaign {
   @Column({ type: 'enum', enum: CampaignType })
   type: CampaignType;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, transformer: new ColumnNumericTransformer() })
   budget: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, transformer: new ColumnNumericTransformer() })
   spent: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 4 })
+  @Column({ type: 'decimal', precision: 10, scale: 4, transformer: new ColumnNumericTransformer() })
   bidPrice: number; // Price per impression/click/action
 
   @Column({ type: 'varchar', nullable: true })
@@ -58,6 +67,12 @@ export class Campaign {
   targeting: {
     // Geo
     geoMarkets?: string[]; // Tier 1, 2, 3 or specific countries
+    geoFences?: {
+      lat: number;
+      lon: number;
+      radius: number; // in km
+      name?: string;
+    }[];
     
     // Demographics
     ageGroups?: string[];
@@ -91,6 +106,24 @@ export class Campaign {
 
   @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  creative: {
+    type: string; // 'banner', 'video', 'native'
+    url?: string; // Main asset URL (banner image, video file, main image for native)
+    width?: number;
+    height?: number;
+    
+    // Video specific
+    duration?: number; // seconds
+    mimeType?: string; // 'video/mp4', 'video/webm'
+    
+    // Native specific
+    title?: string;
+    description?: string;
+    iconUrl?: string; // Icon image for native ad
+    ctaText?: string; // Call to Action text
+  };
 
   @Column({ type: 'bigint', default: 0 })
   impressions: number;
