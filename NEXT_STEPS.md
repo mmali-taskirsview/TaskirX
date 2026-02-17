@@ -36,11 +36,16 @@ Now that the system is live, we need to see what it handles.
     - **Redis**: Configured `maxmemory 400mb` and `allkeys-lru` eviction policy.
     - **ClickHouse**: Enabled `async_insert=1` via ConfigMap for high-ingestion performance.
 
-## 4. Feature Roadmap (Phase 6)
-- **Advanced Targeting**: Geo-fencing and device-graph matching.
-- **Header Bidding Adapter**: Create a `prebid.js` adapter for publishers.
-- **Video/Native Ads**: Support VAST and Native ad formats.
+## 4. Completed Phases (Formerly Roadmap)
+- [x] **Phase 5**: Performance Optimization (Redis Caching).
+- [x] **Phase 6**: Advanced Targeting & Header Bidding.
+    - Geo-fencing implemented.
+    - Prebid.js Adapter created (`sdks/javascript`).
+    - Video/Native Ad support added.
+- [x] **Phase 7**: AI Service Integration & Persistence.
 
-## 5. Maintenance
-- **Updates**: Use `.\update-domain.ps1` to deploy code changes.
+## 5. Maintenance & Operations
+- **Deploy Updates**: Use `.\update-domain.ps1` to deploy code changes.
+- **View Logs**: Use `kubectl logs` or the Grafana dashboard.
 - **Backups**: Schedule nightly backups of Postgres and ClickHouse.
+- **Scale**: Adjust HPA thresholds in `k8s/hpa.yaml`.
