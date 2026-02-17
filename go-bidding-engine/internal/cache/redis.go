@@ -282,6 +282,27 @@ func (r *RedisCache) GetCampaignSpend(campaignID string) (float64, error) {
 	return val, nil
 }
 
+// Get retrieves a value by key
+func (r *RedisCache) Get(key string) (string, error) {
+	val, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {
+		return "", nil // Cache miss
+	}
+	if err != nil {
+		return "", fmt.Errorf("Redis GET error: %w", err)
+	}
+	return val, nil
+}
+
+// Set stores a key-value pair with TTL in seconds
+func (r *RedisCache) Set(key string, value interface{}, ttl int64) error {
+	expiration := time.Duration(ttl) * time.Second
+	if err := r.client.Set(r.ctx, key, value, expiration).Err(); err != nil {
+		return fmt.Errorf("Redis SET error: %w", err)
+	}
+	return nil
+}
+
 // Close closes the Redis connection
 func (r *RedisCache) Close() error {
 	return r.client.Close()

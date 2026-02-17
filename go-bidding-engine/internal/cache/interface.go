@@ -8,20 +8,24 @@ type Cache interface {
 	SetActiveCampaigns(campaigns []*model.Campaign) error
 	GetCampaign(campaignID string) (*model.Campaign, error)
 	SetCampaign(campaign *model.Campaign) error
-	
+
 	IncrementBidCount() error
 	IncrementWinCount() error
 	GetBidCount() (int64, error)
 	GetWinCount() (int64, error)
 	RecordLatency(latencyMs float64) error
 	GetAverageLatency() (float64, error)
-	
+
 	SetUserSegments(userID string, segments []string) error
 	GetUserSegments(userID string) ([]string, error)
-	
+
 	SetGeoRules(countryCode string, rules map[string]interface{}) error
 	GetGeoRules(countryCode string) (map[string]interface{}, error)
-	
+
 	IncrementCampaignSpend(campaignID string, amount float64) (float64, error)
 	GetCampaignSpend(campaignID string) (float64, error)
+
+	// Generic Cache Methods
+	Get(key string) (string, error)
+	Set(key string, value interface{}, ttl int64) error
 }

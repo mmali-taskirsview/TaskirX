@@ -15,9 +15,9 @@ import (
 
 // BiddingService handles bid logic
 type BiddingService struct {
-	cache          cache.Cache
-	backendBaseURL string
-	aiServiceURL   string
+	cache           cache.Cache
+	backendBaseURL  string
+	aiServiceURL    string
 	fraudServiceURL string
 	optServiceURL   string
 }
@@ -25,15 +25,15 @@ type BiddingService struct {
 // NewBiddingService creates a new bidding service
 func NewBiddingService(cache cache.Cache, backendBaseURL string) *BiddingService {
 	// Default to internal docker DNS name if not specified via env in main (which we'll do later)
-	// For now, hardcode or accept as param. Modified to accept it? 
+	// For now, hardcode or accept as param. Modified to accept it?
 	// To minimize changes to main.go right now, I'll default it here, but ideally should be passed.
-	
+
 	// Check if we can get it from env in a cleaner way or just iterate constructor
 	return &BiddingService{
 		cache:          cache,
 		backendBaseURL: backendBaseURL,
 		// Default to docker service name.
-		aiServiceURL:   "http://ad-matching:6002/api", // Updated default port
+		aiServiceURL:    "http://ad-matching:6002/api", // Updated default port
 		fraudServiceURL: "http://fraud-detection:6001/api",
 		optServiceURL:   "http://bid-optimizer:6003/api",
 	}
@@ -54,8 +54,8 @@ func (s *BiddingService) SetOptimizationServiceURL(url string) {
 	s.optServiceURL = url
 }
 
-// BackendBaseURL returns the configured backend API base URL.
-func (s *BiddingService) BackendBaseURL() string {
+// GetBackendBaseURL returns the backend base URL
+func (s *BiddingService) GetBackendBaseURL() string {
 	return s.backendBaseURL
 }
 
@@ -75,7 +75,7 @@ func (s *BiddingService) ProcessBid(req *model.BidRequest) (*model.BidResponse, 
 
 	// Find matching campaigns
 	var matchingCampaigns []*model.BidResult
-	
+
 	// --- AI: Fraud Check (Fail Fast) ---
 	isFraud, err := s.callFraudService(req)
 	if err == nil && isFraud {
@@ -151,7 +151,7 @@ func (s *BiddingService) ProcessBid(req *model.BidRequest) (*model.BidResponse, 
 	optimizedBid, err := s.callOptimizationService(winner, req)
 	if err == nil {
 		winner.BidPrice = optimizedBid.RecommendedBid
-		fmt.Printf("Optimized Bid: %.4f (Multiplier: %.2f) Reason: %v\n", 
+		fmt.Printf("Optimized Bid: %.4f (Multiplier: %.2f) Reason: %v\n",
 			optimizedBid.RecommendedBid, optimizedBid.BidMultiplier, optimizedBid.Reasoning)
 	} else {
 		metrics.OptimizationErrorsTotal.Inc()
@@ -163,7 +163,7 @@ func (s *BiddingService) ProcessBid(req *model.BidRequest) (*model.BidResponse, 
 	metrics.BidsPlacedTotal.Inc()
 	s.cache.IncrementBidCount()
 	s.cache.IncrementWinCount()
-	
+
 	latency := time.Since(startTime).Milliseconds()
 	s.cache.RecordLatency(float64(latency))
 
@@ -172,16 +172,113 @@ func (s *BiddingService) ProcessBid(req *model.BidRequest) (*model.BidResponse, 
 		RequestID:   req.ID,
 		CampaignID:  winner.Campaign.ID,
 		BidPrice:    winner.BidPrice,
-		CreativeURL: winner.Campaign.CreativeURL,
-		ImpressionURL: fmt.Sprintf("%s/api/analytics/track/impression?campaign_id=%s&request_id=%s", 
+		CreativeURL: winner.Campaign.Creative.URL,
+		ImpressionURL: fmt.Sprintf("%s/api/analytics/track/impression?campaign_id=%s&request_id=%s",
 			s.backendBaseURL, winner.Campaign.ID, req.ID),
-		ClickURL: fmt.Sprintf("%s/api/analytics/track/click?campaign_id=%s&request_id=%s", 
+		ClickURL: fmt.Sprintf("%s/api/analytics/track/click?campaign_id=%s&request_id=%s",
 			s.backendBaseURL, winner.Campaign.ID, req.ID),
 		TTL:       300,
 		Timestamp: time.Now(),
 	}
 
+	// Generate VAST for video
+	if winner.Campaign.Creative.Type == "video" {
+		response.AdMarkup = generateVAST(winner.Campaign, response.ImpressionURL, response.ClickURL)
+	} else if winner.Campaign.Creative.Type == "native" {
+		response.AdMarkup = generateNative(winner.Campaign, response.ImpressionURL, response.ClickURL)
+	}
+
 	return response, nil
+}
+
+// generateVAST creates a simple VAST 2.0 XML
+func generateVAST(c *model.Campaign, impURL, clickURL string) string {
+	return fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+<VAST version="2.0">
+  <Ad id="%s">
+    <InLine>
+      <AdSystem>TaskirX</AdSystem>
+      <AdTitle>%s</AdTitle>
+      <Impression><![CDATA[%s]]></Impression>
+      <Creatives>
+        <Creative>
+          <Linear>
+            <Duration>00:00:%02d</Duration>
+            <VideoClicks>
+              <ClickThrough><![CDATA[%s]]></ClickThrough>
+            </VideoClicks>
+            <MediaFiles>
+              <MediaFile delivery="progressive" type="%s" width="%d" height="%d">
+                <![CDATA[%s]]>
+              </MediaFile>
+            </MediaFiles>
+          </Linear>
+        </Creative>
+      </Creatives>
+    </InLine>
+  </Ad>
+</VAST>`,
+		c.ID,
+		c.Name,
+		impURL,
+		c.Creative.Duration,
+		clickURL,
+		c.Creative.MimeType,
+		c.Creative.Width,
+		c.Creative.Height,
+		c.Creative.URL)
+}
+
+// generateNative creates a simple Native Ad JSON
+func generateNative(c *model.Campaign, impURL, clickURL string) string {
+	// Simplified Native 1.1 JSON structure
+	nativeObj := map[string]interface{}{
+		"native": map[string]interface{}{
+			"ver": "1.1",
+			"link": map[string]string{
+				"url": clickURL,
+			},
+			"imptrackers": []string{impURL},
+			"assets": []map[string]interface{}{
+				{
+					"id": 1,
+					"title": map[string]string{
+						"text": c.Creative.Title,
+					},
+				},
+				{
+					"id": 2,
+					"img": map[string]interface{}{
+						"url": c.Creative.URL, // Main image
+						"w":   c.Creative.Width,
+						"h":   c.Creative.Height,
+					},
+				},
+				{
+					"id": 3,
+					"img": map[string]interface{}{
+						"url":  c.Creative.IconURL, // Icon
+						"type": 1,                  // Icon type
+					},
+				},
+				{
+					"id": 4,
+					"data": map[string]string{
+						"value": c.Creative.Description,
+					},
+				},
+				{
+					"id": 5,
+					"data": map[string]string{
+						"value": c.Creative.CTAText,
+					},
+				},
+			},
+		},
+	}
+
+	bytes, _ := json.Marshal(nativeObj)
+	return string(bytes)
 }
 
 // calculateScore calculates matching score for a campaign
@@ -246,11 +343,11 @@ func (s *BiddingService) calculateScore(campaign *model.Campaign, req *model.Bid
 	if err == nil {
 		// Assume daily budget is 10% of total budget if not explicitly defined (simplification)
 		// in production, DailyBudget should be a field on Campaign
-		dailyBudget := campaign.Budget * 0.10 
+		dailyBudget := campaign.Budget * 0.10
 		if dailySpend >= dailyBudget {
 			return 0 // Campaign has exceeded daily budget
 		}
-		
+
 		// Pacing: if we are near the daily limit, lower the bid score to slow down
 		if dailySpend >= dailyBudget*0.90 {
 			score *= 0.5
@@ -285,11 +382,11 @@ func (s *BiddingService) GetMetrics() (map[string]interface{}, error) {
 	}
 
 	return map[string]interface{}{
-		"total_bids":       bidCount,
-		"total_wins":       winCount,
-		"win_rate":         winRate,
-		"avg_latency_ms":   avgLatency,
-		"timestamp":        time.Now(),
+		"total_bids":     bidCount,
+		"total_wins":     winCount,
+		"win_rate":       winRate,
+		"avg_latency_ms": avgLatency,
+		"timestamp":      time.Now(),
 	}, nil
 }
 
@@ -318,6 +415,21 @@ func (s *BiddingService) RefreshCampaigns(backendURL string) error {
 
 // callFraudService calls the Fraud Detection Service
 func (s *BiddingService) callFraudService(req *model.BidRequest) (bool, error) {
+	// 1. Check Redis Cache for IP Reputation
+	// Key: "ip_rep:{ip}" -> "block" or "allow"
+	// TTL: 1 hour
+	cacheKey := fmt.Sprintf("ip_rep:%s", req.Device.IP)
+	action, err := s.cache.Get(cacheKey)
+	if err == nil {
+		if action == "block" {
+			return true, nil // Fraud (Blocked)
+		}
+		if action == "allow" {
+			return false, nil // Safe (Allowed)
+		}
+	}
+
+	// 2. Fallback to API Call if not in cache
 	fraudReq := model.FraudCheckRequest{
 		RequestID:   req.ID,
 		Timestamp:   time.Now(),
@@ -338,8 +450,8 @@ func (s *BiddingService) callFraudService(req *model.BidRequest) (bool, error) {
 		return false, err
 	}
 
-	client := &http.Client{Timeout: 50 * time.Millisecond}
-	resp, err := client.Post(s.fraudServiceURL+"/check", "application/json", bytes.NewBuffer(jsonData))
+	client := &http.Client{Timeout: 500 * time.Millisecond}
+	resp, err := client.Post(s.fraudServiceURL+"/detect", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return false, err
 	}
@@ -354,10 +466,19 @@ func (s *BiddingService) callFraudService(req *model.BidRequest) (bool, error) {
 		return false, err
 	}
 
+	// 3. Cache the Result
+	result := "allow"
+	isFraud := false
 	if fraudResp.RecommendedAction == "block" || fraudResp.IsFraud {
-		return true, nil
+		result = "block"
+		isFraud = true
 	}
-	return false, nil
+
+	// Set with 1 hour TTL
+	// We ignore cache set errors as it's non-critical
+	_ = s.cache.Set(cacheKey, result, 3600)
+
+	return isFraud, nil
 }
 
 // callOptimizationService calls the Bid Optimization Service
@@ -374,13 +495,13 @@ func (s *BiddingService) callOptimizationService(bid *model.BidResult, req *mode
 			DayOfWeek:  int(time.Now().Weekday()),
 			Performance: model.CampaignPerformance{
 				CampaignID: bid.Campaign.ID,
-				WinRate:    0.5, // Placeholder: fetch from cache/metrics
+				WinRate:    0.5,  // Placeholder: fetch from cache/metrics
 				CTR:        0.02, // Placeholder
 			},
 			Budget: model.BudgetStatus{
 				CampaignID:  bid.Campaign.ID,
 				DailyBudget: bid.Campaign.Budget / 30.0, // approx
-				PacingRatio: 1.0, 
+				PacingRatio: 1.0,
 			},
 		},
 	}
@@ -390,7 +511,7 @@ func (s *BiddingService) callOptimizationService(bid *model.BidResult, req *mode
 		return nil, err
 	}
 
-	client := &http.Client{Timeout: 50 * time.Millisecond}
+	client := &http.Client{Timeout: 500 * time.Millisecond}
 	resp, err := client.Post(s.optServiceURL+"/optimize", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
@@ -422,7 +543,7 @@ func (s *BiddingService) callAIMatchingService(req *model.BidRequest) ([]model.A
 			Categories: req.User.Categories,
 		},
 		AdSlot: model.AIAdSlotInfo{
-			SlotID:     "slot_default", // In real RTB, would come from req.Imp
+			SlotID:     "slot_default",  // In real RTB, would come from req.Imp
 			Dimensions: []int{300, 250}, // Default MREC
 			Format:     "banner",
 		},
@@ -440,7 +561,7 @@ func (s *BiddingService) callAIMatchingService(req *model.BidRequest) ([]model.A
 
 	// 2. Execute Request with specific timeout
 	// AI Service expected at /match endpoint
-	client := &http.Client{Timeout: 100 * time.Millisecond} 
+	client := &http.Client{Timeout: 500 * time.Millisecond}
 	resp, err := client.Post(s.aiServiceURL+"/match", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
