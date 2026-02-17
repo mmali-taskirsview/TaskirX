@@ -5,6 +5,21 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Next.js-blueviolet)](.)
 [![Database](https://img.shields.io/badge/Data-PostgreSQL%20%7C%20ClickHouse%20%7C%20Redis-green)](.)
 
+## Project Status
+
+| Phase | Description | Status |
+| :--- | :--- | :--- |
+| **Phase 1** | MVP (Core RTB Platform) | ✅ Completed |
+| **Phase 2** | Scale & Operations | ✅ Completed |
+| **Phase 3** | Advanced Features | ✅ Completed |
+| **Phase 4** | Machine Learning & Optimization | ✅ Completed |
+| **Phase 5** | Performance Tuning (Redis Caching) | ✅ Completed |
+| **Phase 6** | Advanced Targeting & Header Bidding | ✅ Completed |
+| **Phase 7** | AI Services (Fraud/Bid Optimization) | ✅ Completed |
+
+**Current Version:** 1.2.0 (Production Release)
+**Performance:** < 5ms Latency (99th percentile) - [View Report](PERFORMANCE_REPORT_OPTIMIZED.md)
+
 **TaskirX** is a next-generation Ad Exchange platform architected for extreme scale and intelligence. It moves beyond a monolithic NodeJS app to a microservices architecture leveraging the best tool for each job: **Go** for low-latency bidding, **Python** for AI/ML, **NestJS** for robust business logic, and **ClickHouse** for real-time analytics.
 
 ### 🌐 Live Platform: [TaskirX.com](https://dashboard.taskirx.com)
