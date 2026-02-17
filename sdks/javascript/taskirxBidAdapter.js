@@ -2,7 +2,7 @@ import { registerBidder } from './prebid/src/adapters/bidderFactory.js';
 import { BANNER, NATIVE, VIDEO } from './prebid/src/mediaTypes.js';
 
 const BIDDER_CODE = 'taskirx';
-const ENDPOINT_URL = 'http://localhost:8080/bid'; // Local dev engine
+const ENDPOINT_URL = 'https://bidding.taskirx.com/bid'; // Production Endpoint
 
 export const spec = {
   code: BIDDER_CODE,

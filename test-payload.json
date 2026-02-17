@@ -1,26 +1,29 @@
 {
-  "request_id": "test-req-002",
+  "id": "req-12345",
+  "timestamp": "2026-02-17T12:00:00Z",
+  "publisher_id": "pub-001",
+  "ad_slot": {
+    "id": "slot-001",
+    "dimensions": [300, 250],
+    "position": "above-fold",
+    "formats": ["banner"]
+  },
   "user": {
-    "user_id": "test-user-persist",
-    "device_id": "dv-1",
+    "id": "user-001",
     "country": "US",
-    "city": "NY",
     "language": "en"
   },
-  "ad_slot": {
-    "slot_id": "plc-123",
-    "placement_id": "plc-123",
-    "publisher_id": "pub-1",
-    "ad_format": "banner",
-    "dimensions": [300, 250],
-    "floor_price": 0.5
+  "device": {
+    "type": "desktop", 
+    "os": "windows",
+    "browser": "chrome",
+    "ip": "203.0.113.1",
+    "geo": {
+      "lat": 40.7128,
+      "lon": -74.0060
+    }
   },
-  "campaign_context": {
-    "active_campaign_ids": ["cmp-100", "cmp-101"],
-    "publisher_id": "pub-1"
-  },
-  "device_context": {
-    "ip": "1.2.3.4",
-    "ua": "test-agent"
+  "context": {
+    "page_url": "https://example-publisher.com/article"
   }
 }

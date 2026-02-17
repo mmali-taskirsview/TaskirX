@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaskirX Header Bidding Demo - CLOUD</title>
+    <script>
+        var pbjs = pbjs || {};
+        pbjs.que = pbjs.que || [];
+
+        // Mock Prebid.js environment for testing the adapter
+        pbjs.registerBidAdapter = function(bidderFactory, code) {
+            console.log('Registered bidder:', code);
+            pbjs.adapter = bidderFactory.spec;
+        };
+
+        pbjs.requestBids = function(requestObj) {
+            console.log('Requesting bids...', requestObj);
+            const validBids = requestObj.bidsBackHandler ? requestObj.bidsBackHandler() : [];
+            // Simulate calling buildRequests
+            const serverRequest = pbjs.adapter.buildRequests(requestObj.adUnits[0].bids, {
+                bidderRequestId: 'req-' + Date.now(),
+                refererInfo: { referer: window.location.href }
+            });
+
+            // Simulate sending request
+            console.log('Sending request to:', serverRequest[0].url, serverRequest[0].data);
+            
+            fetch(serverRequest[0].url, {
+                method: 'POST',
+                body: serverRequest[0].data
+            })
+            .then(res => res.json())
+            .then(response => {
+                console.log('Response:', response);
+                const bids = pbjs.adapter.interpretResponse({ body: response }, { data: serverRequest[0].data });
+                console.log('Interpreted Bids:', bids);
+                
+                // Display Ad
+                if (bids.length > 0) {
+                    document.getElementById('ad-slot').innerHTML = bids[0].ad;
+                } else {
+                    document.getElementById('ad-slot').innerHTML = 'No Bid or Error';
+                }
+            })
+            .catch(err => console.error('Bid error:', err));
+        };
+    </script>
+</head>
+<body>
+    <h1>Publisher Demo Page</h1>
+    <div id="div-gpt-ad-123456789-0" style="width: 300px; height: 250px; border: 1px solid #ccc;">
+        <div id="ad-slot">Loading Ad...</div>
+    </div>
+
+    <script type="module">
+        // Import Adapter Logic (Simplified for browser - CLOUD)
+        const ENDPOINT_URL = 'https://bidding.taskirx.com/bid';
+
+        const spec = {
+            code: 'taskirx',
+            supportedMediaTypes: ['banner'],
+
+            isBidRequestValid: function(bid) {
+                return !!bid.params.placementId;
+            },
+
+            buildRequests: function(validBidRequests, bidderRequest) {
+                return validBidRequests.map(bid => {
+                    return {
+                        method: 'POST',
+                        url: ENDPOINT_URL,
+                        data: JSON.stringify({
+                            id: bidderRequest.bidderRequestId,
+                            timestamp: new Date().toISOString(),
+                            publisher_id: bid.params.publisherId || 'demo-pub',
+                            ad_slot: {
+                                id: bid.adUnitCode,
+                                dimensions: bid.mediaTypes && bid.mediaTypes.banner ? bid.mediaTypes.banner.sizes[0] : [300, 250],
+                                position: "above-fold",
+                                formats: ["banner"]
+                            },
+                            user: {
+                                id: 'user-demo',
+                                country: 'US'
+                            },
+                            device: {
+                                type: "desktop",
+                                ua: navigator.userAgent,
+                                geo: { lat: 40.7128, lon: -74.0060 } // NYC
+                            },
+                            context: {
+                                referer: window.location.href
+                            }
+                        })
+                    };
+                });
+            },
+
+            interpretResponse: function(serverResponse, bidRequest) {
+                const serverBody = serverResponse.body;
+                if (!serverBody || !serverBody.bid_price) return [];
+
+                return [{
+                    requestId: JSON.parse(bidRequest.data).id,
+                    cpm: serverBody.bid_price,
+                    width: 300,
+                    height: 250,
+                    creativeId: serverBody.creative_url,
+                    item: serverBody, // internal usage
+                    ad: `<a href="${serverBody.click_url}" target="_blank"><img src="${serverBody.creative_url}" width="300" height="250" /></a>`
+                }];
+            }
+        };
+
+        // Register
+        pbjs.registerBidAdapter({ spec: spec }, 'taskirx');
+
+        // Run
+        setTimeout(() => {
+            pbjs.requestBids({
+                adUnits: [{
+                    code: 'div-gpt-ad-123456789-0',
+                    mediaTypes: {
+                        banner: {
+                            sizes: [[300, 250]]
+                        }
+                    },
+                    bids: [{
+                        bidder: 'taskirx',
+                        params: {
+                            placementId: '12345',
+                            publisherId: 'pub-001'
+                        }
+                    }]
+                }]
+            });
+        }, 1000);
+    </script>
+</body>
+</html>
