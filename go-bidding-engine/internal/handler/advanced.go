@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/taskirx/go-bidding-engine/internal/model"
@@ -973,6 +974,346 @@ func (h *AdvancedHandler) HandleGetClusteringStats(c *gin.Context) {
 }
 
 // ============================================================================
+// CHURN PREDICTION ENDPOINTS
+// ============================================================================
+
+// ChurnActivityRequest represents a request to record user activity
+type ChurnActivityRequest struct {
+	UserID    string                 `json:"user_id" binding:"required"`
+	EventType string                 `json:"event_type" binding:"required"`
+	Metadata  map[string]interface{} `json:"metadata"`
+}
+
+// HandleRecordChurnActivity records user activity for churn prediction
+func (h *AdvancedHandler) HandleRecordChurnActivity(c *gin.Context) {
+	var req ChurnActivityRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetChurnPredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+		return
+	}
+
+	svc.RecordUserActivity(req.UserID, req.EventType, req.Metadata)
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandlePredictChurn predicts churn probability for a user
+func (h *AdvancedHandler) HandlePredictChurn(c *gin.Context) {
+	userID := c.Param("user_id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetChurnPredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+		return
+	}
+
+	result := svc.PredictChurn(userID)
+	if result == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// HandleBatchPredictChurn predicts churn for multiple users
+func (h *AdvancedHandler) HandleBatchPredictChurn(c *gin.Context) {
+	var req struct {
+		UserIDs []string `json:"user_ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetChurnPredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+		return
+	}
+
+	results := svc.BatchPredict(req.UserIDs)
+	c.JSON(http.StatusOK, gin.H{
+		"predictions": results,
+		"count":       len(results),
+	})
+}
+
+// HandleGetHighRiskUsers returns users with high churn risk
+func (h *AdvancedHandler) HandleGetHighRiskUsers(c *gin.Context) {
+	limit := 100
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	svc := h.biddingService.GetChurnPredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+		return
+	}
+
+	users := svc.GetHighRiskUsers(limit)
+	c.JSON(http.StatusOK, gin.H{
+		"high_risk_users": users,
+		"count":           len(users),
+	})
+}
+
+// HandleGetChurnStats returns churn prediction statistics
+func (h *AdvancedHandler) HandleGetChurnStats(c *gin.Context) {
+	svc := h.biddingService.GetChurnPredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+		return
+	}
+
+	stats := svc.GetChurnStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
+// A/B TESTING ENDPOINTS
+// ============================================================================
+
+// HandleCreateExperiment creates a new A/B test experiment
+func (h *AdvancedHandler) HandleCreateExperiment(c *gin.Context) {
+	var req service.CreateExperimentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	exp, err := svc.CreateExperiment(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, exp)
+}
+
+// HandleStartExperiment starts an experiment
+func (h *AdvancedHandler) HandleStartExperiment(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	if experimentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	if err := svc.StartExperiment(experimentID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "started", "experiment_id": experimentID})
+}
+
+// HandleStopExperiment stops an experiment
+func (h *AdvancedHandler) HandleStopExperiment(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	if experimentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	if err := svc.StopExperiment(experimentID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "stopped", "experiment_id": experimentID})
+}
+
+// HandleGetExperiment retrieves an experiment by ID
+func (h *AdvancedHandler) HandleGetExperiment(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	if experimentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	exp, err := svc.GetExperiment(experimentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, exp)
+}
+
+// HandleListExperiments lists all experiments
+func (h *AdvancedHandler) HandleListExperiments(c *gin.Context) {
+	status := c.Query("status")
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	experiments := svc.ListExperiments(status)
+	c.JSON(http.StatusOK, gin.H{
+		"experiments": experiments,
+		"count":       len(experiments),
+	})
+}
+
+// HandleGetVariantForUser assigns and returns a variant for a user
+func (h *AdvancedHandler) HandleGetVariantForUser(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	userID := c.Param("user_id")
+
+	if experimentID == "" || userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id and user_id are required"})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	variant, err := svc.GetVariantForUser(experimentID, userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, variant)
+}
+
+// ABEventRequest represents a request to record an A/B test event
+type ABEventRequest struct {
+	VariantID string  `json:"variant_id" binding:"required"`
+	EventType string  `json:"event_type" binding:"required"`
+	Value     float64 `json:"value"`
+}
+
+// HandleRecordABEvent records an event for an experiment variant
+func (h *AdvancedHandler) HandleRecordABEvent(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	if experimentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+		return
+	}
+
+	var req ABEventRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	if err := svc.RecordEvent(experimentID, req.VariantID, req.EventType, req.Value); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandleAnalyzeExperiment performs statistical analysis on an experiment
+func (h *AdvancedHandler) HandleAnalyzeExperiment(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	if experimentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	result, err := svc.AnalyzeExperiment(experimentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// HandleGetBanditRecommendation gets Thompson Sampling recommendation
+func (h *AdvancedHandler) HandleGetBanditRecommendation(c *gin.Context) {
+	experimentID := c.Param("experiment_id")
+	userID := c.Param("user_id")
+
+	if experimentID == "" || userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id and user_id are required"})
+		return
+	}
+
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	variant, err := svc.GetBanditRecommendation(experimentID, userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, variant)
+}
+
+// HandleGetABTestingStats returns A/B testing statistics
+func (h *AdvancedHandler) HandleGetABTestingStats(c *gin.Context) {
+	svc := h.biddingService.GetABTestingService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+		return
+	}
+
+	stats := svc.GetStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
 // HEALTH & STATUS ENDPOINTS
 // ============================================================================
 
@@ -990,6 +1331,8 @@ func (h *AdvancedHandler) HandleAdvancedServicesStatus(c *gin.Context) {
 		"dynamic_bid":              h.biddingService.GetDynamicBidService() != nil,
 		"lookalike":                h.biddingService.GetLookalikeService() != nil,
 		"user_clustering":          h.biddingService.GetUserClusteringService() != nil,
+		"churn_prediction":         h.biddingService.GetChurnPredictionService() != nil,
+		"ab_testing":               h.biddingService.GetABTestingService() != nil,
 	}
 
 	allHealthy := true

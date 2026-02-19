@@ -62,6 +62,10 @@ type BiddingService struct {
 	dynamicBidService     *DynamicBidService
 	lookalikeService      *LookalikeService
 	userClusteringService *UserClusteringService
+
+	// Advanced Services - Phase 4 (ML Features Extended)
+	churnPredictionService *ChurnPredictionService
+	abTestingService       *ABTestingService
 }
 
 // NewBiddingService creates a new bidding service
@@ -98,6 +102,9 @@ func NewBiddingService(cache cache.Cache, backendBaseURL string) *BiddingService
 		dynamicBidService:     NewDynamicBidService(cache),
 		lookalikeService:      NewLookalikeService(cache),
 		userClusteringService: NewUserClusteringService(cache),
+		// Initialize advanced services - Phase 4 (ML Features Extended)
+		churnPredictionService: NewChurnPredictionService(cache),
+		abTestingService:       NewABTestingService(cache),
 	}
 }
 
@@ -194,6 +201,16 @@ func (s *BiddingService) GetLookalikeService() *LookalikeService {
 // GetUserClusteringService returns the user clustering service
 func (s *BiddingService) GetUserClusteringService() *UserClusteringService {
 	return s.userClusteringService
+}
+
+// GetChurnPredictionService returns the churn prediction service
+func (s *BiddingService) GetChurnPredictionService() *ChurnPredictionService {
+	return s.churnPredictionService
+}
+
+// GetABTestingService returns the A/B testing service
+func (s *BiddingService) GetABTestingService() *ABTestingService {
+	return s.abTestingService
 }
 
 // GetSupplyPathAnalytics returns the collected SPO analytics
