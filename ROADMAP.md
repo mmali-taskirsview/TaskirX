@@ -112,17 +112,17 @@ This document outlines planned features and enhancements for TaskirX. All items 
 - [x] Global Load Balancing (TaskirX.com)
 - [x] Automated TLS/SSL
 
-- [ ] Dynamic bid adjustments
+- [x] Dynamic bid adjustments (DynamicBidService with contextual, time, performance factors)
 
 ### Audience Insights
-- [ ] User clustering
-- [ ] Behavioral segmentation
-- [ ] Lookalike audience generation
-- [ ] Churn prediction
+- [x] User clustering (KMeans-based UserClusteringService with behavioral segmentation)
+- [x] Behavioral segmentation (Integrated in clustering features)
+- [x] Lookalike audience generation (LookalikeService with cosine similarity scoring)
+- [x] Churn prediction (ChurnPredictionService with logistic regression model)
 
 ### Creative Optimization
-- [ ] A/B testing framework
-- [ ] Multi-armed bandit algorithms
+- [x] A/B testing framework (ABTestingService with statistical significance)
+- [x] Multi-armed bandit algorithms (Thompson Sampling implementation)
 - [ ] Dynamic creative optimization
 - [ ] Performance prediction
 

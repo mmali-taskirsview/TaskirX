@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Advanced Services API provides access to 11 sophisticated advertising features:
+The Advanced Services API provides access to 13 sophisticated advertising features:
 
 1. **Bid Landscape Analysis** - Analyze market bid patterns and optimize bid prices
 2. **Creative Optimization** - Multi-armed bandit creative selection
@@ -12,9 +12,11 @@ The Advanced Services API provides access to 11 sophisticated advertising featur
 6. **Real-Time Alerts** - Budget monitoring and anomaly detection
 7. **Competitive Intelligence** - Market analysis and competitor tracking
 8. **Unified ID** - Cross-provider identity resolution
-9. **Dynamic Bid Adjustments** - ML-based real-time bid optimization (NEW)
-10. **Lookalike Audiences** - Audience expansion through similarity modeling (NEW)
-11. **User Clustering** - K-means based user segmentation (NEW)
+9. **Dynamic Bid Adjustments** - ML-based real-time bid optimization
+10. **Lookalike Audiences** - Audience expansion through similarity modeling
+11. **User Clustering** - K-means based user segmentation
+12. **Churn Prediction** - ML-based user churn probability prediction (NEW)
+13. **A/B Testing Framework** - Statistical significance testing with multi-armed bandit (NEW)
 
 ## Base URL
 
@@ -53,7 +55,9 @@ Check the health status of all advanced services.
     "unified_id": true,
     "dynamic_bid": true,
     "lookalike": true,
-    "user_clustering": true
+    "user_clustering": true,
+    "churn_prediction": true,
+    "ab_testing": true
   }
 }
 ```
@@ -965,6 +969,384 @@ Get overall clustering statistics.
 
 ---
 
+## Churn Prediction
+
+ML-based user churn probability prediction with risk categorization and actionable insights.
+
+### POST /churn/activity
+
+Record user activity for churn prediction model.
+
+**Request:**
+```json
+{
+  "user_id": "user-123",
+  "event_type": "impression",
+  "metadata": {
+    "value": 50.0,
+    "campaign_id": "camp-456"
+  }
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| user_id | string | ✅ | User identifier |
+| event_type | string | ✅ | Event type: impression, click, conversion |
+| metadata | object | ❌ | Additional event metadata |
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### GET /churn/predict/:user_id
+
+Predict churn probability for a specific user.
+
+**Response:**
+```json
+{
+  "user_id": "user-123",
+  "churn_probability": 0.35,
+  "risk_level": "medium",
+  "confidence": 0.78,
+  "top_factors": [
+    {
+      "name": "days_since_last_seen",
+      "impact": 0.25,
+      "description": "User hasn't been active recently",
+      "value": 14.0
+    },
+    {
+      "name": "engagement_trend",
+      "impact": 0.18,
+      "description": "Decreasing engagement pattern",
+      "value": -0.15
+    }
+  ],
+  "days_until_churn": 21,
+  "recommended_action": "Send personalized re-engagement campaign"
+}
+```
+
+### POST /churn/batch-predict
+
+Predict churn for multiple users at once.
+
+**Request:**
+```json
+{
+  "user_ids": ["user-123", "user-456", "user-789"]
+}
+```
+
+**Response:**
+```json
+{
+  "predictions": [
+    {
+      "user_id": "user-123",
+      "churn_probability": 0.35,
+      "risk_level": "medium"
+    },
+    {
+      "user_id": "user-456",
+      "churn_probability": 0.75,
+      "risk_level": "high"
+    }
+  ],
+  "count": 3
+}
+```
+
+### GET /churn/high-risk
+
+Get users with high churn risk.
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| limit | int | 100 | Maximum number of users to return |
+
+**Response:**
+```json
+{
+  "high_risk_users": [
+    {
+      "user_id": "user-456",
+      "churn_probability": 0.85,
+      "risk_level": "high",
+      "days_until_churn": 7
+    }
+  ],
+  "count": 25
+}
+```
+
+### GET /churn/stats
+
+Get churn prediction statistics.
+
+**Response:**
+```json
+{
+  "total_users": 50000,
+  "high_risk_count": 2500,
+  "medium_risk_count": 15000,
+  "low_risk_count": 32500,
+  "avg_churn_probability": 0.28,
+  "predictions_today": 5420
+}
+```
+
+---
+
+## A/B Testing Framework
+
+A/B testing with statistical significance testing and multi-armed bandit optimization.
+
+### POST /experiments
+
+Create a new A/B test experiment.
+
+**Request:**
+```json
+{
+  "name": "Checkout Button Color Test",
+  "description": "Testing blue vs green checkout button",
+  "type": "ab",
+  "variants": [
+    {
+      "name": "Control (Blue)",
+      "weight": 0.5,
+      "is_control": true,
+      "config": {"color": "blue"}
+    },
+    {
+      "name": "Variant A (Green)",
+      "weight": 0.5,
+      "is_control": false,
+      "config": {"color": "green"}
+    }
+  ],
+  "traffic_allocation": 1.0,
+  "metrics": ["conversion_rate", "ctr"]
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | ✅ | Experiment name |
+| description | string | ❌ | Experiment description |
+| type | string | ❌ | Type: ab, multivariate, bandit (default: ab) |
+| variants | array | ✅ | At least 2 variants, one must be control |
+| traffic_allocation | float | ❌ | % of traffic to include (0-1, default: 1.0) |
+| metrics | array | ❌ | Metrics to track |
+
+**Response:**
+```json
+{
+  "id": "exp-abc123",
+  "name": "Checkout Button Color Test",
+  "status": "draft",
+  "variants": [...],
+  "created_at": "2026-02-20T10:00:00Z"
+}
+```
+
+### POST /experiments/:experiment_id/start
+
+Start an experiment.
+
+**Response:**
+```json
+{
+  "status": "started",
+  "experiment_id": "exp-abc123"
+}
+```
+
+### POST /experiments/:experiment_id/stop
+
+Stop an experiment.
+
+**Response:**
+```json
+{
+  "status": "stopped",
+  "experiment_id": "exp-abc123"
+}
+```
+
+### GET /experiments/:experiment_id
+
+Get experiment details.
+
+**Response:**
+```json
+{
+  "id": "exp-abc123",
+  "name": "Checkout Button Color Test",
+  "status": "running",
+  "variants": [
+    {
+      "id": "var-001",
+      "name": "Control (Blue)",
+      "is_control": true,
+      "metrics": {
+        "impressions": 5000,
+        "clicks": 250,
+        "conversions": 50,
+        "ctr": 0.05,
+        "conversion_rate": 0.01
+      }
+    }
+  ],
+  "start_date": "2026-02-20T10:00:00Z"
+}
+```
+
+### GET /experiments
+
+List all experiments.
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| status | string | Filter by status: draft, running, completed |
+
+**Response:**
+```json
+{
+  "experiments": [...],
+  "count": 5
+}
+```
+
+### GET /experiments/:experiment_id/variant/:user_id
+
+Get or assign a variant for a user.
+
+**Response:**
+```json
+{
+  "id": "var-001",
+  "name": "Control (Blue)",
+  "is_control": true,
+  "config": {"color": "blue"}
+}
+```
+
+### POST /experiments/:experiment_id/event
+
+Record an event for an experiment variant.
+
+**Request:**
+```json
+{
+  "variant_id": "var-001",
+  "event_type": "conversion",
+  "value": 49.99
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| variant_id | string | ✅ | Variant identifier |
+| event_type | string | ✅ | Event: impression, click, conversion, or custom |
+| value | float | ❌ | Event value (e.g., revenue) |
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### GET /experiments/:experiment_id/analyze
+
+Perform statistical analysis on an experiment.
+
+**Response:**
+```json
+{
+  "experiment_id": "exp-abc123",
+  "experiment_name": "Checkout Button Color Test",
+  "status": "running",
+  "duration": "72h0m0s",
+  "total_samples": 10000,
+  "variant_results": [
+    {
+      "variant_id": "var-001",
+      "variant_name": "Control (Blue)",
+      "is_control": true,
+      "sample_size": 5000,
+      "conversion_rate": 0.02,
+      "ctr": 0.05,
+      "confidence_interval": {
+        "lower": 0.016,
+        "upper": 0.024
+      }
+    },
+    {
+      "variant_id": "var-002",
+      "variant_name": "Variant A (Green)",
+      "is_control": false,
+      "sample_size": 5000,
+      "conversion_rate": 0.028,
+      "lift": 40.0,
+      "p_value": 0.023,
+      "confidence_interval": {
+        "lower": 0.023,
+        "upper": 0.033
+      }
+    }
+  ],
+  "winning_variant": "var-002",
+  "confidence": 0.977,
+  "is_significant": true,
+  "recommendation": "Implement variant 'Variant A (Green)' - statistically significant with 40.0% lift",
+  "statistical_power": 0.85,
+  "expected_lift": 40.0,
+  "risk_assessment": "Low risk - high statistical power"
+}
+```
+
+### GET /experiments/:experiment_id/bandit/:user_id
+
+Get Thompson Sampling recommendation for multi-armed bandit experiments.
+
+**Response:**
+```json
+{
+  "id": "var-002",
+  "name": "Variant A (Green)",
+  "config": {"color": "green"}
+}
+```
+
+### GET /experiments/stats
+
+Get A/B testing statistics.
+
+**Response:**
+```json
+{
+  "total_experiments": 15,
+  "running_experiments": 3,
+  "completed_experiments": 10,
+  "draft_experiments": 2,
+  "total_variants": 45,
+  "total_impressions": 500000,
+  "total_conversions": 12500
+}
+```
+
+---
+
 ## SDKs
 
 Official SDKs available for:
@@ -975,6 +1357,13 @@ Official SDKs available for:
 ---
 
 ## Changelog
+
+### v1.2.0 (2026-02-20)
+- Added Churn Prediction service (5 endpoints)
+- Added A/B Testing Framework service (10 endpoints)
+- 15 new ML-powered endpoints
+- Total: 51 API endpoints
+- 173 passing tests
 
 ### v1.1.0 (2026-02-20)
 - Added Dynamic Bid Adjustment service (4 endpoints)
