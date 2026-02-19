@@ -1333,6 +1333,8 @@ func (h *AdvancedHandler) HandleAdvancedServicesStatus(c *gin.Context) {
 		"user_clustering":          h.biddingService.GetUserClusteringService() != nil,
 		"churn_prediction":         h.biddingService.GetChurnPredictionService() != nil,
 		"ab_testing":               h.biddingService.GetABTestingService() != nil,
+		"dynamic_creative":         h.biddingService.GetDynamicCreativeService() != nil,
+		"performance_prediction":   h.biddingService.GetPerformancePredictionService() != nil,
 	}
 
 	allHealthy := true
@@ -1347,4 +1349,362 @@ func (h *AdvancedHandler) HandleAdvancedServicesStatus(c *gin.Context) {
 		"healthy":  allHealthy,
 		"services": status,
 	})
+}
+
+// ============================================================================
+// DYNAMIC CREATIVE OPTIMIZATION (DCO) ENDPOINTS
+// ============================================================================
+
+// HandleCreateTemplate creates a new creative template
+func (h *AdvancedHandler) HandleCreateTemplate(c *gin.Context) {
+	var template service.CreativeTemplate
+	if err := c.ShouldBindJSON(&template); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	created, err := svc.CreateTemplate(&template)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, created)
+}
+
+// HandleGetTemplate retrieves a creative template by ID
+func (h *AdvancedHandler) HandleGetTemplate(c *gin.Context) {
+	templateID := c.Param("id")
+	if templateID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "template_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	template, err := svc.GetTemplate(templateID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, template)
+}
+
+// HandleCreateElement creates a new creative element
+func (h *AdvancedHandler) HandleCreateElement(c *gin.Context) {
+	var element service.CreativeElement
+	if err := c.ShouldBindJSON(&element); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	created, err := svc.CreateElement(&element)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, created)
+}
+
+// HandleGetElement retrieves a creative element by ID
+func (h *AdvancedHandler) HandleGetElement(c *gin.Context) {
+	elementID := c.Param("id")
+	if elementID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "element_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	element, err := svc.GetElement(elementID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, element)
+}
+
+// HandleGenerateOptimizedCreative generates an optimized creative for a user
+func (h *AdvancedHandler) HandleGenerateOptimizedCreative(c *gin.Context) {
+	var req service.DCORequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	response, err := svc.GenerateOptimizedCreative(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// HandleRecordDCOImpression records a creative impression
+func (h *AdvancedHandler) HandleRecordDCOImpression(c *gin.Context) {
+	combinationID := c.Param("combination_id")
+	if combinationID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "combination_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	if err := svc.RecordImpression(combinationID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandleRecordDCOClick records a creative click
+func (h *AdvancedHandler) HandleRecordDCOClick(c *gin.Context) {
+	combinationID := c.Param("combination_id")
+	if combinationID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "combination_id is required"})
+		return
+	}
+
+	var req struct {
+		UserID string `json:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	if err := svc.RecordClick(combinationID, req.UserID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandleRecordDCOConversion records a creative conversion
+func (h *AdvancedHandler) HandleRecordDCOConversion(c *gin.Context) {
+	combinationID := c.Param("combination_id")
+	if combinationID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "combination_id is required"})
+		return
+	}
+
+	var req struct {
+		Revenue float64 `json:"revenue" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	if err := svc.RecordConversion(combinationID, req.Revenue); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandleGetTopCombinations retrieves top performing creative combinations
+func (h *AdvancedHandler) HandleGetTopCombinations(c *gin.Context) {
+	templateID := c.Param("template_id")
+	if templateID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "template_id is required"})
+		return
+	}
+
+	limit := 10
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	combinations := svc.GetTopCombinations(templateID, limit)
+	c.JSON(http.StatusOK, gin.H{
+		"template_id":  templateID,
+		"combinations": combinations,
+		"count":        len(combinations),
+	})
+}
+
+// HandleGetDCOStats returns DCO service statistics
+func (h *AdvancedHandler) HandleGetDCOStats(c *gin.Context) {
+	svc := h.biddingService.GetDynamicCreativeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+		return
+	}
+
+	stats := svc.GetDCOStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
+// PERFORMANCE PREDICTION ENDPOINTS
+// ============================================================================
+
+// HandleRecordPerformance records campaign/creative performance data
+func (h *AdvancedHandler) HandleRecordPerformance(c *gin.Context) {
+	var record service.PerformanceRecord
+	if err := c.ShouldBindJSON(&record); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetPerformancePredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+		return
+	}
+
+	svc.RecordPerformance(&record)
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandlePredictPerformance predicts future performance metrics
+func (h *AdvancedHandler) HandlePredictPerformance(c *gin.Context) {
+	var req service.PredictionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetPerformancePredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+		return
+	}
+
+	result, err := svc.Predict(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// HandleForecastPerformance generates a performance forecast
+func (h *AdvancedHandler) HandleForecastPerformance(c *gin.Context) {
+	entityID := c.Query("entity_id")
+	entityType := c.Query("entity_type")
+	hoursStr := c.DefaultQuery("hours", "24")
+
+	if entityID == "" || entityType == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "entity_id and entity_type are required"})
+		return
+	}
+
+	hours, err := strconv.Atoi(hoursStr)
+	if err != nil || hours <= 0 {
+		hours = 24
+	}
+
+	svc := h.biddingService.GetPerformancePredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+		return
+	}
+
+	forecast, err := svc.Forecast(entityID, entityType, hours)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, forecast)
+}
+
+// HandleGetPredictionAccuracy returns prediction accuracy metrics
+func (h *AdvancedHandler) HandleGetPredictionAccuracy(c *gin.Context) {
+	entityID := c.Param("entity_id")
+	if entityID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "entity_id is required"})
+		return
+	}
+
+	lookbackStr := c.DefaultQuery("lookback_hours", "24")
+	lookbackHours, err := strconv.Atoi(lookbackStr)
+	if err != nil || lookbackHours <= 0 {
+		lookbackHours = 24
+	}
+
+	svc := h.biddingService.GetPerformancePredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+		return
+	}
+
+	accuracy := svc.GetPredictionAccuracy(entityID, lookbackHours)
+	c.JSON(http.StatusOK, gin.H{
+		"entity_id":      entityID,
+		"lookback_hours": lookbackHours,
+		"accuracy":       accuracy,
+	})
+}
+
+// HandleGetPredictionStats returns prediction service statistics
+func (h *AdvancedHandler) HandleGetPredictionStats(c *gin.Context) {
+	svc := h.biddingService.GetPerformancePredictionService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+		return
+	}
+
+	stats := svc.GetStats()
+	c.JSON(http.StatusOK, stats)
 }

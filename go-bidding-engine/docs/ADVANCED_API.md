@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Advanced Services API provides access to 13 sophisticated advertising features:
+The Advanced Services API provides access to 15 sophisticated advertising features:
 
 1. **Bid Landscape Analysis** - Analyze market bid patterns and optimize bid prices
 2. **Creative Optimization** - Multi-armed bandit creative selection
@@ -15,8 +15,10 @@ The Advanced Services API provides access to 13 sophisticated advertising featur
 9. **Dynamic Bid Adjustments** - ML-based real-time bid optimization
 10. **Lookalike Audiences** - Audience expansion through similarity modeling
 11. **User Clustering** - K-means based user segmentation
-12. **Churn Prediction** - ML-based user churn probability prediction (NEW)
-13. **A/B Testing Framework** - Statistical significance testing with multi-armed bandit (NEW)
+12. **Churn Prediction** - ML-based user churn probability prediction
+13. **A/B Testing Framework** - Statistical significance testing with multi-armed bandit
+14. **Dynamic Creative Optimization (DCO)** - ML-powered creative personalization (NEW)
+15. **Performance Prediction** - ML-based performance forecasting (NEW)
 
 ## Base URL
 
@@ -57,7 +59,9 @@ Check the health status of all advanced services.
     "lookalike": true,
     "user_clustering": true,
     "churn_prediction": true,
-    "ab_testing": true
+    "ab_testing": true,
+    "dynamic_creative": true,
+    "performance_prediction": true
   }
 }
 ```
@@ -1347,6 +1351,398 @@ Get A/B testing statistics.
 
 ---
 
+## Dynamic Creative Optimization (DCO)
+
+### POST /dco/template
+
+Create a new creative template.
+
+**Request:**
+```json
+{
+  "name": "Summer Banner",
+  "description": "Summer promotion template",
+  "format": "banner",
+  "dimensions": {
+    "width": 300,
+    "height": 250
+  },
+  "slots": {
+    "headline": {
+      "id": "headline",
+      "name": "Headline",
+      "type": "headline",
+      "required": true,
+      "max_length": 50,
+      "position": {"x": 10, "y": 10, "width": 280, "height": 40}
+    },
+    "cta": {
+      "id": "cta",
+      "name": "Call to Action",
+      "type": "cta",
+      "required": true,
+      "position": {"x": 100, "y": 200, "width": 100, "height": 40}
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "tmpl-abc123",
+  "name": "Summer Banner",
+  "description": "Summer promotion template",
+  "format": "banner",
+  "dimensions": {"width": 300, "height": 250},
+  "slots": {...},
+  "created_at": "2026-02-20T12:00:00Z",
+  "updated_at": "2026-02-20T12:00:00Z"
+}
+```
+
+### GET /dco/template/:id
+
+Get a creative template by ID.
+
+**Response:** Same as POST response above.
+
+### POST /dco/element
+
+Create a new creative element.
+
+**Request:**
+```json
+{
+  "type": "headline",
+  "content": "Summer Sale - 50% Off!",
+  "attributes": {
+    "font": "Arial Bold",
+    "size": "24px",
+    "color": "#FF5722"
+  },
+  "segments": ["deal-seekers", "summer-shoppers"],
+  "tags": ["promo", "discount", "seasonal"]
+}
+```
+
+**Response:**
+```json
+{
+  "id": "elem-xyz789",
+  "type": "headline",
+  "content": "Summer Sale - 50% Off!",
+  "attributes": {...},
+  "segments": ["deal-seekers", "summer-shoppers"],
+  "tags": ["promo", "discount", "seasonal"],
+  "created_at": "2026-02-20T12:00:00Z"
+}
+```
+
+### GET /dco/element/:id
+
+Get a creative element by ID.
+
+**Response:** Same as POST response above.
+
+### POST /dco/generate
+
+Generate an optimized creative for a user.
+
+**Request:**
+```json
+{
+  "template_id": "tmpl-abc123",
+  "user_id": "user-456",
+  "context": {
+    "page_category": "electronics",
+    "content_keywords": ["smartphone", "deals"],
+    "user_segments": ["tech-enthusiast", "premium"],
+    "device_type": "mobile",
+    "time_of_day": "evening",
+    "geo_location": "US-CA"
+  },
+  "constraints": {
+    "required_elements": [],
+    "excluded_elements": [],
+    "max_combinations": 10,
+    "prefer_exploration": false
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "combination_id": "combo-def456",
+  "template_id": "tmpl-abc123",
+  "elements": {
+    "headline": {
+      "id": "elem-xyz789",
+      "type": "headline",
+      "content": "Summer Sale - 50% Off!"
+    }
+  },
+  "rendered_html": "<div>...</div>",
+  "personalization_score": 0.85,
+  "predicted_ctr": 0.032,
+  "selection_method": "thompson_sampling",
+  "rules_applied": ["segment-match", "time-boost"]
+}
+```
+
+### POST /dco/impression/:combination_id
+
+Record a creative impression.
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### POST /dco/click/:combination_id
+
+Record a creative click.
+
+**Request:**
+```json
+{
+  "user_id": "user-456"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### POST /dco/conversion/:combination_id
+
+Record a creative conversion.
+
+**Request:**
+```json
+{
+  "revenue": 149.99
+}
+```
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### GET /dco/top/:template_id?limit=10
+
+Get top performing creative combinations for a template.
+
+**Response:**
+```json
+{
+  "template_id": "tmpl-abc123",
+  "combinations": [
+    {
+      "id": "combo-def456",
+      "elements": ["elem-xyz789", "elem-cta1"],
+      "performance": {
+        "impressions": 15000,
+        "clicks": 750,
+        "conversions": 45,
+        "ctr": 0.05,
+        "cvr": 0.06
+      }
+    }
+  ],
+  "count": 10
+}
+```
+
+### GET /dco/stats
+
+Get DCO service statistics.
+
+**Response:**
+```json
+{
+  "total_templates": 25,
+  "total_elements": 150,
+  "total_combinations": 500,
+  "total_impressions": 1000000,
+  "total_clicks": 50000,
+  "total_conversions": 5000,
+  "avg_ctr": 0.05,
+  "elements_by_type": {
+    "headline": 50,
+    "cta": 30,
+    "image": 40,
+    "description": 30
+  }
+}
+```
+
+---
+
+## Performance Prediction
+
+### POST /prediction/record
+
+Record campaign/creative performance data for prediction models.
+
+**Request:**
+```json
+{
+  "entity_id": "campaign-123",
+  "entity_type": "campaign",
+  "timestamp": "2026-02-20T12:00:00Z",
+  "impressions": 50000,
+  "clicks": 2500,
+  "conversions": 250,
+  "revenue": 12500.00,
+  "spend": 5000.00,
+  "ctr": 0.05,
+  "cvr": 0.10,
+  "cpc": 2.00,
+  "cpm": 100.00,
+  "roas": 2.5,
+  "features": {
+    "bid_price": 1.50,
+    "audience_size": 100000
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### POST /prediction/predict
+
+Predict future performance metrics.
+
+**Request:**
+```json
+{
+  "entity_id": "campaign-123",
+  "entity_type": "campaign",
+  "features": {
+    "bid_price": 1.50
+  },
+  "context": {
+    "time_of_day": "afternoon",
+    "day_of_week": "wednesday",
+    "device_type": "desktop",
+    "ad_format": "banner",
+    "geo_region": "US-West",
+    "seasonality": 0.8
+  },
+  "horizon": 24,
+  "metrics": ["ctr", "cvr", "roas"]
+}
+```
+
+**Response:**
+```json
+{
+  "id": "pred-abc123",
+  "entity_id": "campaign-123",
+  "entity_type": "campaign",
+  "predicted_at": "2026-02-20T12:00:00Z",
+  "horizon_hours": 24,
+  "predictions": {
+    "ctr": {
+      "metric": "ctr",
+      "predicted_value": 0.052,
+      "lower_bound": 0.045,
+      "upper_bound": 0.060,
+      "confidence": 0.85,
+      "trend_direction": "up",
+      "trend_strength": 0.15,
+      "historical_mean": 0.048,
+      "percent_change": 8.3
+    },
+    "cvr": {...},
+    "roas": {...}
+  },
+  "confidence": 0.85,
+  "feature_importance": {
+    "bid_price": 0.35,
+    "time_of_day": 0.20,
+    "device_type": 0.15
+  },
+  "recommendations": [
+    {
+      "type": "bid_adjustment",
+      "message": "Consider increasing bid by 10% to improve win rate",
+      "priority": "medium"
+    }
+  ]
+}
+```
+
+### GET /prediction/forecast?entity_id=X&entity_type=Y&hours=24
+
+Generate a performance forecast.
+
+**Response:**
+```json
+{
+  "entity_id": "campaign-123",
+  "entity_type": "campaign",
+  "forecast_hours": 24,
+  "predictions": {
+    "impressions": {"value": 55000, "lower": 48000, "upper": 62000},
+    "clicks": {"value": 2750, "lower": 2400, "upper": 3100},
+    "conversions": {"value": 275, "lower": 240, "upper": 310}
+  },
+  "trend": "increasing",
+  "confidence": 0.82
+}
+```
+
+### GET /prediction/accuracy/:entity_id?lookback_hours=24
+
+Get prediction accuracy metrics for an entity.
+
+**Response:**
+```json
+{
+  "entity_id": "campaign-123",
+  "lookback_hours": 24,
+  "accuracy": {
+    "ctr_mape": 5.2,
+    "cvr_mape": 8.5,
+    "roas_mape": 12.1,
+    "overall_accuracy": 0.87
+  }
+}
+```
+
+### GET /prediction/stats
+
+Get performance prediction service statistics.
+
+**Response:**
+```json
+{
+  "total_records": 15000,
+  "total_predictions": 2500,
+  "entities_tracked": 150,
+  "avg_prediction_accuracy": 0.87,
+  "model_last_updated": "2026-02-20T10:00:00Z"
+}
+```
+
+---
+
 ## SDKs
 
 Official SDKs available for:
@@ -1357,6 +1753,13 @@ Official SDKs available for:
 ---
 
 ## Changelog
+
+### v1.3.0 (2026-02-20)
+- Added Dynamic Creative Optimization (DCO) service (10 endpoints)
+- Added Performance Prediction service (5 endpoints)
+- 15 new ML-powered endpoints
+- Total: 66 API endpoints
+- 194 passing tests
 
 ### v1.2.0 (2026-02-20)
 - Added Churn Prediction service (5 endpoints)

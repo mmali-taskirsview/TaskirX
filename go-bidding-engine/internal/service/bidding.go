@@ -66,6 +66,10 @@ type BiddingService struct {
 	// Advanced Services - Phase 4 (ML Features Extended)
 	churnPredictionService *ChurnPredictionService
 	abTestingService       *ABTestingService
+
+	// Advanced Services - Phase 4 (DCO & Prediction)
+	dynamicCreativeService       *DynamicCreativeService
+	performancePredictionService *PerformancePredictionService
 }
 
 // NewBiddingService creates a new bidding service
@@ -105,6 +109,9 @@ func NewBiddingService(cache cache.Cache, backendBaseURL string) *BiddingService
 		// Initialize advanced services - Phase 4 (ML Features Extended)
 		churnPredictionService: NewChurnPredictionService(cache),
 		abTestingService:       NewABTestingService(cache),
+		// Initialize advanced services - Phase 4 (DCO & Prediction)
+		dynamicCreativeService:       NewDynamicCreativeService(cache),
+		performancePredictionService: NewPerformancePredictionService(cache),
 	}
 }
 
@@ -211,6 +218,16 @@ func (s *BiddingService) GetChurnPredictionService() *ChurnPredictionService {
 // GetABTestingService returns the A/B testing service
 func (s *BiddingService) GetABTestingService() *ABTestingService {
 	return s.abTestingService
+}
+
+// GetDynamicCreativeService returns the dynamic creative optimization service
+func (s *BiddingService) GetDynamicCreativeService() *DynamicCreativeService {
+	return s.dynamicCreativeService
+}
+
+// GetPerformancePredictionService returns the performance prediction service
+func (s *BiddingService) GetPerformancePredictionService() *PerformancePredictionService {
+	return s.performancePredictionService
 }
 
 // GetSupplyPathAnalytics returns the collected SPO analytics
