@@ -7,6 +7,7 @@ import (
 func TestIsMatch_GeoFencing(t *testing.T) {
 	// Campaign with GeoFence: NYC (approx 40.7128, -74.0060) within 10km
 	campaign := &Campaign{
+		Creative: Creative{Type: "banner"},
 		Targeting: Targeting{
 			GeoFences: []GeoFence{
 				{Lat: 40.7128, Lon: -74.0060, Radius: 10.0},
@@ -16,14 +17,14 @@ func TestIsMatch_GeoFencing(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		device   Device
+		device   InternalDevice
 		expected bool
 	}{
 		{
 			name: "Match inside GeoFence",
-			device: Device{
+			device: InternalDevice{
 				Type: "mobile",
-				Geo: Geo{
+				Geo: InternalGeo{
 					Lat: 40.7200, // Very close
 					Lon: -74.0100,
 				},
@@ -32,9 +33,9 @@ func TestIsMatch_GeoFencing(t *testing.T) {
 		},
 		{
 			name: "No Match outside GeoFence (London)",
-			device: Device{
+			device: InternalDevice{
 				Type: "mobile",
-				Geo: Geo{
+				Geo: InternalGeo{
 					Lat: 51.5074,
 					Lon: -0.1278,
 				},
@@ -43,9 +44,9 @@ func TestIsMatch_GeoFencing(t *testing.T) {
 		},
 		{
 			name: "No Match border case (20km away)",
-			device: Device{
+			device: InternalDevice{
 				Type: "mobile",
-				Geo: Geo{
+				Geo: InternalGeo{
 					Lat: 40.7128 + 0.2, // ~22km diff in lat approx
 					Lon: -74.0060,
 				},
@@ -54,7 +55,7 @@ func TestIsMatch_GeoFencing(t *testing.T) {
 		},
 		{
 			name: "No Geo in Request",
-			device: Device{
+			device: InternalDevice{
 				Type: "mobile",
 			},
 			expected: false,
@@ -65,6 +66,7 @@ func TestIsMatch_GeoFencing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := &BidRequest{
 				Device: tt.device,
+				AdSlot: AdSlot{Formats: []string{"banner"}},
 			}
 			if got := campaign.IsMatch(req); got != tt.expected {
 				t.Errorf("IsMatch() = %v, want %v", got, tt.expected)

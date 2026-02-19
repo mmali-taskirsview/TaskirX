@@ -25,7 +25,71 @@ type Cache interface {
 	IncrementCampaignSpend(campaignID string, amount float64) (float64, error)
 	GetCampaignSpend(campaignID string) (float64, error)
 
+	IncrementBidFormat(format string) error
+	GetBidFormats() (map[string]int64, error)
+
 	// Generic Cache Methods
 	Get(key string) (string, error)
 	Set(key string, value interface{}, ttl int64) error
+
+	// Fraud
+	IncrementPublisherFraud(publisherID string) error
+
+	// Request Deduplication
+	IsRequestDuplicate(requestID string, ttlSeconds int) (bool, error) // Check if request ID seen before, set if not
+
+	// Frequency Capping
+	IncrementUserFrequency(userID, campaignID string, windowSecs int) (int64, error)
+	GetUserFrequency(userID, campaignID string) (int64, error)
+
+	// Campaign performance metrics
+	GetCampaignCTR(campaignID string) (float64, error)
+	GetCampaignWinRate(campaignID string) (float64, error)
+	IncrementCampaignClicks(campaignID string) error
+	IncrementCampaignImpressions(campaignID string) error
+	// IncrementCampaignBids records that a campaign entered an auction (denominator for win-rate)
+	IncrementCampaignBids(campaignID string) error
+	// IncrementCampaignWins records that a campaign won an auction (numerator for win-rate)
+	IncrementCampaignWins(campaignID string) error
+
+	// Bid Landscape Analytics
+	RecordBidInBucket(priceBucket string) error            // Track bid count in price bucket (e.g., "1.00-1.50")
+	RecordWinInBucket(priceBucket string) error            // Track win count in price bucket
+	GetBidLandscape() (map[string]map[string]int64, error) // Returns {bucket: {bids: X, wins: Y}}
+
+	// Segment-Level Performance Tracking
+	IncrementSegmentImpressions(segmentType, segmentValue string) error            // Track impressions by device/os/geo
+	IncrementSegmentClicks(segmentType, segmentValue string) error                 // Track clicks by device/os/geo
+	GetSegmentPerformance(segmentType string) (map[string]map[string]int64, error) // Returns {segment: {imps: X, clicks: Y}}
+
+	// Dynamic Bid Floor Optimization
+	RecordPublisherBidAttempt(publisherID string, bidPrice float64, won bool) error // Track bid attempts and wins per publisher
+	GetOptimalBidFloor(publisherID string, targetWinRate float64) (float64, error)  // Calculate optimal floor based on history
+
+	// Conversion Attribution
+	RecordImpression(userID, campaignID, requestID string, ttlHours int) error // Store impression for VTA
+	RecordClick(userID, campaignID, requestID string, ttlHours int) error      // Store click for CTA
+	GetAttribution(userID, campaignID string) (string, string, error)          // Returns (attributionType, requestID)
+
+	// Multi-Touch Attribution
+	RecordTouchpoint(userID, campaignID, touchpointType, requestID string, ttlDays int) error         // Store touchpoint in journey
+	GetTouchpoints(userID, campaignID string) ([]model.Touchpoint, error)                             // Get all touchpoints for user/campaign
+	GetMultiTouchAttribution(userID, campaignID, modelType string) ([]model.AttributionCredit, error) // Calculate attribution by model
+
+	// Retargeting Segments
+	RecordUserEvent(userID, campaignID, eventType string, ttlDays int) error       // Store user engagement event for retargeting
+	GetUserEvents(userID string, eventTypes []string) (map[string][]string, error) // Returns {eventType: [campaignIDs]}
+	HasUserEvent(userID, campaignID, eventType string) (bool, error)               // Check if user has specific event for campaign
+
+	// Cross-Device Graph
+	LinkDevices(primaryUserID string, deviceIDs []string, ttlDays int) error // Link devices to a primary user ID
+	GetLinkedDevices(deviceID string) ([]string, error)                      // Get all devices linked to this device
+	GetPrimaryUserID(deviceID string) (string, error)                        // Resolve device to primary user ID
+	GetCrossDeviceFrequency(primaryUserID, campaignID string) (int64, error) // Get total frequency across all devices
+
+	// Supply Path Optimization Analytics
+	StoreBidPathAnalytics(analytics *model.BidPathAnalytics) error
+	GetBidPathAnalytics(requestID string) (*model.BidPathAnalytics, error)
+	GetSupplyChainMetrics(timeRange string) (*model.SupplyChainMetrics, error)
+	GetServiceMetrics(serviceName string, timeRange string) (*model.ServiceMetrics, error)
 }

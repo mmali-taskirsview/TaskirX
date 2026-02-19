@@ -12,10 +12,15 @@ var (
 		Help: "The total number of bid requests received",
 	})
 
-	BidsPlacedTotal = promauto.NewCounter(prometheus.CounterOpts{
+	BidRequestsByFormat = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "bid_requests_by_format_total",
+		Help: "The total number of bid requests received by format type",
+	}, []string{"format"})
+
+	BidsPlacedTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "bids_placed_total",
-		Help: "The total number of bids successfully placed",
-	})
+		Help: "The total number of bids successfully placed by format",
+	}, []string{"format"})
 
 	FraudBlockedTotal = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "fraud_blocked_total",
@@ -31,6 +36,27 @@ var (
 		Name: "optimization_errors_total",
 		Help: "Total number of errors interacting with Optimization Service",
 	})
+
+	NoBidTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "no_bid_total",
+		Help: "Total number of no-bid responses by reason",
+	}, []string{"reason"})
+
+	// Tracking Metrics
+	EventsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "tracking_events_total",
+		Help: "Total tracking events by type",
+	}, []string{"type", "campaign_id"})
+
+	VideoEventsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "video_events_total",
+		Help: "Video playback events",
+	}, []string{"event", "campaign_id"})
+
+	RichMediaEventsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "rich_media_events_total",
+		Help: "Rich Media Interaction events",
+	}, []string{"action", "campaign_id"})
 
 	// Histograms
 	BidLatency = promauto.NewHistogram(prometheus.HistogramOpts{

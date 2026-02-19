@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/taskirx/go-bidding-engine/internal/cache"
 	"github.com/taskirx/go-bidding-engine/internal/model"
@@ -16,6 +17,12 @@ type MockCache struct {
 	userSegments map[string][]string
 	geoRules     map[string]map[string]interface{}
 	spend        map[string]float64
+	kv           map[string]string
+	touchpoints  map[string][]model.Touchpoint
+	userEvents   map[string]bool // key: "userID:campaignID:eventType"
+	frequencies  map[string]int64
+	ctr          map[string]float64
+	winRate      map[string]float64
 }
 
 func NewMockCache() *MockCache {
@@ -23,6 +30,12 @@ func NewMockCache() *MockCache {
 		userSegments: make(map[string][]string),
 		geoRules:     make(map[string]map[string]interface{}),
 		spend:        make(map[string]float64),
+		kv:           make(map[string]string),
+		touchpoints:  make(map[string][]model.Touchpoint),
+		userEvents:   make(map[string]bool),
+		frequencies:  make(map[string]int64),
+		ctr:          make(map[string]float64),
+		winRate:      make(map[string]float64),
 	}
 }
 
@@ -64,6 +77,160 @@ func (m *MockCache) IncrementCampaignSpend(id string, amount float64) (float64, 
 }
 func (m *MockCache) GetCampaignSpend(id string) (float64, error) {
 	return m.spend[id], nil
+}
+
+func (m *MockCache) IncrementBidFormat(format string) error { return nil }
+func (m *MockCache) GetBidFormats() (map[string]int64, error) {
+	return make(map[string]int64), nil
+}
+
+// Generic Cache Methods
+func (m *MockCache) Get(key string) (string, error) {
+	return m.kv[key], nil
+}
+func (m *MockCache) Set(key string, value interface{}, ttl int64) error {
+	if s, ok := value.(string); ok {
+		m.kv[key] = s
+	}
+	return nil
+}
+
+// Fraud
+func (m *MockCache) IncrementPublisherFraud(publisherID string) error {
+	return nil
+}
+
+// Request Deduplication
+func (m *MockCache) IsRequestDuplicate(requestID string, ttlSeconds int) (bool, error) {
+	return false, nil
+}
+
+// Frequency Capping
+func (m *MockCache) IncrementUserFrequency(userID, campaignID string, windowSecs int) (int64, error) {
+	key := userID + ":" + campaignID
+	m.frequencies[key]++
+	return m.frequencies[key], nil
+}
+func (m *MockCache) GetUserFrequency(userID, campaignID string) (int64, error) {
+	return m.frequencies[userID+":"+campaignID], nil
+}
+
+// Campaign performance metrics
+func (m *MockCache) GetCampaignCTR(campaignID string) (float64, error) {
+	return m.ctr[campaignID], nil
+}
+func (m *MockCache) GetCampaignWinRate(campaignID string) (float64, error) {
+	return m.winRate[campaignID], nil
+}
+func (m *MockCache) IncrementCampaignClicks(campaignID string) error      { return nil }
+func (m *MockCache) IncrementCampaignImpressions(campaignID string) error { return nil }
+func (m *MockCache) IncrementCampaignBids(campaignID string) error        { return nil }
+func (m *MockCache) IncrementCampaignWins(campaignID string) error        { return nil }
+
+// Bid Landscape Analytics
+func (m *MockCache) RecordBidInBucket(priceBucket string) error { return nil }
+func (m *MockCache) RecordWinInBucket(priceBucket string) error { return nil }
+func (m *MockCache) GetBidLandscape() (map[string]map[string]int64, error) {
+	return make(map[string]map[string]int64), nil
+}
+
+// Segment-Level Performance Tracking
+func (m *MockCache) IncrementSegmentImpressions(segmentType, segmentValue string) error { return nil }
+func (m *MockCache) IncrementSegmentClicks(segmentType, segmentValue string) error      { return nil }
+func (m *MockCache) GetSegmentPerformance(segmentType string) (map[string]map[string]int64, error) {
+	return make(map[string]map[string]int64), nil
+}
+
+// Dynamic Bid Floor Optimization
+func (m *MockCache) RecordPublisherBidAttempt(publisherID string, bidPrice float64, won bool) error {
+	return nil
+}
+func (m *MockCache) GetOptimalBidFloor(publisherID string, targetWinRate float64) (float64, error) {
+	return 0, nil
+}
+
+// Conversion Attribution
+func (m *MockCache) RecordImpression(userID, campaignID, requestID string, ttlHours int) error {
+	return nil
+}
+func (m *MockCache) RecordClick(userID, campaignID, requestID string, ttlHours int) error {
+	return nil
+}
+func (m *MockCache) GetAttribution(userID, campaignID string) (string, string, error) {
+	return "", "", nil
+}
+
+// Multi-Touch Attribution
+func (m *MockCache) RecordTouchpoint(userID, campaignID, touchpointType, requestID string, ttlDays int) error {
+	key := userID + ":" + campaignID
+	tp := model.Touchpoint{
+		Type:       touchpointType,
+		RequestID:  requestID,
+		CampaignID: campaignID,
+		Timestamp:  time.Now(),
+	}
+	m.touchpoints[key] = append(m.touchpoints[key], tp)
+	return nil
+}
+func (m *MockCache) GetTouchpoints(userID, campaignID string) ([]model.Touchpoint, error) {
+	key := userID + ":" + campaignID
+	return m.touchpoints[key], nil
+}
+func (m *MockCache) GetMultiTouchAttribution(userID, campaignID, modelType string) ([]model.AttributionCredit, error) {
+	return nil, nil
+}
+
+// Retargeting Segments
+func (m *MockCache) RecordUserEvent(userID, campaignID, eventType string, ttlDays int) error {
+	key := userID + ":" + campaignID + ":" + eventType
+	m.userEvents[key] = true
+	return nil
+}
+func (m *MockCache) GetUserEvents(userID string, eventTypes []string) (map[string][]string, error) {
+	return make(map[string][]string), nil
+}
+func (m *MockCache) HasUserEvent(userID, campaignID, eventType string) (bool, error) {
+	key := userID + ":" + campaignID + ":" + eventType
+	return m.userEvents[key], nil
+}
+
+// Cross-Device Graph
+func (m *MockCache) LinkDevices(primaryUserID string, deviceIDs []string, ttlDays int) error {
+	return nil
+}
+func (m *MockCache) GetLinkedDevices(deviceID string) ([]string, error) { return nil, nil }
+func (m *MockCache) GetPrimaryUserID(deviceID string) (string, error)   { return "", nil }
+func (m *MockCache) GetCrossDeviceFrequency(primaryUserID, campaignID string) (int64, error) {
+	return 0, nil
+}
+
+// Supply Path Optimization Analytics
+func (m *MockCache) StoreBidPathAnalytics(analytics *model.BidPathAnalytics) error { return nil }
+func (m *MockCache) GetBidPathAnalytics(requestID string) (*model.BidPathAnalytics, error) {
+	return nil, nil
+}
+func (m *MockCache) GetSupplyChainMetrics(timeRange string) (*model.SupplyChainMetrics, error) {
+	return nil, nil
+}
+func (m *MockCache) GetServiceMetrics(serviceName string, timeRange string) (*model.ServiceMetrics, error) {
+	return nil, nil
+}
+
+// SetTouchpoints is a test helper to inject touchpoints into the mock
+func (m *MockCache) SetTouchpoints(userID, campaignID string, tps []model.Touchpoint) {
+	key := userID + ":" + campaignID
+	m.touchpoints[key] = tps
+}
+
+// SetKV is a test helper to set arbitrary key-value pairs
+func (m *MockCache) SetKV(key, value string) {
+	m.kv[key] = value
+}
+
+// SetUserEvent is a test helper to set a user event
+func (m *MockCache) SetUserEvent(userID, campaignID, eventType string) {
+	key := userID + ":" + campaignID + ":" + eventType
+	m.userEvents[key] = true
 }
 
 // Helper to create a mock AI server
@@ -123,8 +290,9 @@ func TestProcessBid_FraudCheck(t *testing.T) {
 	// Case 1: Legitimate User
 	reqLegit := &model.BidRequest{
 		ID:     "req-legit",
-		Device: model.Device{IP: "5.6.7.8", Type: "mobile"},
-		User:   model.User{Country: "US"},
+		Device: model.InternalDevice{IP: "5.6.7.8", Type: "mobile"},
+		User:   model.InternalUser{Country: "US"},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	resp, err := service.ProcessBid(reqLegit)
@@ -138,8 +306,9 @@ func TestProcessBid_FraudCheck(t *testing.T) {
 	// Case 2: Fraudulent User
 	reqFraud := &model.BidRequest{
 		ID:     "req-fraud",
-		Device: model.Device{IP: "1.2.3.4", Type: "mobile"},
-		User:   model.User{Country: "US"},
+		Device: model.InternalDevice{IP: "1.2.3.4", Type: "mobile"},
+		User:   model.InternalUser{Country: "US"},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	respFraud, errFraud := service.ProcessBid(reqFraud)
@@ -189,13 +358,15 @@ func TestProcessBid_BidOptimization(t *testing.T) {
 		Targeting: model.Targeting{Countries: []string{"US"}},
 		Status:    "active",
 		Budget:    1000,
+		Creative:  model.Creative{Type: "banner"},
 	}
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaign})
 
 	req := &model.BidRequest{
 		ID:     "req-opt",
-		Device: model.Device{Type: "mobile", IP: "10.0.0.1"},
-		User:   model.User{Country: "US"},
+		Device: model.InternalDevice{Type: "mobile", IP: "10.0.0.1"},
+		User:   model.InternalUser{Country: "US"},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	resp, err := service.ProcessBid(req)
@@ -221,19 +392,21 @@ func TestProcessBid_BudgetEnforcement(t *testing.T) {
 			Countries: []string{"US"},
 			Devices:   []string{"mobile"},
 		},
-		Status: "active",
+		Status:   "active",
+		Creative: model.Creative{Type: "banner"},
 	}
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaign})
 
 	req := &model.BidRequest{
 		ID: "req-1",
-		Device: model.Device{
+		Device: model.InternalDevice{
 			Type: "mobile",
 			OS:   "android",
 		},
-		User: model.User{
+		User: model.InternalUser{
 			Country: "US",
 		},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	// 1. Normal Bid
@@ -270,6 +443,7 @@ func TestProcessBid_UserSegments(t *testing.T) {
 			Countries:  []string{"US"},
 			Categories: []string{"luxury"},
 		},
+		Creative: model.Creative{Type: "banner"},
 	}
 
 	// Campaign B: Higher bid ($10.5), no segment match -> score 10.5
@@ -280,6 +454,7 @@ func TestProcessBid_UserSegments(t *testing.T) {
 		Targeting: model.Targeting{
 			Countries: []string{"US"},
 		},
+		Creative: model.Creative{Type: "banner"},
 	}
 
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaignA, campaignB})
@@ -289,13 +464,14 @@ func TestProcessBid_UserSegments(t *testing.T) {
 
 	req := &model.BidRequest{
 		ID: "req-vip",
-		User: model.User{
+		User: model.InternalUser{
 			ID:      userID,
 			Country: "US",
 			// Must include "luxury" to pass hard filter if we want to test segment boost on top
 			Categories: []string{"luxury"},
 		},
-		Device: model.Device{Type: "mobile"},
+		Device: model.InternalDevice{Type: "mobile"},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	resp, err := service.ProcessBid(req)
@@ -320,14 +496,16 @@ func TestProcessBid_GeoBlocked(t *testing.T) {
 		Targeting: model.Targeting{
 			Countries: []string{"US"}, // Only US
 		},
+		Creative: model.Creative{Type: "banner"},
 	}
 	mockCache.SetActiveCampaigns([]*model.Campaign{campaign})
 
 	req := &model.BidRequest{
 		ID: "req-geo",
-		User: model.User{
+		User: model.InternalUser{
 			Country: "CA", // User from Canada
 		},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	_, err := service.ProcessBid(req)
@@ -368,6 +546,7 @@ func TestProcessBid_AIScoring(t *testing.T) {
 		BidPrice:  10.0,
 		Budget:    1000.0,
 		Targeting: model.Targeting{Countries: []string{"US"}},
+		Creative:  model.Creative{Type: "banner"},
 	}
 	// Campaign B: Will get AI Boost
 	camp2 := &model.Campaign{
@@ -375,14 +554,16 @@ func TestProcessBid_AIScoring(t *testing.T) {
 		BidPrice:  8.0, // Lower base bid/score
 		Budget:    1000.0,
 		Targeting: model.Targeting{Countries: []string{"US"}},
+		Creative:  model.Creative{Type: "banner"},
 	}
 
 	mockCache.SetActiveCampaigns([]*model.Campaign{camp1, camp2})
 
 	req := &model.BidRequest{
 		ID:     "req-ai-test",
-		User:   model.User{Country: "US"},
-		Device: model.Device{Type: "mobile"},
+		User:   model.InternalUser{Country: "US"},
+		Device: model.InternalDevice{Type: "mobile"},
+		AdSlot: model.AdSlot{Formats: []string{"banner"}},
 	}
 
 	// 3. Execution
@@ -428,8 +609,9 @@ func TestProcessBid_VideoVAST(t *testing.T) {
 
 	req := &model.BidRequest{
 		ID:     "req-video-1",
-		User:   model.User{Country: "US"},
-		Device: model.Device{Type: "mobile", IP: "10.0.0.1"},
+		User:   model.InternalUser{Country: "US"},
+		Device: model.InternalDevice{Type: "mobile", IP: "10.0.0.1"},
+		AdSlot: model.AdSlot{Formats: []string{"video"}},
 	}
 
 	resp, err := service.ProcessBid(req)
@@ -474,8 +656,9 @@ func TestProcessBid_Native(t *testing.T) {
 
 	req := &model.BidRequest{
 		ID:     "req-native-1",
-		User:   model.User{Country: "US"},
-		Device: model.Device{Type: "mobile", IP: "10.0.0.1"},
+		User:   model.InternalUser{Country: "US"},
+		Device: model.InternalDevice{Type: "mobile", IP: "10.0.0.1"},
+		AdSlot: model.AdSlot{Formats: []string{"native"}},
 	}
 
 	resp, err := service.ProcessBid(req)
