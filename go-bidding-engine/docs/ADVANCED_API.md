@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Advanced Services API provides access to 8 sophisticated advertising features:
+The Advanced Services API provides access to 11 sophisticated advertising features:
 
 1. **Bid Landscape Analysis** - Analyze market bid patterns and optimize bid prices
 2. **Creative Optimization** - Multi-armed bandit creative selection
@@ -12,6 +12,9 @@ The Advanced Services API provides access to 8 sophisticated advertising feature
 6. **Real-Time Alerts** - Budget monitoring and anomaly detection
 7. **Competitive Intelligence** - Market analysis and competitor tracking
 8. **Unified ID** - Cross-provider identity resolution
+9. **Dynamic Bid Adjustments** - ML-based real-time bid optimization (NEW)
+10. **Lookalike Audiences** - Audience expansion through similarity modeling (NEW)
+11. **User Clustering** - K-means based user segmentation (NEW)
 
 ## Base URL
 
@@ -47,7 +50,10 @@ Check the health status of all advanced services.
     "contextual_ai": true,
     "realtime_alerts": true,
     "competitive_intelligence": true,
-    "unified_id": true
+    "unified_id": true,
+    "dynamic_bid": true,
+    "lookalike": true,
+    "user_clustering": true
   }
 }
 ```
@@ -594,6 +600,371 @@ All endpoints return standard error responses:
 
 ---
 
+## Dynamic Bid Adjustments
+
+ML-based real-time bid price optimization using Thompson Sampling and multi-factor analysis.
+
+### POST /dynamic-bid/calculate
+
+Calculate an optimized bid price based on contextual factors and historical performance.
+
+**Request:**
+```json
+{
+  "campaign_id": "camp-123",
+  "publisher_id": "pub-456",
+  "device_type": "mobile",
+  "country": "US",
+  "base_bid": 2.50,
+  "user_id": "user-789",
+  "ad_slot_width": 300,
+  "ad_slot_height": 250
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| campaign_id | string | ✅ | Campaign identifier |
+| publisher_id | string | ✅ | Publisher identifier |
+| device_type | string | ❌ | Device type (mobile, desktop, tablet) |
+| country | string | ❌ | ISO country code |
+| base_bid | float | ✅ | Starting bid price in CPM |
+| user_id | string | ❌ | User identifier for personalization |
+| ad_slot_width | int | ❌ | Ad slot width in pixels |
+| ad_slot_height | int | ❌ | Ad slot height in pixels |
+
+**Response:**
+```json
+{
+  "campaign_id": "camp-123",
+  "original_bid": 2.50,
+  "adjusted_bid": 2.85,
+  "adjustments": {
+    "device_multiplier": 1.05,
+    "geo_multiplier": 1.10,
+    "time_multiplier": 0.95,
+    "publisher_multiplier": 1.08
+  },
+  "confidence": 0.82,
+  "win_probability": 0.68,
+  "reason": "high_quality_publisher"
+}
+```
+
+### POST /dynamic-bid/outcome
+
+Record a bid outcome for ML model learning and adjustment.
+
+**Request:**
+```json
+{
+  "campaign_id": "camp-123",
+  "publisher_id": "pub-456",
+  "user_id": "user-789",
+  "bid_price": 2.85,
+  "won": true,
+  "win_price": 2.60,
+  "clicked": true,
+  "converted": false,
+  "revenue": 0.0
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| campaign_id | string | ✅ | Campaign identifier |
+| publisher_id | string | ✅ | Publisher identifier |
+| user_id | string | ❌ | User identifier |
+| bid_price | float | ✅ | Bid price submitted |
+| won | bool | ❌ | Whether the bid was won |
+| win_price | float | ❌ | Clearing price if won |
+| clicked | bool | ❌ | Whether ad was clicked |
+| converted | bool | ❌ | Whether conversion occurred |
+| revenue | float | ❌ | Revenue from conversion |
+
+**Response:**
+```json
+{
+  "status": "recorded"
+}
+```
+
+### GET /dynamic-bid/analytics
+
+Get bid performance analytics across all campaigns.
+
+**Response:**
+```json
+{
+  "total_bids": 150000,
+  "total_wins": 72000,
+  "win_rate": 0.48,
+  "avg_bid_price": 2.65,
+  "avg_win_price": 2.45,
+  "efficiency": 0.92,
+  "campaigns": 25,
+  "top_performing_hours": [10, 11, 14, 15, 20]
+}
+```
+
+### GET /dynamic-bid/config
+
+Get the current dynamic bid service configuration.
+
+**Response:**
+```json
+{
+  "enabled": true,
+  "min_bid": 0.10,
+  "max_bid": 50.00,
+  "max_multiplier": 3.0,
+  "learning_rate": 0.1,
+  "exploration_rate": 0.05
+}
+```
+
+---
+
+## Lookalike Audiences
+
+Generate lookalike audiences by finding users similar to a seed audience.
+
+### POST /lookalike/generate
+
+Generate a lookalike audience from seed users.
+
+**Request:**
+```json
+{
+  "seed_user_ids": ["user-1", "user-2", "user-3", "user-4", "user-5"],
+  "name": "High Value Customers Lookalike",
+  "expansion_factor": 2.0
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| seed_user_ids | []string | ✅ | List of seed user IDs (min 5) |
+| name | string | ✅ | Name for the lookalike audience |
+| expansion_factor | float | ❌ | Audience expansion multiplier (default: 2.0) |
+
+**Response:**
+```json
+{
+  "audience_id": "lal-abc123",
+  "status": "completed",
+  "seed_size": 5,
+  "audience_size": 45,
+  "expansion_ratio": 9.0,
+  "quality_score": 0.78,
+  "created_at": "2026-02-20T10:30:00Z",
+  "expires_at": "2026-02-27T10:30:00Z"
+}
+```
+
+### POST /lookalike/user-profile
+
+Register a user profile for lookalike modeling.
+
+**Request:**
+```json
+{
+  "user_id": "user-123",
+  "segments": ["sports", "tech", "travel"],
+  "interests": ["basketball", "programming", "hiking"],
+  "device_types": ["mobile", "desktop"],
+  "country": "US",
+  "region": "CA",
+  "city": "San Francisco"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| user_id | string | ✅ | User identifier |
+| segments | []string | ❌ | User segment memberships |
+| interests | []string | ❌ | User interests |
+| device_types | []string | ❌ | User's device types |
+| country | string | ❌ | ISO country code |
+| region | string | ❌ | State/region code |
+| city | string | ❌ | City name |
+
+**Response:**
+```json
+{
+  "status": "registered"
+}
+```
+
+### GET /lookalike/audience/:audience_id
+
+Retrieve a lookalike audience by ID.
+
+**Response:**
+```json
+{
+  "ID": "lal-abc123",
+  "Name": "High Value Customers Lookalike",
+  "SeedSegmentID": "seg-001",
+  "SeedSize": 100,
+  "AudienceSize": 850,
+  "ExpansionRatio": 8.5,
+  "Users": [...],
+  "CreatedAt": "2026-02-20T10:30:00Z",
+  "ExpiresAt": "2026-02-27T10:30:00Z",
+  "QualityScore": 0.82
+}
+```
+
+### GET /lookalike/check
+
+Check if a user is in a lookalike audience.
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| user_id | string | ✅ | User identifier to check |
+| audience_id | string | ✅ | Lookalike audience ID |
+
+**Response:**
+```json
+{
+  "is_member": true,
+  "similarity_score": 0.85
+}
+```
+
+### GET /lookalike/stats
+
+Get statistics about all lookalike audiences.
+
+**Response:**
+```json
+{
+  "total_audiences": 12,
+  "total_users": 45000,
+  "avg_quality_score": 0.76,
+  "avg_expansion_ratio": 6.5,
+  "active_audiences": 10
+}
+```
+
+---
+
+## User Clustering
+
+K-means based user segmentation for audience analysis and targeting.
+
+### POST /clustering/user
+
+Register a user with feature vectors for clustering.
+
+**Request:**
+```json
+{
+  "user_id": "user-123",
+  "feature_vector": [0.5, 0.6, 0.7, 0.8, 0.9, ...]
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| user_id | string | ✅ | User identifier |
+| feature_vector | []float | ✅ | 30-dimensional feature vector |
+
+**Note:** Feature vector should be 30 dimensions representing:
+- Indices 0-9: Interest scores (sports, tech, finance, etc.)
+- Index 15: Engagement score
+- Index 16: Recency score
+- Indices 20-24: Device preference scores
+
+**Response:**
+```json
+{
+  "status": "registered"
+}
+```
+
+### POST /clustering/run
+
+Trigger the K-means clustering algorithm on registered users.
+
+**Response:**
+```json
+{
+  "status": "completed",
+  "total_users": 10000,
+  "clusters_created": 10,
+  "iterations": 45,
+  "converged": true,
+  "silhouette_score": 0.68,
+  "clusters": [
+    {
+      "id": "cluster-1",
+      "name": "High Engagement Mobile Users",
+      "user_count": 1250,
+      "cohesion": 0.82,
+      "top_interests": ["sports", "tech"],
+      "behavior_profile": "high_engagement",
+      "value_segment": "premium"
+    }
+  ]
+}
+```
+
+### GET /clustering/user/:user_id
+
+Get the cluster assignment for a specific user.
+
+**Response:**
+```json
+{
+  "cluster": {
+    "ID": "cluster-3",
+    "Name": "Tech Enthusiasts",
+    "Centroid": [...],
+    "UserCount": 1580,
+    "Cohesion": 0.75
+  },
+  "confidence": 0.88
+}
+```
+
+### GET /clustering/cluster/:cluster_id/users
+
+Get all users in a specific cluster.
+
+**Response:**
+```json
+{
+  "cluster_id": "cluster-3",
+  "user_count": 1580,
+  "users": ["user-123", "user-456", "user-789", ...]
+}
+```
+
+### GET /clustering/stats
+
+Get overall clustering statistics.
+
+**Response:**
+```json
+{
+  "total_users": 50000,
+  "total_clusters": 10,
+  "avg_cluster_size": 5000,
+  "avg_cohesion": 0.72,
+  "last_run": "2026-02-20T08:00:00Z",
+  "cluster_distribution": {
+    "cluster-1": 5200,
+    "cluster-2": 4800,
+    "cluster-3": 5100
+  }
+}
+```
+
+---
+
 ## SDKs
 
 Official SDKs available for:
@@ -604,6 +975,13 @@ Official SDKs available for:
 ---
 
 ## Changelog
+
+### v1.1.0 (2026-02-20)
+- Added Dynamic Bid Adjustment service (4 endpoints)
+- Added Lookalike Audience service (5 endpoints)
+- Added User Clustering service (5 endpoints)
+- 14 new ML-powered endpoints
+- Total: 36 API endpoints
 
 ### v1.0.0 (2026-02-20)
 - Initial release with 8 advanced services
