@@ -1,5 +1,5 @@
-import { Controller, Get, Query, UseGuards, Request, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Query, UseGuards, Request, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -12,15 +12,18 @@ export class AnalyticsController {
 
   @Get('dashboard')
   @ApiOperation({ summary: 'Get dashboard statistics' })
+  @ApiQuery({ name: 'tenantId', required: false, description: 'Override tenant ID (for admin/service use)' })
   async getDashboard(
     @Request() req,
     @Query('dateFrom') dateFrom: string,
     @Query('dateTo') dateTo: string,
+    @Query('tenantId') tenantIdOverride?: string,
   ) {
+    const tenantId = tenantIdOverride || req.user?.tenantId;
     const from = dateFrom ? new Date(dateFrom) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const to = dateTo ? new Date(dateTo) : new Date();
     
-    return this.analyticsService.getDashboardStats(req.user.tenantId, from, to);
+    return this.analyticsService.getDashboardStats(tenantId, from, to);
   }
 
   @Get('campaign/:id')
@@ -38,45 +41,68 @@ export class AnalyticsController {
 
   @Get('revenue')
   @ApiOperation({ summary: 'Get revenue by date' })
+  @ApiQuery({ name: 'tenantId', required: false, description: 'Override tenant ID (for admin/service use)' })
   async getRevenue(
     @Request() req,
     @Query('dateFrom') dateFrom: string,
     @Query('dateTo') dateTo: string,
+    @Query('tenantId') tenantIdOverride?: string,
   ) {
+    const tenantId = tenantIdOverride || req.user?.tenantId;
     const from = dateFrom ? new Date(dateFrom) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const to = dateTo ? new Date(dateTo) : new Date();
     
-    return this.analyticsService.getRevenueByDate(req.user.tenantId, from, to);
+    return this.analyticsService.getRevenueByDate(tenantId, from, to);
   }
 
   @Get('top-campaigns')
   @ApiOperation({ summary: 'Get top performing campaigns' })
-  async getTopCampaigns(@Request() req, @Query('limit') limit?: number) {
-    return this.analyticsService.getTopPerformingCampaigns(req.user.tenantId, limit || 10);
+  @ApiQuery({ name: 'tenantId', required: false, description: 'Override tenant ID (for admin/service use)' })
+  async getTopCampaigns(
+    @Request() req,
+    @Query('limit') limit?: number,
+    @Query('tenantId') tenantIdOverride?: string,
+  ) {
+    const tenantId = tenantIdOverride || req.user?.tenantId;
+    return this.analyticsService.getTopPerformingCampaigns(tenantId, limit || 10);
   }
 
-  // This endpoint is effectively public as it's called by the ad (pixel) or click redirect
-  // In a real scenario, you usually disable AuthGuard for tracking pixels/links
-  // or use a specialized tracking service/subdomain.
-  @Post('track/impression')
-  @UseGuards() // Explicitly disable AuthGuard if possible, or create a separate PublicController
-  @ApiOperation({ summary: 'Track ad impression' })
-  async trackImpression(@Body() data: any) {
-    await this.analyticsService.trackImpression(data);
-    return { success: true };
+  @Get('supply-chain')
+  @ApiOperation({ summary: 'Get supply chain metrics for SPO analytics' })
+  async getSupplyChainMetrics(@Query('timeRange') timeRange: string = '1h') {
+    return this.analyticsService.getSupplyChainMetrics(timeRange);
   }
 
-  @Post('track/click')
-  @ApiOperation({ summary: 'Track ad click' })
-  async trackClick(@Body() data: any) {
-    await this.analyticsService.trackClick(data);
-    return { success: true };
+  @Get('supply-path-optimization')
+  @ApiOperation({ summary: 'Get supply path optimization recommendations' })
+  async getSupplyPathOptimization(@Query('timeRange') timeRange: string = '1h') {
+    return this.analyticsService.getSupplyPathOptimization(timeRange);
   }
 
-  @Post('track/conversion')
-  @ApiOperation({ summary: 'Track conversion' })
-  async trackConversion(@Body() data: any) {
-    await this.analyticsService.trackConversion(data);
-    return { success: true };
+  @Get('bid-path/:requestId')
+  @ApiOperation({ summary: 'Get detailed bid path analytics for a specific request' })
+  async getBidPathAnalytics(@Param('requestId') requestId: string) {
+    return this.analyticsService.getBidPathAnalytics(requestId);
+  }
+
+  @Get('service-performance')
+  @ApiOperation({ summary: 'Get performance metrics for a specific service' })
+  async getServicePerformance(
+    @Query('serviceName') serviceName: string,
+    @Query('timeRange') timeRange: string = '1h'
+  ) {
+    return this.analyticsService.getServicePerformance(serviceName, timeRange);
+  }
+
+  @Get('direct-publisher-analysis')
+  @ApiOperation({ summary: 'Get analysis of direct publisher relationship opportunities' })
+  async getDirectPublisherAnalysis(@Query('timeRange') timeRange: string = '1h') {
+    return this.analyticsService.getDirectPublisherAnalysis(timeRange);
+  }
+
+  @Get('cost-benefit-analysis')
+  @ApiOperation({ summary: 'Get detailed cost-benefit analysis for optimization scenarios' })
+  async getCostBenefitAnalysis(@Query('timeRange') timeRange: string = '1h') {
+    return this.analyticsService.getCostBenefitAnalysis(timeRange);
   }
 }

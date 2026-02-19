@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsEnum, IsOptional, IsDateString, IsObject, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsNumber, IsEnum, IsOptional, IsDateString, IsObject, Min, IsDate } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CampaignStatus, CampaignType } from '../campaign.entity';
 
@@ -41,13 +42,47 @@ export class CreateCampaignDto {
   @IsObject()
   targeting?: Record<string, any>;
 
+  @ApiProperty({ 
+    description: 'Ad Creative Details (Banner, Video, Native, Audio, Rich Media, Playable, Pop, Push)',
+    example: { 
+      type: 'banner', 
+      url: 'https://cdn.example.com/ad.jpg', 
+      width: 300, 
+      height: 250 
+    } 
+  })
+  @IsOptional()
+  @IsObject()
+  creative?: {
+    type: string;
+    url?: string;
+    width?: number;
+    height?: number;
+    duration?: number;
+    mimeType?: string;
+    bitrate?: number;
+    title?: string;
+    description?: string;
+    iconUrl?: string;
+    ctaText?: string;
+    htmlSnippet?: string;
+    expandable?: boolean;
+  };
+
   @ApiPropertyOptional()
   @IsOptional()
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   startDate?: Date;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   endDate?: Date;
+
+  @ApiPropertyOptional({ description: 'PMP Deal ID' })
+  @IsOptional()
+  @IsString()
+  dealId?: string;
 }

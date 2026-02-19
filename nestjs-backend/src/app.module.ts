@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
+import { CreativesModule } from './modules/creatives/creatives.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AiAgentsModule } from './modules/ai-agents/ai-agents.module';
@@ -14,6 +15,7 @@ import { DspModule } from './modules/dsp/dsp.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { TargetingModule } from './modules/targeting/targeting.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
@@ -25,6 +27,8 @@ import { BiddingOptimizationService } from './services/bidding-optimization.serv
 import { BillingService } from './services/billing.service';
 import { OnboardingService } from './services/onboarding.service';
 import { StripeService } from './services/stripe.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -48,6 +52,9 @@ import { StripeService } from './services/stripe.service';
         JWT_EXPIRATION: Joi.string().default('24h'),
       }),
     }),
+
+    // Scheduling
+    ScheduleModule.forRoot(),
 
     // Database
     TypeOrmModule.forRootAsync({
@@ -84,6 +91,7 @@ import { StripeService } from './services/stripe.service';
     AuthModule,
     UsersModule,
     CampaignsModule,
+    CreativesModule,
     BillingModule,
     AnalyticsModule,
     AiAgentsModule,
@@ -93,9 +101,14 @@ import { StripeService } from './services/stripe.service';
     IntegrationsModule,
     RedisModule,
     TargetingModule,
+    NotificationsModule,
   ],
   controllers: [AppController, AdvancedController, PaymentsController, OnboardingController],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     AnalyticsService,
     BiddingOptimizationService,
     BillingService,

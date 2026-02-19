@@ -42,6 +42,20 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ type: 'jsonb', nullable: true, default: { notifications: { budgetAlerts: true, campaignUpdates: true } } })
+  preferences: {
+    notifications?: {
+      budgetAlerts?: boolean;
+      campaignUpdates?: boolean;
+      weeklyReport?: boolean;
+      monthlyReport?: boolean;
+    };
+    ui?: {
+      theme?: 'light' | 'dark';
+      layout?: 'compact' | 'comfortable';
+    };
+  };
+
   @Column({ nullable: true })
   lastLoginAt: Date;
 

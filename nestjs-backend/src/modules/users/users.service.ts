@@ -59,6 +59,10 @@ export class UsersService {
     return this.usersRepository.find({ where: { tenantId } });
   }
 
+  async findByRole(role: string): Promise<User[]> {
+    return this.usersRepository.find({ where: { role: role as any } });
+  }
+
   async validatePassword(password: string, passwordHash: string): Promise<boolean> {
     return bcrypt.compare(password, passwordHash);
   }

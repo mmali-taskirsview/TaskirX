@@ -583,6 +583,270 @@ func TestHandleGetCrossDeviceReach(t *testing.T) {
 }
 
 // ============================================================================
+// DYNAMIC BID TESTS
+// ============================================================================
+
+func TestHandleCalculateDynamicBid(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dynamic-bid/calculate", handler.HandleCalculateDynamicBid)
+
+	body := DynamicBidRequest{
+		CampaignID:   "camp-123",
+		PublisherID:  "pub-456",
+		DeviceType:   "mobile",
+		Country:      "US",
+		BaseBid:      2.50,
+		UserID:       "user-789",
+		AdSlotWidth:  300,
+		AdSlotHeight: 250,
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dynamic-bid/calculate", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleRecordDynamicBidOutcome(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dynamic-bid/outcome", handler.HandleRecordDynamicBidOutcome)
+
+	body := DynamicBidOutcomeRequest{
+		CampaignID:  "camp-123",
+		PublisherID: "pub-456",
+		UserID:      "user-789",
+		BidPrice:    2.50,
+		Won:         true,
+		WinPrice:    2.20,
+		Clicked:     true,
+		Converted:   false,
+		Revenue:     0.0,
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dynamic-bid/outcome", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetDynamicBidAnalytics(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dynamic-bid/analytics", handler.HandleGetDynamicBidAnalytics)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dynamic-bid/analytics", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetDynamicBidConfig(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dynamic-bid/config", handler.HandleGetDynamicBidConfig)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dynamic-bid/config", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// LOOKALIKE TESTS
+// ============================================================================
+
+func TestHandleGenerateLookalike(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/lookalike/generate", handler.HandleGenerateLookalike)
+
+	body := LookalikeGenerateRequest{
+		SeedUserIDs:     []string{"user-1", "user-2", "user-3"},
+		Name:            "Test Lookalike",
+		ExpansionFactor: 2.0,
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/lookalike/generate", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleRegisterUserProfile(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/lookalike/user-profile", handler.HandleRegisterUserProfile)
+
+	body := UserProfileRequest{
+		UserID:      "user-123",
+		Segments:    []string{"sports", "tech"},
+		Interests:   []string{"basketball", "programming"},
+		DeviceTypes: []string{"mobile", "desktop"},
+		Country:     "US",
+		Region:      "CA",
+		City:        "San Francisco",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/lookalike/user-profile", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetLookalikeAudience(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/lookalike/audience/:audience_id", handler.HandleGetLookalikeAudience)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/lookalike/audience/aud-123", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 is expected since audience doesn't exist
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+func TestHandleIsUserInLookalike(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/lookalike/check", handler.HandleIsUserInLookalike)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/lookalike/check?user_id=user-123&audience_id=aud-456", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetLookalikeStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/lookalike/stats", handler.HandleGetLookalikeStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/lookalike/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// USER CLUSTERING TESTS
+// ============================================================================
+
+func TestHandleRegisterClusterUser(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/clustering/user", handler.HandleRegisterClusterUser)
+
+	body := ClusterUserRequest{
+		UserID:        "user-123",
+		FeatureVector: []float64{0.5, 0.6, 0.7, 0.8, 0.9},
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/clustering/user", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleRunClustering(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/clustering/run", handler.HandleRunClustering)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/clustering/run", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetUserCluster(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/clustering/user/:user_id", handler.HandleGetUserCluster)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/clustering/user/user-123", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 is expected since user isn't clustered
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+func TestHandleGetClusterUsers(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/clustering/cluster/:cluster_id/users", handler.HandleGetClusterUsers)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/clustering/cluster/cluster-1/users", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetClusteringStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/clustering/stats", handler.HandleGetClusteringStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/clustering/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+// ============================================================================
 // STATUS TESTS
 // ============================================================================
 

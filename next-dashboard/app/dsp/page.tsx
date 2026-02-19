@@ -230,7 +230,7 @@ export default function DSPDashboardPage() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/dsp/supply-partners'}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -275,6 +275,22 @@ export default function DSPDashboardPage() {
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold">{stats?.activeDeals}</span>
               <Badge variant="outline">Negotiated</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/dsp/supply-path-optimization'}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-orange-500" />
+              Supply Path Optimization
+            </CardTitle>
+            <CardDescription>Monitor bid flow, latency, and costs</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold">SPO</span>
+              <Badge variant="secondary">Analytics</Badge>
             </div>
           </CardContent>
         </Card>

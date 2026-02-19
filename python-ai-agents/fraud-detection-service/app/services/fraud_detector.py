@@ -6,6 +6,7 @@ import time
 import logging
 import numpy as np
 import joblib
+import redis
 from typing import Dict, Tuple, List
 from datetime import datetime, timedelta
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -18,6 +19,7 @@ from app.models.schemas import (
     FraudRiskLevel
 )
 from app.config import settings
+from app.services.ip_reputation import IPReputationService
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,25 @@ class FraudDetector:
         self.blacklisted_ips = set()
         self.suspicious_user_agents = set()
         self.datacenter_ranges = set()
+
+        # Initialize Redis
+        try:
+            self.redis_client = redis.Redis(
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
+	            db=settings.REDIS_DB,
+                password=settings.REDIS_PASSWORD,
+                decode_responses=True
+            )
+            self.redis_client.ping()
+            # Pass API key from settings
+            self.ip_reputation = IPReputationService(self.redis_client, api_key=settings.IP_REPUTATION_API_KEY)
+            logger.info(f"Connected to Redis for IP Reputation (API Key Present: {bool(settings.IP_REPUTATION_API_KEY)})")
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            self.redis_client = None
+
+            self.ip_reputation = None
         
         self._initialize_model()
         self._load_fraud_patterns()
@@ -400,6 +421,98 @@ class FraudDetector:
         """Health check"""
         return self.model is not None and self.scaler is not None
 
+    def check_fraud(self, request: FraudCheckRequest) -> FraudCheckResponse:
+        """
+        Evaluate a bid request for fraud likelihood
+        """
+        start_time = time.time()
+        
+        # Step 1: Rule-based Filtering (Fast Check)
+        rule_fraud = False
+        rule_reasons = []
+        
+        # Initialize indicators
+        indicators_obj = FraudIndicators()
+        
+        # 1. IP Blacklist (using Reputation Service)
+        ip_blocked = False
+        if self.ip_reputation:
+            if self.ip_reputation.is_ip_blacklisted(request.ip_address):
+                ip_blocked = True
+                rule_reasons.append("IP is blacklisted (Reputation Service)")
+                indicators_obj.suspicious_ip = True
+        
+        # Fallback to local blacklist set if not blocked by service
+        if not ip_blocked and request.ip_address in self.blacklisted_ips:
+            rule_reasons.append("IP is in static blacklist")
+            indicators_obj.suspicious_ip = True
+            ip_blocked = True
+            
+        if ip_blocked:
+            rule_fraud = True
+        
+        # 2. Suspicious User Agent
+        user_agent = (request.device.user_agent or "").lower()
+        if any(pattern in user_agent for pattern in self.suspicious_user_agents):
+            indicators_obj.suspicious_user_agent = True
+            rule_reasons.append("Suspicious user agent detected")
+            rule_fraud = True
+        
+        # 3. High Click Frequency
+        if request.behavior and request.behavior.clicks_last_hour > 100:
+            indicators_obj.high_click_frequency = True
+            rule_reasons.append("Abnormally high click frequency")
+            rule_fraud = True
+        
+        # 4. Missing Device Information
+        if not request.device.type or request.device.type == "unknown":
+            indicators_obj.suspicious_device = True
+            rule_reasons.append("Device type is unknown")
+            rule_fraud = True
+        
+        # 5. Private or Reserved IP Ranges
+        if request.ip_address.startswith(("192.168.", "10.", "127.")):
+            indicators_obj.suspicious_ip = True
+            rule_reasons.append("Private or reserved IP address")
+            rule_fraud = True
+        
+        # 6. Impossible Travel (if geo data is available)
+        # TODO: Implement impossible travel detection based on geo history
+        
+        # 7. Device Fingerprint Mismatch
+        # TODO: Implement device fingerprinting and mismatch detection
+        
+        # 8. Zero or Excessive Conversion Rate
+        if request.behavior:
+            clicks = request.behavior.clicks_last_24h
+            conversions = request.behavior.conversions_last_24h
+            if clicks > 0:
+                conv_rate = conversions / clicks
+                if conv_rate == 0:
+                    indicators_obj.behavioral_anomaly = True
+                    rule_reasons.append("Zero conversion rate")
+                    rule_fraud = True
+                elif conv_rate > 0.5:
+                    indicators_obj.behavioral_anomaly = True
+                    rule_reasons.append("Abnormally high conversion rate")
+                    rule_fraud = True
+        
+        # Build response
+        response = FraudCheckResponse(
+            request_id=request.request_id,
+            is_fraud=rule_fraud,
+            fraud_score=1.0 if rule_fraud else 0.0,
+            risk_level=FraudRiskLevel.CRITICAL if rule_fraud else FraudRiskLevel.LOW,
+            confidence=1.0 if rule_fraud else 0.5,
+            indicators=indicators_obj,
+            reasons=rule_reasons,
+            recommended_action="block" if rule_fraud else "allow",
+            processing_time_ms=(time.time() - start_time) * 1000,
+            model_version=self.model_version
+        )
+        
+        return response
+    
 
 # Global detector instance
 detector = FraudDetector()

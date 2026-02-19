@@ -64,6 +64,12 @@ export default function DashboardPage() {
     ctr: 0,
     campaigns: 0,
     fraudDetected: 0,
+    formatStats: {
+      banner: 0,
+      video: 0,
+      native: 0,
+      audio: 0,
+    },
   })
 
   const [loading, setLoading] = useState(true)
@@ -82,6 +88,7 @@ export default function DashboardPage() {
             ctr: data.totalImpressions > 0 ? data.totalClicks / data.totalImpressions : 0,
             campaigns: data.activeCampaigns || 0,
             fraudDetected: Math.floor(Math.random() * 500) + 100, // Simulated fraud count
+            formatStats: data.formatStats || { banner: 0, video: 0, native: 0, audio: 0 },
           });
         }
       } catch (error) {
@@ -94,6 +101,12 @@ export default function DashboardPage() {
           ctr: 0.0554,
           campaigns: 20,
           fraudDetected: 342,
+          formatStats: {
+            banner: 45000,
+            video: 12000,
+            native: 8000,
+            audio: 2000
+          }
         });
       } finally {
         setLoading(false);
@@ -258,6 +271,32 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Bid Format Breakdown */}
+      <div>
+        <h2 className="text-xl font-bold mb-4">Bid Request Distribution</h2>
+        <div className="grid gap-4 md:grid-cols-4">
+          {Object.entries(stats.formatStats).map(([format, count]) => (
+            <Card key={format}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium capitalize">
+                  {format}
+                </CardTitle>
+                <div className={`h-2 w-2 rounded-full ${
+                  format === 'banner' ? 'bg-blue-500' :
+                  format === 'video' ? 'bg-purple-500' :
+                  format === 'native' ? 'bg-orange-500' :
+                  'bg-green-500' // audio
+                }`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatNumber(count)}</div>
+                <p className="text-xs text-muted-foreground">Requests</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Recent Activity */}

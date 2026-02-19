@@ -5,6 +5,16 @@ All notable changes to the TaskirX project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-02-18
+
+### ✨ Added
+- **Private Marketplaces (PMP) Support**:
+  - Implemented OpenRTB 2.5 PMP object handling (`private_auction`, `deals`).
+  - Added strict matching logic for Private Auctions (only campaigns with matching Deal IDs can participate).
+  - Added Deal ID filtering for Preferred Deals (campaigns with Deal IDs require matching deal in request).
+  - Updated Bidding Engine to return `deal_id` in Bid Response.
+  - Verified with comprehensive unit tests (`pmp_test.go`) covering Private Auction, Preferred Deal, and Open Market scenarios.
+
 ## [2.0.2] - 2026-01-28
 
 ### 🔒 Security

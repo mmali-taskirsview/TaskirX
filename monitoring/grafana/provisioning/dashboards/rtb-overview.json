@@ -1,0 +1,229 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(bid_requests_total[1m])",
+          "legendFormat": "Requests / sec",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(bids_placed_total[1m])",
+          "legendFormat": "Bids Placed / sec",
+          "refId": "B"
+        }
+      ],
+      "title": "Bid Volume (QPS)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, rate(bid_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "P99 Latency",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(bid_request_duration_seconds_sum[1m]) / rate(bid_request_duration_seconds_count[1m])",
+          "legendFormat": "Avg Latency",
+          "refId": "B"
+        }
+      ],
+      "title": "Bidding Latency",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(bids_placed_total[5m])) by (format)",
+          "legendFormat": "{{format}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Ad Format Distribution",
+      "type": "piechart"
+    },
+    {
+      "datasource": "Prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "rate(fraud_blocked_total[1m])",
+          "legendFormat": "Fraud Blocked",
+          "refId": "A"
+        }
+      ],
+      "title": "Fraud Detection Blocks",
+      "type": "stat"
+    },
+    {
+        "datasource": "Prometheus",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+        "id": 5,
+        "targets": [
+            { "expr": "rate(optimization_errors_total[1m])", "legendFormat": "Optimization Errors", "refId": "A" },
+            { "expr": "rate(ad_match_errors_total[1m])", "legendFormat": "Ad Match Errors", "refId": "B" }
+        ],
+        "title": "AI Service Errors",
+        "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 80, "lineWidth": 1 }, "color": { "mode": "palette-classic" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 80 } ] } }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 6,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        { "expr": "rate(tracking_events_total[1m])", "legendFormat": "{{type}}", "refId": "A" }
+      ],
+      "title": "Ad Engagement (Impressions/Clicks)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 7,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto" },
+      "targets": [
+        { "expr": "sum(increase(video_events_total[5m])) by (event)", "legendFormat": "{{event}}", "refId": "A" }
+      ],
+      "title": "Video Quartile Events",
+      "type": "bargauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 8,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto" },
+      "targets": [
+        { "expr": "sum(increase(rich_media_events_total[5m])) by (action)", "legendFormat": "{{action}}", "refId": "A" }
+      ],
+      "title": "Rich Media Interactions",
+      "type": "bargauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": { "max": 1, "min": 0, "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 9,
+      "targets": [
+        { "expr": "rate(redis_keyspace_hits_total[1m]) / (rate(redis_keyspace_hits_total[1m]) + rate(redis_keyspace_misses_total[1m]))", "legendFormat": "Cache Hit Rate", "refId": "A" }
+      ],
+      "title": "Redis Cache Hit Rate",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 10,
+      "targets": [
+        { "expr": "redis_memory_used_bytes", "legendFormat": "Memory Used", "refId": "A" },
+        { "expr": "redis_memory_max_bytes", "legendFormat": "Max Memory", "refId": "B" }
+      ],
+      "title": "Redis Memory Usage",
+      "type": "timeseries",
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    }
+  ],
+  "schemaVersion": 26,
+  "style": "dark",
+  "tags": ["rtb", "bidding"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  },
+  "timezone": "",
+  "title": "TaskirX RTB Overview",
+  "uid": "rtb-overview",
+  "version": 1
+}

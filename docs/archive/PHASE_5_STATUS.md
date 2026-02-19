@@ -13,6 +13,12 @@ This phase focused on identifying and resolving performance bottlenecks in the R
   - Identified 500ms consistent latency in `Fraud Detection Service` (Python).
   - Confirmed blocking nature of synchronous HTTP calls in the hot path.
 
+- [x] **Monitoring & Observability**
+  - **Deployed**: Prometheus + Grafana stack locally via `docker-compose`.
+  - **Instrumentation**: Updated `go-bidding-engine` to emit `format` labels for `bids_placed_total`.
+  - **Dashboard**: Created `rtb-overview.json` visualizing QPS, Latency, and Format Distribution.
+  - **Verification**: Ran `run-perf-mixed.ps1` (7500+ reqs) to confirm data flow to Grafana.
+
 - [x] **Redis Caching Implementation**
   - **Interface Update**: Extended `cache.Cache` interface with generic `Get`/`Set` methods.
   - **Redis Adapter**: Implemented `Get` and `Set` in `internal/cache/redis.go` using `go-redis/v9`.
@@ -26,6 +32,7 @@ This phase focused on identifying and resolving performance bottlenecks in the R
   - **Report**: Generated `PERFORMANCE_REPORT_OPTIMIZED.md`.
 
 ## Next Steps
+- [ ] **Phase 6**: Implement Header Bidding Adapter (`taskirxBidAdapter.js`).
 - [ ] **Deployment**: Push optimized `taskir-go-bidding` image to OCI Registry.
 - [ ] **Kubernetes Rollout**: Restart `go-bidding` deployment to pick up the new image.
 - [ ] **End-to-End Verification**: Verify live traffic handling on `*.taskirx.com`.

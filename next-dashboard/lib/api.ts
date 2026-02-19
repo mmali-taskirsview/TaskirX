@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '/api/backend'
 
 // Create axios instances
 export const apiClient = axios.create({
@@ -49,12 +49,26 @@ export const api = {
     apiClient.post('/auth/register', data),
   
   // Campaigns
-  getCampaigns: () => apiClient.get('/campaigns'),
-  getCampaign: (id: string) => apiClient.get(`/campaigns/${id}`),
+  getCampaigns: (params?: any) => apiClient.get('/campaigns', { params: { includeRealTime: true, ...params } }),
+  getCampaign: (id: string) => apiClient.get(`/campaigns/${id}`, { params: { includeRealTime: true } }),
   createCampaign: (data: any) => apiClient.post('/campaigns', data),
   updateCampaign: (id: string, data: any) => apiClient.patch(`/campaigns/${id}`, data),
   deleteCampaign: (id: string) => apiClient.delete(`/campaigns/${id}`),
-  
+  assignCreativesToCampaign: (campaignId: string, creativeIds: string[]) =>
+    apiClient.post(`/campaigns/${campaignId}/creatives`, { creativeIds }),
+  removeCreativeFromCampaign: (campaignId: string, creativeId: string) =>
+    apiClient.delete(`/campaigns/${campaignId}/creatives/${creativeId}`),
+
+  // Creatives
+  getCreatives: (params?: any) => apiClient.get('/creatives', { params }),
+  getCreative: (id: string) => apiClient.get(`/creatives/${id}`),
+  createCreative: (data: any) => apiClient.post('/creatives', data),
+  updateCreative: (id: string, data: any) => apiClient.put(`/creatives/${id}`, data),
+  deleteCreative: (id: string) => apiClient.delete(`/creatives/${id}`),
+  getMyCreatives: () => apiClient.get('/creatives/my'),
+  getTopCreatives: (limit?: number) => apiClient.get('/creatives/top-performing', { params: { limit } }),
+  updateCreativeStats: (id: string, stats: any) => apiClient.put(`/creatives/${id}/stats`, stats),
+
   // Analytics
   getAnalytics: (params?: any) => apiClient.get('/analytics', { params }), // General query (if supported)
   getDashboardStats: (params?: { dateFrom?: string; dateTo?: string }) => 
@@ -201,4 +215,18 @@ export const api = {
   processBidRequest: (bidRequest: any) => apiClient.post('/dsp/bid', bidRequest),
   recordWin: (bidId: string, supplyPartnerId: string, price: number) => 
     apiClient.post('/dsp/win', { bidId, supplyPartnerId, price }),
+
+  // Supply Path Optimization Analytics
+  getSupplyChainMetrics: (timeRange: string) =>
+    apiClient.get('/analytics/supply-chain', { params: { timeRange } }),
+  getSupplyPathOptimization: (timeRange: string) =>
+    apiClient.get('/analytics/supply-path-optimization', { params: { timeRange } }),
+  getBidPathAnalytics: (requestId: string) =>
+    apiClient.get(`/analytics/bid-path/${requestId}`),
+  getServicePerformance: (serviceName: string, timeRange: string) =>
+    apiClient.get('/analytics/service-performance', { params: { serviceName, timeRange } }),
+  getDirectPublisherAnalysis: (timeRange: string) =>
+    apiClient.get('/analytics/direct-publisher-analysis', { params: { timeRange } }),
+  getCostBenefitAnalysis: (timeRange: string) =>
+    apiClient.get('/analytics/cost-benefit-analysis', { params: { timeRange } }),
 }

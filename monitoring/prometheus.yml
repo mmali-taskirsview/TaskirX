@@ -50,7 +50,7 @@ scrape_configs:
   # Redis Metrics (via redis_exporter)
   - job_name: 'redis'
     static_configs:
-      - targets: ['redis:9121']
+      - targets: ['redis-exporter:9121']
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance

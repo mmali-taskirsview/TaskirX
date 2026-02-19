@@ -10,7 +10,13 @@ $ip = $null
 while (-not $ip -and $attempts -lt $maxAttempts) {
     # Try getting IP from the Service (LoadBalancer)
     # Note: Service name depends on Helm release name (nginx-ingress)
-    $json = kubectl get svc nginx-ingress-ingress-nginx-controller -n ingress-nginx -o json 2>$null | ConvertFrom-Json
+    # Checking for common names: 'ingress-nginx-controller' or 'ingress-nginx-nginx-ingress-controller'
+    
+    $svcName = "ingress-nginx-controller"
+    $check = kubectl get svc ingress-nginx-nginx-ingress-controller -n ingress-nginx 2>$null
+    if ($check) { $svcName = "ingress-nginx-nginx-ingress-controller" }
+
+    $json = kubectl get svc $svcName -n ingress-nginx -o json 2>$null | ConvertFrom-Json
     
     if ($json) {
         $ip = $json.status.loadBalancer.ingress[0].ip

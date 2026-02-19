@@ -35,9 +35,18 @@ You must configure your domain's DNS settings (e.g., at Namecheap, GoDaddy, or C
 - **Health Checks**: 
     - `GET /api/health` -> `200 OK` on AI services.
 
-### 📝 Next Steps
+## 4. OpenRTB Compliance (v3.2.0)
+
+**Status**: ✅ VERIFIED
+- **Banner**: Standard HTML5.
+- **Video**: VAST 4.0 (Linear/Non-Linear).
+- **Native**: OpenRTB Native 1.2 (JSON).
+- **Audio**: DAAST via VAST 4.0 XML (New).
+- **Rich Media**: Interstitial support enabled via `imp.instl` flag.
+
+## 5. Next Steps
 1. **Update DNS**: Completed the DNS change above.
 2. **Access Dashboard**: Visit `https://dashboard.taskirx.com`.
 3. **Monitor**: Use `kubectl get pods -n taskir` to watch status.
 
-Your platform is ready for traffic! 
+Your platform is ready for traffic!

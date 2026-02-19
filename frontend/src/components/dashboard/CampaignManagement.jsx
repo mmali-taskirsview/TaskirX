@@ -16,7 +16,15 @@ const CampaignManagement = ({ onUpdate }) => {
     targetAudience: '',
     bidStrategy: 'cpc',
     maxBid: '',
-    status: 'draft'
+    status: 'draft',
+    // Creative Fields
+    creativeType: 'banner',
+    creativeUrl: '',
+    creativeWidth: 300,
+    creativeHeight: 250,
+    creativeHtml: '',
+    creativeDuration: 15,
+    creativeMime: 'video/mp4'
   });
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created');
@@ -51,13 +59,45 @@ const CampaignManagement = ({ onUpdate }) => {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
+      // Build DTO
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        type: formData.bidStrategy, // 'cpm'/'cpc'
+        status: formData.status,
+        budget: parseFloat(formData.budget),
+        bidPrice: parseFloat(formData.maxBid) / 100, // Cents to decimal
+        vertical: 'GAMING', // Default or selector
+        startDate: new Date(formData.startDate),
+        endDate: new Date(formData.endDate),
+        creative: {
+           type: formData.creativeType,
+           url: formData.creativeUrl,
+           width: parseInt(formData.creativeWidth),
+           height: parseInt(formData.creativeHeight),
+           // Optional fields based on type
+           ...(formData.creativeType === 'rich_media' && { htmlSnippet: formData.creativeHtml }),
+           ...(formData.creativeType === 'pop' && { htmlSnippet: formData.creativeHtml }),
+           ...( (formData.creativeType === 'video' || formData.creativeType === 'audio') && { 
+                duration: parseInt(formData.creativeDuration),
+                mimeType: formData.creativeMime
+           }),
+           expandable: formData.creativeType === 'rich_media'
+        },
+        targeting: {
+            // Default targeting if not specified
+            countries: ['US'],
+            devices: ['mobile', 'desktop']
+        }
+      };
+
       const response = await fetch('/api/campaigns', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error('Failed to create campaign');
@@ -145,8 +185,16 @@ const CampaignManagement = ({ onUpdate }) => {
       endDate: campaign.endDate,
       targetAudience: campaign.targetAudience,
       bidStrategy: campaign.bidStrategy,
-      maxBid: campaign.maxBid,
-      status: campaign.status
+      maxBid: campaign.bidPrice * 100, // Convert float to cents
+      status: campaign.status,
+      // Map creative object
+      creativeType: campaign.creative?.type || 'banner',
+      creativeUrl: campaign.creative?.url || '',
+      creativeWidth: campaign.creative?.width || 300,
+      creativeHeight: campaign.creative?.height || 250,
+      creativeHtml: campaign.creative?.htmlSnippet || '',
+      creativeDuration: campaign.creative?.duration || 15,
+      creativeMime: campaign.creative?.mimeType || 'video/mp4'
     });
     setShowModal(true);
   };
@@ -161,7 +209,14 @@ const CampaignManagement = ({ onUpdate }) => {
       targetAudience: '',
       bidStrategy: 'cpc',
       maxBid: '',
-      status: 'draft'
+      status: 'draft',
+      creativeType: 'banner',
+      creativeUrl: '',
+      creativeWidth: 300,
+      creativeHeight: 250,
+      creativeHtml: '',
+      creativeDuration: 15,
+      creativeMime: 'video/mp4'
     });
     setEditingId(null);
   };
@@ -456,6 +511,108 @@ const CampaignManagement = ({ onUpdate }) => {
                     <option value="paused">Paused</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Creative Details</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ad Format *</label>
+                    <select
+                      required
+                      value={formData.creativeType}
+                      onChange={(e) => setFormData({...formData, creativeType: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="banner">Banner (Image)</option>
+                      <option value="rich_media">Rich Media (HTML5)</option>
+                      <option value="video">Video (VAST)</option>
+                      <option value="audio">Audio (Podcast)</option>
+                      <option value="naitve">Native</option>
+                      <option value="pop">Popunder</option>
+                      <option value="push">Push Notification</option>
+                      <option value="playable">Playable (MRAID)</option>
+                    </select>
+                  </div>
+                  
+                  {formData.creativeType !== 'pop' && formData.creativeType !== 'push' && (
+                  <div>
+                     <div className="flex gap-2">
+                       <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Width</label>
+                        <input
+                            type="number"
+                            value={formData.creativeWidth}
+                            onChange={(e) => setFormData({...formData, creativeWidth: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                       </div>
+                       <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
+                        <input
+                            type="number"
+                            value={formData.creativeHeight}
+                            onChange={(e) => setFormData({...formData, creativeHeight: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                       </div>
+                     </div>
+                  </div>
+                  )}
+                </div>
+
+                <div>
+                   {/* URL Field (Always present except maybe pure HTML snippet) */}
+                   <label className="block text-sm font-medium text-gray-700 mb-1">Asset URL (Image/Video/Audio/JS)</label>
+                   <input
+                        type="url"
+                        value={formData.creativeUrl}
+                        onChange={(e) => setFormData({...formData, creativeUrl: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://cdn.example.com/ad-asset.jpg"
+                   />
+                </div>
+
+                {/* Conditional Fields */}
+                {(formData.creativeType === 'rich_media' || formData.creativeType === 'pop') && (
+                    <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">HTML Snippet (Optional)</label>
+                        <textarea
+                            value={formData.creativeHtml}
+                            onChange={(e) => setFormData({...formData, creativeHtml: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows="4"
+                            placeholder="<div>...</div>"
+                        />
+                    </div>
+                )}
+
+                {(formData.creativeType === 'video' || formData.creativeType === 'audio') && (
+                    <div className="mt-3 grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Duration (sec)</label>
+                            <input
+                                type="number"
+                                value={formData.creativeDuration}
+                                onChange={(e) => setFormData({...formData, creativeDuration: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Mime Type</label>
+                            <select
+                                value={formData.creativeMime}
+                                onChange={(e) => setFormData({...formData, creativeMime: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="video/mp4">video/mp4</option>
+                                <option value="video/webm">video/webm</option>
+                                <option value="audio/mp3">audio/mp3</option>
+                                <option value="audio/aac">audio/aac</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">

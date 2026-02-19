@@ -57,6 +57,11 @@ type BiddingService struct {
 	realTimeAlertService    *RealTimeAlertService
 	competitiveIntelService *CompetitiveIntelligenceService
 	unifiedIDService        *UnifiedIDService
+
+	// Advanced Services - Phase 3 (ML Features)
+	dynamicBidService     *DynamicBidService
+	lookalikeService      *LookalikeService
+	userClusteringService *UserClusteringService
 }
 
 // NewBiddingService creates a new bidding service
@@ -89,6 +94,10 @@ func NewBiddingService(cache cache.Cache, backendBaseURL string) *BiddingService
 		realTimeAlertService:    NewRealTimeAlertService(cache),
 		competitiveIntelService: NewCompetitiveIntelligenceService(cache),
 		unifiedIDService:        NewUnifiedIDService(cache),
+		// Initialize advanced services - Phase 3 (ML Features)
+		dynamicBidService:     NewDynamicBidService(cache),
+		lookalikeService:      NewLookalikeService(cache),
+		userClusteringService: NewUserClusteringService(cache),
 	}
 }
 
@@ -170,6 +179,21 @@ func (s *BiddingService) GetCompetitiveIntelligenceService() *CompetitiveIntelli
 // GetUnifiedIDService returns the unified ID service
 func (s *BiddingService) GetUnifiedIDService() *UnifiedIDService {
 	return s.unifiedIDService
+}
+
+// GetDynamicBidService returns the dynamic bid adjustments service
+func (s *BiddingService) GetDynamicBidService() *DynamicBidService {
+	return s.dynamicBidService
+}
+
+// GetLookalikeService returns the lookalike audience service
+func (s *BiddingService) GetLookalikeService() *LookalikeService {
+	return s.lookalikeService
+}
+
+// GetUserClusteringService returns the user clustering service
+func (s *BiddingService) GetUserClusteringService() *UserClusteringService {
+	return s.userClusteringService
 }
 
 // GetSupplyPathAnalytics returns the collected SPO analytics

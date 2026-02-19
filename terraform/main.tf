@@ -165,8 +165,8 @@ module "rds" {
 
   # Replication
   copy_tags_to_snapshot        = true
-  backup_window                = "03:00-04:00"
-  multi_az                     = true
+  # backup_window                = "03:00-04:00"  (Removed duplicate)
+  # multi_az                     = true           (Removed duplicate)
   deletion_protection          = true
 
   tags = local.common_tags

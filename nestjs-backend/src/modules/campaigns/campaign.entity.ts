@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+import { Creative } from '../creatives/creative.entity';
 
 export class ColumnNumericTransformer {
   to(data: number): number {
@@ -57,6 +60,28 @@ export class Campaign {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, transformer: new ColumnNumericTransformer() })
   spent: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, transformer: new ColumnNumericTransformer() })
+  dailyBudget: number; // Daily spend cap (if null, defaults to budget/30)
+
+  @Column({ type: 'varchar', length: 20, default: 'even' })
+  pacingStrategy: string; // 'asap', 'even', 'front', 'back'
+
+  @Column({ type: 'int', default: 5 })
+  priority: number; // Priority level 1-10 (higher = more important, default: 5)
+
+  // Goal-Based Pacing
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  goalType: string; // 'impressions', 'clicks', 'conversions'
+
+  @Column({ type: 'bigint', default: 0 })
+  goalTarget: number; // Target number of events
+
+  @Column({ type: 'bigint', default: 0 })
+  goalDelivered: number; // Current progress
+
+  @Column({ type: 'date', nullable: true })
+  goalEndDate: Date; // Target delivery date (YYYY-MM-DD)
+
   @Column({ type: 'decimal', precision: 10, scale: 4, transformer: new ColumnNumericTransformer() })
   bidPrice: number; // Price per impression/click/action
 
@@ -99,6 +124,9 @@ export class Campaign {
     categories?: string[];
     minAge?: number;
     maxAge?: number;
+    
+    // Dayparting
+    hourSchedule?: number[]; // Hours 0-23 when campaign is active (empty = always active)
   };
 
   @Column({ type: 'timestamp', nullable: true })
@@ -109,20 +137,25 @@ export class Campaign {
 
   @Column({ type: 'jsonb', nullable: true })
   creative: {
-    type: string; // 'banner', 'video', 'native'
+    type: string; // 'banner', 'video', 'native', 'rich_media', 'audio', 'playable', 'pop', 'push'
     url?: string; // Main asset URL (banner image, video file, main image for native)
     width?: number;
     height?: number;
     
-    // Video specific
+    // Video/Audio specific
     duration?: number; // seconds
-    mimeType?: string; // 'video/mp4', 'video/webm'
+    mimeType?: string; // 'video/mp4', 'audio/mp3'
+    bitrate?: number;  // Audio bitrate
     
-    // Native specific
+    // Native/Push specific
     title?: string;
     description?: string;
-    iconUrl?: string; // Icon image for native ad
+    iconUrl?: string; // Icon image for native ad/push icon
     ctaText?: string; // Call to Action text
+    
+    // Rich Media / Playable / Pop specific
+    htmlSnippet?: string; // Custom HTML/JS payload
+    expandable?: boolean; // Rich media expandable property
   };
 
   @Column({ type: 'bigint', default: 0 })
@@ -139,4 +172,22 @@ export class Campaign {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  dealId: string; // Private Marketplace Deal ID
+
+  // Relationship to creatives
+  @ManyToMany(() => Creative)
+  @JoinTable({
+    name: 'campaign_creatives',
+    joinColumn: {
+      name: 'campaignId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'creativeId',
+      referencedColumnName: 'id',
+    },
+  })
+  creatives: Creative[];
 }

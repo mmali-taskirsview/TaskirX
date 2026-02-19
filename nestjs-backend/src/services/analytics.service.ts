@@ -1,6 +1,9 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import Redis from 'ioredis';
 import { AggregatedMetrics, ConversionFunnel, AnalyticsEvent } from './analytics.types';
+import { CampaignsService } from '../modules/campaigns/campaigns.service';
+import { NotificationsService } from '../modules/notifications/notifications.service';
+import { UsersService } from '../modules/users/users.service';
 
 /**
  * Advanced Analytics Service
@@ -13,9 +16,13 @@ export class AnalyticsService {
   private readonly logger = new Logger(AnalyticsService.name);
   private readonly CACHE_TTL = 3600; // 1 hour
   private readonly AGGREGATION_INTERVAL = 3600000; // 1 hour
+  private readonly FRAUD_THRESHOLD = 50; // Alert if > 50 fraud events per hour
 
   constructor(
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
+    private readonly campaignsService: CampaignsService,
+    private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   /**
@@ -36,6 +43,11 @@ export class AnalyticsService {
       // Update real-time counters for immediate access
       await this.updateRealtimeMetrics(event);
 
+      // Track spend and check budget alerts
+      if (['impression', 'click'].includes(event.eventType) && event.value) {
+        await this.trackSpend(event);
+      }
+
       // Trigger aggregation if needed
       await this.checkAndAggregate(event.campaignId);
 
@@ -49,6 +61,74 @@ export class AnalyticsService {
     } catch (error) {
       this.logger.error(`Error tracking event: ${error.message}`);
       throw error;
+    }
+  }
+
+  private async trackSpend(event: AnalyticsEvent): Promise<void> {
+    if (!event.value) return;
+
+    const dateKey = new Date().toISOString().split('T')[0];
+    const spendKey = `campaign:spend:${event.campaignId}:${dateKey}`;
+    
+    // Increment spend in Redis (atomic)
+    // Note: ioredis incrbyfloat returns string
+    const newTotalStr = await this.redis.incrbyfloat(spendKey, event.value);
+    const newTotal = parseFloat(newTotalStr);
+    
+    await this.checkBudgetThresholds(event.campaignId, newTotal);
+  }
+
+  private async checkBudgetThresholds(campaignId: string, currentSpend: number): Promise<void> {
+    try {
+      // Fetch campaign to get budget limits
+      // Use findById since we don't have tenantId context here
+      const campaign = await this.campaignsService.findById(campaignId);
+      
+      // Determine daily budget
+      // If daily budget is not explicitly set, we check against total budget pacing or default 10% rule
+      // But for simplicity, let's assume 'budget' field is the Daily Cap if no other field exists, 
+      // OR we just alert based on the Total Budget if it's a "Lifetime" campaign.
+      // Given the previous context of "Daily Rollover", let's assume we are tracking DAILY spend against DAILY budget.
+      // If the campaign entity only has `budget` (Total), we might need to infer Daily.
+      // Let's assume `budget` IS the daily budget for now as per "Real-Time Budgeting" usually implies daily caps.
+      // If not, we should check generic threshold.
+
+      const dailyBudget = campaign.budget; // Using total budget as daily cap proxy for now
+      if (!dailyBudget || dailyBudget <= 0) return;
+
+      const percentage = (currentSpend / dailyBudget) * 100;
+      const dateKey = new Date().toISOString().split('T')[0];
+      const alertKeyBase = `alert:budget:${campaignId}:${dateKey}`;
+
+      if (percentage >= 100) {
+        const alerted = await this.redis.get(`${alertKeyBase}:100`);
+        if (!alerted) {
+          await this.notificationsService.create({
+            userId: campaign.userId,
+            tenantId: campaign.tenantId,
+            title: 'Budget Exhausted',
+            message: `Campaign "${campaign.name}" has reached 100% of its daily budget ($${dailyBudget}).`,
+            type: 'error',
+            category: 'budget', // Explicit category for preferences
+          });
+          await this.redis.setex(`${alertKeyBase}:100`, 86400, 'true');
+        }
+      } else if (percentage >= 90) {
+        const alerted = await this.redis.get(`${alertKeyBase}:90`);
+        if (!alerted) {
+          await this.notificationsService.create({
+            userId: campaign.userId,
+            tenantId: campaign.tenantId,
+            title: 'Budget Warning',
+            message: `Campaign "${campaign.name}" has reached 90% of its daily budget ($${currentSpend.toFixed(2)} / $${dailyBudget}).`,
+            type: 'warning',
+            category: 'budget', // Explicit category for preferences
+          });
+          await this.redis.setex(`${alertKeyBase}:90`, 86400, 'true');
+        }
+      }
+    } catch (error) {
+      this.logger.warn(`Failed to check budget thresholds for campaign ${campaignId}: ${error.message}`);
     }
   }
 

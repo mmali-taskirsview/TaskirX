@@ -630,6 +630,349 @@ func (h *AdvancedHandler) HandleGetCrossDeviceReach(c *gin.Context) {
 }
 
 // ============================================================================
+// DYNAMIC BID ADJUSTMENT ENDPOINTS
+// ============================================================================
+
+// DynamicBidRequest represents a request for dynamic bid calculation
+type DynamicBidRequest struct {
+	CampaignID   string  `json:"campaign_id" binding:"required"`
+	PublisherID  string  `json:"publisher_id" binding:"required"`
+	DeviceType   string  `json:"device_type"`
+	Country      string  `json:"country"`
+	BaseBid      float64 `json:"base_bid" binding:"required"`
+	UserID       string  `json:"user_id"`
+	AdSlotWidth  int     `json:"ad_slot_width"`
+	AdSlotHeight int     `json:"ad_slot_height"`
+}
+
+// HandleCalculateDynamicBid calculates a dynamic bid price
+func (h *AdvancedHandler) HandleCalculateDynamicBid(c *gin.Context) {
+	var req DynamicBidRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicBidService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+		return
+	}
+
+	// Build campaign model
+	campaign := &model.Campaign{
+		ID:       req.CampaignID,
+		BidPrice: req.BaseBid,
+	}
+
+	// Build bid request model
+	bidReq := &model.BidRequest{
+		ID:          "dynamic-" + req.CampaignID,
+		PublisherID: req.PublisherID,
+		User: model.InternalUser{
+			ID: req.UserID,
+		},
+		Device: model.InternalDevice{
+			Type: req.DeviceType,
+			Geo: model.InternalGeo{
+				Country: req.Country,
+			},
+		},
+		AdSlot: model.AdSlot{
+			Dimensions: []int{req.AdSlotWidth, req.AdSlotHeight},
+		},
+	}
+
+	result := svc.CalculateDynamicBid(campaign, bidReq)
+	c.JSON(http.StatusOK, result)
+}
+
+// DynamicBidOutcomeRequest represents a bid outcome to record
+type DynamicBidOutcomeRequest struct {
+	CampaignID  string  `json:"campaign_id" binding:"required"`
+	PublisherID string  `json:"publisher_id" binding:"required"`
+	UserID      string  `json:"user_id"`
+	BidPrice    float64 `json:"bid_price" binding:"required"`
+	Won         bool    `json:"won"`
+	WinPrice    float64 `json:"win_price"`
+	Clicked     bool    `json:"clicked"`
+	Converted   bool    `json:"converted"`
+	Revenue     float64 `json:"revenue"`
+}
+
+// HandleRecordDynamicBidOutcome records a bid outcome for learning
+func (h *AdvancedHandler) HandleRecordDynamicBidOutcome(c *gin.Context) {
+	var req DynamicBidOutcomeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDynamicBidService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+		return
+	}
+
+	// Build bid request for context
+	bidReq := &model.BidRequest{
+		ID:          "outcome-" + req.CampaignID,
+		PublisherID: req.PublisherID,
+		User: model.InternalUser{
+			ID: req.UserID,
+		},
+	}
+
+	svc.RecordOutcome(req.CampaignID, bidReq, req.BidPrice, req.WinPrice, req.Won, req.Clicked, req.Converted, req.Revenue)
+	c.JSON(http.StatusOK, gin.H{"status": "recorded"})
+}
+
+// HandleGetDynamicBidAnalytics returns bid analytics
+func (h *AdvancedHandler) HandleGetDynamicBidAnalytics(c *gin.Context) {
+	svc := h.biddingService.GetDynamicBidService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+		return
+	}
+
+	analytics := svc.GetBidAnalytics()
+	c.JSON(http.StatusOK, analytics)
+}
+
+// HandleGetDynamicBidConfig returns the dynamic bid service configuration
+func (h *AdvancedHandler) HandleGetDynamicBidConfig(c *gin.Context) {
+	svc := h.biddingService.GetDynamicBidService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+		return
+	}
+
+	config := svc.GetConfig()
+	c.JSON(http.StatusOK, config)
+}
+
+// ============================================================================
+// LOOKALIKE AUDIENCE ENDPOINTS
+// ============================================================================
+
+// LookalikeGenerateRequest represents a request to generate a lookalike audience
+type LookalikeGenerateRequest struct {
+	SeedUserIDs     []string `json:"seed_user_ids" binding:"required"`
+	Name            string   `json:"name" binding:"required"`
+	ExpansionFactor float64  `json:"expansion_factor"`
+}
+
+// HandleGenerateLookalike generates a lookalike audience
+func (h *AdvancedHandler) HandleGenerateLookalike(c *gin.Context) {
+	var req LookalikeGenerateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetLookalikeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+		return
+	}
+
+	expansionFactor := req.ExpansionFactor
+	if expansionFactor == 0 {
+		expansionFactor = 2.0 // Default
+	}
+
+	result := svc.GenerateLookalike(req.SeedUserIDs, req.Name, expansionFactor)
+	c.JSON(http.StatusOK, result)
+}
+
+// UserProfileRequest represents a user profile registration request
+type UserProfileRequest struct {
+	UserID      string   `json:"user_id" binding:"required"`
+	Segments    []string `json:"segments"`
+	Interests   []string `json:"interests"`
+	DeviceTypes []string `json:"device_types"`
+	Country     string   `json:"country"`
+	Region      string   `json:"region"`
+	City        string   `json:"city"`
+}
+
+// HandleRegisterUserProfile registers a user profile for lookalike modeling
+func (h *AdvancedHandler) HandleRegisterUserProfile(c *gin.Context) {
+	var req UserProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetLookalikeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+		return
+	}
+
+	profile := svc.CreateUserProfile(req.Segments, req.Interests, req.DeviceTypes, req.Country, req.Region, req.City)
+	svc.RegisterUserProfile(req.UserID, profile)
+	c.JSON(http.StatusOK, gin.H{"status": "registered"})
+}
+
+// HandleGetLookalikeAudience retrieves a lookalike audience
+func (h *AdvancedHandler) HandleGetLookalikeAudience(c *gin.Context) {
+	audienceID := c.Param("audience_id")
+	if audienceID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "audience_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetLookalikeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+		return
+	}
+
+	audience := svc.GetLookalikeAudience(audienceID)
+	if audience == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Audience not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, audience)
+}
+
+// HandleIsUserInLookalike checks if a user is in a lookalike audience
+func (h *AdvancedHandler) HandleIsUserInLookalike(c *gin.Context) {
+	userID := c.Query("user_id")
+	audienceID := c.Query("audience_id")
+	if userID == "" || audienceID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id and audience_id are required"})
+		return
+	}
+
+	svc := h.biddingService.GetLookalikeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+		return
+	}
+
+	isMember, score := svc.IsUserInLookalike(userID, audienceID)
+	c.JSON(http.StatusOK, gin.H{
+		"is_member":        isMember,
+		"similarity_score": score,
+	})
+}
+
+// HandleGetLookalikeStats returns lookalike audience statistics
+func (h *AdvancedHandler) HandleGetLookalikeStats(c *gin.Context) {
+	svc := h.biddingService.GetLookalikeService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+		return
+	}
+
+	stats := svc.GetLookalikeStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
+// USER CLUSTERING ENDPOINTS
+// ============================================================================
+
+// ClusterUserRequest represents a user clustering registration request
+type ClusterUserRequest struct {
+	UserID        string    `json:"user_id" binding:"required"`
+	FeatureVector []float64 `json:"feature_vector" binding:"required"`
+}
+
+// HandleRegisterClusterUser registers a user for clustering
+func (h *AdvancedHandler) HandleRegisterClusterUser(c *gin.Context) {
+	var req ClusterUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetUserClusteringService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+		return
+	}
+
+	svc.RegisterUser(req.UserID, req.FeatureVector)
+	c.JSON(http.StatusOK, gin.H{"status": "registered"})
+}
+
+// HandleRunClustering triggers the clustering algorithm
+func (h *AdvancedHandler) HandleRunClustering(c *gin.Context) {
+	svc := h.biddingService.GetUserClusteringService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+		return
+	}
+
+	result := svc.RunClustering()
+	c.JSON(http.StatusOK, result)
+}
+
+// HandleGetUserCluster returns the cluster for a specific user
+func (h *AdvancedHandler) HandleGetUserCluster(c *gin.Context) {
+	userID := c.Param("user_id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetUserClusteringService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+		return
+	}
+
+	cluster, confidence := svc.GetUserCluster(userID)
+	if cluster == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found or not clustered"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"cluster":    cluster,
+		"confidence": confidence,
+	})
+}
+
+// HandleGetClusterUsers returns users in a specific cluster
+func (h *AdvancedHandler) HandleGetClusterUsers(c *gin.Context) {
+	clusterID := c.Param("cluster_id")
+	if clusterID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+		return
+	}
+
+	svc := h.biddingService.GetUserClusteringService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+		return
+	}
+
+	users := svc.GetClusterUsers(clusterID)
+	c.JSON(http.StatusOK, gin.H{
+		"cluster_id": clusterID,
+		"user_count": len(users),
+		"users":      users,
+	})
+}
+
+// HandleGetClusteringStats returns clustering statistics
+func (h *AdvancedHandler) HandleGetClusteringStats(c *gin.Context) {
+	svc := h.biddingService.GetUserClusteringService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+		return
+	}
+
+	stats := svc.GetClusteringStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
 // HEALTH & STATUS ENDPOINTS
 // ============================================================================
 
@@ -644,6 +987,9 @@ func (h *AdvancedHandler) HandleAdvancedServicesStatus(c *gin.Context) {
 		"realtime_alerts":          h.biddingService.GetRealTimeAlertService() != nil,
 		"competitive_intelligence": h.biddingService.GetCompetitiveIntelligenceService() != nil,
 		"unified_id":               h.biddingService.GetUnifiedIDService() != nil,
+		"dynamic_bid":              h.biddingService.GetDynamicBidService() != nil,
+		"lookalike":                h.biddingService.GetLookalikeService() != nil,
+		"user_clustering":          h.biddingService.GetUserClusteringService() != nil,
 	}
 
 	allHealthy := true

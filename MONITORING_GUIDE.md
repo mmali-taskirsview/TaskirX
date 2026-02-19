@@ -46,6 +46,15 @@ Alert Manager is configured in `monitoring/alert-rules.yml`.
 - **LowBidRate**: < 5% bid rate (Potential integration issue)
 - **AIIntegrationErrors**: Failures communicating with Python services
 
+## 4. Key Metrics Reference
+
+### Bidding Engine
+*   `bid_requests_total`: Counter. Total requests.
+*   `bid_requests_by_format_total`: CounterVec (`format`). Requests by type (banner, video, native, audio).
+*   `bids_placed_total`: CounterVec (`format`). Successful bids by type.
+*   `fraud_blocked_total`: Counter.
+*   `bid_latency_seconds`: Histogram. Processing time.
+
 ---
 
 ## Logging

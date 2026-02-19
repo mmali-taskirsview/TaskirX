@@ -28,6 +28,17 @@ export class UsersController {
     return this.usersService.findById(req.user.id);
   }
 
+  @Put('me')
+  @ApiOperation({ summary: 'Update current user profile' })
+  async updateProfile(@Request() req, @Body() updateData: any) {
+    // Prevent updating sensitive fields
+    delete updateData.passwordHash;
+    delete updateData.role;
+    delete updateData.tenantId;
+
+    return this.usersService.update(req.user.id, updateData);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @Roles(UserRole.ADMIN)

@@ -440,13 +440,27 @@ function Backup-Database {
     
     # Get RDS endpoint from Terraform
     Push-Location $TerraformPath
-    $rdsEndpoint = terraform output -raw rds_endpoint
+    if ($Environment -eq "oci") {
+        Write-Info "OCI Environment detected. Skipping RDS backup check as we are using in-cluster PostgreSQL."
+        $rdsEndpoint = $null
+    } else {
+        try {
+            $rdsEndpoint = terraform output -raw rds_endpoint
+        } catch {
+            Write-Warning "Could not retrieve RDS endpoint from Terraform output."
+            $rdsEndpoint = $null
+        }
+    }
     Pop-Location
     
-    Write-Info "Backing up database to: $backupName..."
+    if ($rdsEndpoint) {
+        Write-Info "Backing up database to: $backupName..."
+        # Note: In production, use AWS RDS APIs or pg_dump with proper credentials
+    } else {
+        Write-Info "No RDS endpoint found or using in-cluster DB. Skipping managed backup."
+    }
     
-    # Note: In production, use AWS RDS APIs or pg_dump with proper credentials
-    Write-Success "Database backup completed: $backupName"
+    Write-Success "Database backup step completed"
 }
 
 # Generate deployment report

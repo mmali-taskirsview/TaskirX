@@ -74,10 +74,18 @@ kubectl apply -f k8s/go-bidding-deployment.yaml
 kubectl apply -f k8s/python-services-deployment.yaml
 
 # Expose via Ingress
-kubectl apply -f k8s/ingress.yaml
+kubectl apply -f k8s/ingress-oci.yaml
 ```
 
-### 3. Monitoring & Observability
+### 3. DNS Configuration (Production)
+Update your DNS A records to point to the OCI Load Balancer IP:
+**IP:** `138.2.76.159`
+- `taskirx.com` -> `138.2.76.159`
+- `www.taskirx.com` -> `138.2.76.159`
+- `bidding.taskirx.com` -> `138.2.76.159`
+- `dashboard.taskirx.com` -> `138.2.76.159`
+
+### 4. Monitoring & Observability
 
 We use Prometheus and Grafana for full stack visibility.
 
@@ -97,7 +105,7 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-### 4. SSL Certificate (Let's Encrypt)
+### 5. SSL Certificate (Let's Encrypt)
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
@@ -105,7 +113,7 @@ sudo certbot --nginx -d api.yourdomain.com
 sudo systemctl restart nginx
 ```
 
-### 5. MongoDB Atlas (Recommended)
+### 6. MongoDB Atlas (Recommended)
 
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Create cluster (M10 or larger for production)
@@ -114,7 +122,7 @@ sudo systemctl restart nginx
 5. Get connection string
 6. Update .env with Atlas URI
 
-### 6. Post-Deployment Setup
+### 7. Post-Deployment Setup
 
 #### Database Seeding
 The automated deployment creates the database schema but does not populate it with initial users.

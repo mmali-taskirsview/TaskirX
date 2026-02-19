@@ -86,6 +86,7 @@ GET /api/campaigns?page=1&limit=20&status=active&search=summer
 - `limit` (number): Items per page (default: 20)
 - `status` (string): Filter by status (active, paused, completed, deleted)
 - `search` (string): Search by campaign name
+- `includeRealTime` (boolean): Include real-time spend from Redis (default: false)
 
 **Response:** `200 OK`
 ```json
@@ -95,6 +96,7 @@ GET /api/campaigns?page=1&limit=20&status=active&search=summer
       "_id": "507f1f77bcf86cd799439011",
       "name": "Summer Sale Campaign",
       "status": "active",
+      "includeRealTime": true,
       "budget": {
         "total": 10000,
         "spent": 2500
@@ -469,3 +471,23 @@ X-RateLimit-Reset: 1642248000
 ## Postman Collection
 
 Import the `postman-collection.json` file for a complete collection of API requests with examples.
+
+---
+
+## Notifications
+
+### Get Notifications
+```http
+GET /api/notifications
+```
+
+**Response:** `200 OK`
+```json
+{
+  "id": "e0a0...",
+  "title": "Budget Warning",
+  "message": "Campaign 'Spring Sale' has reached 90% of its budget.",
+  "isRead": false,
+  "createdAt": "2026-02-18T10:00:00Z"
+}
+```

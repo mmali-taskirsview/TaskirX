@@ -25,8 +25,19 @@ The TaskirX Ad Exchange platform has been successfully deployed to the Oracle Cl
     *   Fixed build automation to push to the new registry.
 4.  **Automation**:
     *   Created `update-domain.ps1` for one-click build and deployment.
-5.  **Fraud Detection**: Model is served persistently via dedicated service.
-6.  **Unified Landing Page**:
+5.  **Fraud Detection**:
+    *   Integrated **IP Reputation System** with Redis caching.
+    *   Implemented mock external blacklist provider (simulating "blocked" IPs).
+    *   Added `FraudIndicators` detailed reporting in API responses.
+6.  **Real-Time Budget Control**:
+    *   Implemented Redis atomic counters (`INCRBY`) for sub-millisecond spend tracking.
+    *   Enforced Campaign Daily Budget caps in real-time within the Go Bidding Engine.
+    *   Created `sync-spend` cron job (NestJS) to persist real-time spend to Postgres **(Daily Rollover strategy to prevent double-counting)**.
+    *   **Dashboard Real-Time**: Updated `CampaignsService` & `AnalyticsService` to dynamically augment Redis spend for user-facing APIs, ensuring dashboard users see budget consumption instantly without database writes.
+7.  **Database Optimization**:
+    *   **ClickHouse**: Added Materialized Views for instant dashboard reporting (Impressions/Clicks/Conversions by Hour).
+    *   **Postgres**: Applied missing indexes to `campaigns` and `transactions` tables.
+8.  **Unified Landing Page**:
     *   Replaced separate Client/Admin cards with a single "Launch App" button for secure unified access.
     *   Implemented role-based redirection in middleware for seamless user experience.
 

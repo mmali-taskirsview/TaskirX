@@ -1,0 +1,34 @@
+{
+  "id": "test-req-rich-001",
+  "timestamp": "2026-02-17T12:00:00Z",
+  "publisher_id": "pub-001",
+  "ad_slot": {
+    "id": "slot-001",
+    "dimensions": [300, 250],
+    "position": "above-fold",
+    "formats": ["rich_media", "pop", "audio"]
+  },
+  "user": {
+    "id": "user-001",
+    "country": "US",
+    "language": "en",
+    "categories": ["tech", "gaming"],
+    "age": 25,
+    "gender": "male"
+  },
+  "device": {
+    "type": "desktop",
+    "os": "android",
+    "browser": "chrome",
+    "ip": "203.0.113.1",
+    "user_agent": "Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36",
+    "geo": {
+      "lat": 37.7749,
+      "lon": -122.4194
+    }
+  },
+  "context": {
+    "site_domain": "example.com",
+    "app_bundle": "com.example.app"
+  }
+}

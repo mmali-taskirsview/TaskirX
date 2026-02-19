@@ -2,7 +2,7 @@
 # Checks the health of the live OCI endpoints
 
 param (
-    [string]$Domain = "taskir.com"
+    [string]$Domain = "taskirx.com"
 )
 
 # Ensure modern TLS for HTTPS checks (PowerShell 5.1 defaults can be outdated)
