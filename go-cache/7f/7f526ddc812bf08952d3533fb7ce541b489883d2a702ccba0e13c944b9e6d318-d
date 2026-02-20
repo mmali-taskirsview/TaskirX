@@ -1,0 +1,80 @@
+=== RUN   TestCtxAI_NewService
+--- PASS: TestCtxAI_NewService (0.00s)
+=== RUN   TestCtxAI_AnalyzeContext_Disabled
+--- PASS: TestCtxAI_AnalyzeContext_Disabled (0.00s)
+=== RUN   TestCtxAI_AnalyzeContext_NoContent
+--- PASS: TestCtxAI_AnalyzeContext_NoContent (0.00s)
+=== RUN   TestCtxAI_AnalyzeContext_Success
+--- PASS: TestCtxAI_AnalyzeContext_Success (0.00s)
+=== RUN   TestCtxAI_ExtractPageContent_AllFields
+--- PASS: TestCtxAI_ExtractPageContent_AllFields (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_Sports
+--- PASS: TestCtxAI_CategorizeContent_Sports (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_Technology
+--- PASS: TestCtxAI_CategorizeContent_Technology (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_MultipleCategories
+--- PASS: TestCtxAI_CategorizeContent_MultipleCategories (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_MinConfidence
+--- PASS: TestCtxAI_CategorizeContent_MinConfidence (0.00s)
+=== RUN   TestCtxAI_GetCategoryName
+--- PASS: TestCtxAI_GetCategoryName (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Positive
+--- PASS: TestCtxAI_AnalyzeSentiment_Positive (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Negative
+--- PASS: TestCtxAI_AnalyzeSentiment_Negative (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Neutral
+--- PASS: TestCtxAI_AnalyzeSentiment_Neutral (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Empty
+--- PASS: TestCtxAI_AnalyzeSentiment_Empty (0.00s)
+=== RUN   TestCtxAI_DetectEntities_Locations
+--- PASS: TestCtxAI_DetectEntities_Locations (0.00s)
+=== RUN   TestCtxAI_DetectEntities_Organizations
+--- PASS: TestCtxAI_DetectEntities_Organizations (0.00s)
+=== RUN   TestCtxAI_DetectEntities_Empty
+--- PASS: TestCtxAI_DetectEntities_Empty (0.00s)
+=== RUN   TestCtxAI_DetectEmotion_Joy
+--- PASS: TestCtxAI_DetectEmotion_Joy (0.00s)
+=== RUN   TestCtxAI_DetectEmotion_Fear
+--- PASS: TestCtxAI_DetectEmotion_Fear (0.00s)
+=== RUN   TestCtxAI_DetectEmotion_Neutral
+--- PASS: TestCtxAI_DetectEmotion_Neutral (0.00s)
+=== RUN   TestCtxAI_AssessContentQuality_High
+--- PASS: TestCtxAI_AssessContentQuality_High (0.00s)
+=== RUN   TestCtxAI_AssessContentQuality_Low
+--- PASS: TestCtxAI_AssessContentQuality_Low (0.00s)
+=== RUN   TestCtxAI_CheckBrandSafety_Safe
+--- PASS: TestCtxAI_CheckBrandSafety_Safe (0.00s)
+=== RUN   TestCtxAI_CheckBrandSafety_UnsafeKeywords
+--- PASS: TestCtxAI_CheckBrandSafety_UnsafeKeywords (0.00s)
+=== RUN   TestCtxAI_CheckBrandSafety_NegativeSentiment
+--- PASS: TestCtxAI_CheckBrandSafety_NegativeSentiment (0.00s)
+=== RUN   TestCtxAI_EvaluateCategoryTargeting_Match
+--- PASS: TestCtxAI_EvaluateCategoryTargeting_Match (0.00s)
+=== RUN   TestCtxAI_EvaluateCategoryTargeting_Excluded
+--- PASS: TestCtxAI_EvaluateCategoryTargeting_Excluded (0.00s)
+=== RUN   TestCtxAI_EvaluateCategoryTargeting_DefaultBoost
+--- PASS: TestCtxAI_EvaluateCategoryTargeting_DefaultBoost (0.00s)
+=== RUN   TestCtxAI_EvaluateSentimentTargeting_Positive
+--- PASS: TestCtxAI_EvaluateSentimentTargeting_Positive (0.00s)
+=== RUN   TestCtxAI_EvaluateSentimentTargeting_Negative
+--- PASS: TestCtxAI_EvaluateSentimentTargeting_Negative (0.00s)
+=== RUN   TestCtxAI_EvaluateSentimentTargeting_NegativeNotTargeted
+--- PASS: TestCtxAI_EvaluateSentimentTargeting_NegativeNotTargeted (0.00s)
+=== RUN   TestCtxAI_EvaluateEntityTargeting_Match
+--- PASS: TestCtxAI_EvaluateEntityTargeting_Match (0.00s)
+=== RUN   TestCtxAI_EvaluateEntityTargeting_Excluded
+--- PASS: TestCtxAI_EvaluateEntityTargeting_Excluded (0.00s)
+=== RUN   TestCtxAI_CalculateSemanticSimilarity
+--- PASS: TestCtxAI_CalculateSemanticSimilarity (0.00s)
+=== RUN   TestCtxAI_CalculateSemanticSimilarity_NoMatch
+--- PASS: TestCtxAI_CalculateSemanticSimilarity_NoMatch (0.00s)
+=== RUN   TestCtxAI_CalculateSemanticSimilarity_Empty
+--- PASS: TestCtxAI_CalculateSemanticSimilarity_Empty (0.00s)
+=== RUN   TestCtxAI_BrandSafetyBlock
+--- PASS: TestCtxAI_BrandSafetyBlock (0.00s)
+=== RUN   TestCtxAI_SemanticTargeting
+--- PASS: TestCtxAI_SemanticTargeting (0.00s)
+=== RUN   TestCtxAI_MultiplierCapped
+--- PASS: TestCtxAI_MultiplierCapped (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.076s
