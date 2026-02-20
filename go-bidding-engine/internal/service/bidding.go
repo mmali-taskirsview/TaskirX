@@ -70,6 +70,10 @@ type BiddingService struct {
 	// Advanced Services - Phase 4 (DCO & Prediction)
 	dynamicCreativeService       *DynamicCreativeService
 	performancePredictionService *PerformancePredictionService
+
+	// Advanced Services - Phase 5 (S2S & Caching)
+	s2sBiddingService *S2SBiddingService
+	bidCacheService   *BidCacheService
 }
 
 // NewBiddingService creates a new bidding service
@@ -112,6 +116,9 @@ func NewBiddingService(cache cache.Cache, backendBaseURL string) *BiddingService
 		// Initialize advanced services - Phase 4 (DCO & Prediction)
 		dynamicCreativeService:       NewDynamicCreativeService(cache),
 		performancePredictionService: NewPerformancePredictionService(cache),
+		// Initialize advanced services - Phase 5 (S2S & Caching)
+		s2sBiddingService: nil, // Initialize after bidding service is created
+		bidCacheService:   NewBidCacheService(nil),
 	}
 }
 
@@ -228,6 +235,19 @@ func (s *BiddingService) GetDynamicCreativeService() *DynamicCreativeService {
 // GetPerformancePredictionService returns the performance prediction service
 func (s *BiddingService) GetPerformancePredictionService() *PerformancePredictionService {
 	return s.performancePredictionService
+}
+
+// GetS2SBiddingService returns the server-to-server bidding service
+func (s *BiddingService) GetS2SBiddingService() *S2SBiddingService {
+	if s.s2sBiddingService == nil {
+		s.s2sBiddingService = NewS2SBiddingService(s)
+	}
+	return s.s2sBiddingService
+}
+
+// GetBidCacheService returns the bid caching service
+func (s *BiddingService) GetBidCacheService() *BidCacheService {
+	return s.bidCacheService
 }
 
 // GetSupplyPathAnalytics returns the collected SPO analytics

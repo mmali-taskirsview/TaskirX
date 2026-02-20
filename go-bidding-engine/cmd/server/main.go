@@ -147,27 +147,24 @@ func main() {
 	router.GET("/api/advanced/identity/report", advancedHandler.HandleGetIdentityReport)
 	router.GET("/api/advanced/identity/cross-device-reach", advancedHandler.HandleGetCrossDeviceReach)
 
-	// Dynamic Creative Optimization (DCO)
-	router.POST("/api/advanced/dco/template", advancedHandler.HandleCreateTemplate)
-	router.GET("/api/advanced/dco/template/:id", advancedHandler.HandleGetTemplate)
-	router.POST("/api/advanced/dco/element", advancedHandler.HandleCreateElement)
-	router.GET("/api/advanced/dco/element/:id", advancedHandler.HandleGetElement)
-	router.POST("/api/advanced/dco/generate", advancedHandler.HandleGenerateOptimizedCreative)
-	router.POST("/api/advanced/dco/impression/:combination_id", advancedHandler.HandleRecordDCOImpression)
-	router.POST("/api/advanced/dco/click/:combination_id", advancedHandler.HandleRecordDCOClick)
-	router.POST("/api/advanced/dco/conversion/:combination_id", advancedHandler.HandleRecordDCOConversion)
-	router.GET("/api/advanced/dco/top/:template_id", advancedHandler.HandleGetTopCombinations)
-	router.GET("/api/advanced/dco/stats", advancedHandler.HandleGetDCOStats)
-
-	// Performance Prediction
-	router.POST("/api/advanced/prediction/record", advancedHandler.HandleRecordPerformance)
-	router.POST("/api/advanced/prediction/predict", advancedHandler.HandlePredictPerformance)
-	router.GET("/api/advanced/prediction/forecast", advancedHandler.HandleForecastPerformance)
-	router.GET("/api/advanced/prediction/accuracy/:entity_id", advancedHandler.HandleGetPredictionAccuracy)
-	router.GET("/api/advanced/prediction/stats", advancedHandler.HandleGetPredictionStats)
-
 	// Advanced Services Status
 	router.GET("/api/advanced/status", advancedHandler.HandleAdvancedServicesStatus)
+
+	// S2S Bidding (Server-to-Server Header Bidding)
+	router.POST("/api/advanced/s2s/partner", advancedHandler.HandleRegisterS2SPartner)
+	router.GET("/api/advanced/s2s/partner/:id", advancedHandler.HandleGetS2SPartner)
+	router.GET("/api/advanced/s2s/partners", advancedHandler.HandleListS2SPartners)
+	router.DELETE("/api/advanced/s2s/partner/:id", advancedHandler.HandleRemoveS2SPartner)
+	router.POST("/api/advanced/s2s/bid", advancedHandler.HandleS2SBidRequest)
+	router.GET("/api/advanced/s2s/stats", advancedHandler.HandleGetS2SStats)
+
+	// Bid Cache Management
+	router.GET("/api/advanced/cache/stats", advancedHandler.HandleGetBidCacheStats)
+	router.GET("/api/advanced/cache/hit-rate", advancedHandler.HandleGetBidCacheHitRate)
+	router.DELETE("/api/advanced/cache", advancedHandler.HandleClearBidCache)
+	router.DELETE("/api/advanced/cache/partner/:partner_id", advancedHandler.HandleInvalidateBidCachePartner)
+	router.POST("/api/advanced/cache/clean", advancedHandler.HandleCleanExpiredBidCache)
+
 	log.Println("✓ Advanced service routes registered")
 
 	// Start background campaign refresh (every 5 minutes)
