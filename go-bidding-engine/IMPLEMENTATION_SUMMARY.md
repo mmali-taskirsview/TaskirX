@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-A high-performance, production-ready programmatic advertising bidding engine built in Go, featuring 22 advanced ad-tech services with full API coverage, comprehensive test suite (495 tests), and performance benchmarks.
+A high-performance, production-ready programmatic advertising bidding engine built in Go, featuring 22 advanced ad-tech services with full API coverage, comprehensive test suite (519 tests), and performance benchmarks.
 
 ## Test Coverage Summary
 
-- **Total Tests**: 495 (all passing)
+- **Total Tests**: 519 (all passing)
 - **Benchmarks**: 12 performance benchmarks
 - **Model Coverage**: 100%
-- **Service Coverage**: 47.5%
+- **Service Coverage**: 47.8%
 - **Handler Coverage**: 47.0%
 
 ### Benchmark Results (AMD Ryzen 5 7530U)
