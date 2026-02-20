@@ -1,0 +1,2113 @@
+=== RUN   TestABTest_NewService
+--- PASS: TestABTest_NewService (0.00s)
+=== RUN   TestABTest_CreateExperiment_Success
+--- PASS: TestABTest_CreateExperiment_Success (0.00s)
+=== RUN   TestABTest_CreateExperiment_NoName
+--- PASS: TestABTest_CreateExperiment_NoName (0.00s)
+=== RUN   TestABTest_CreateExperiment_SingleVariant
+--- PASS: TestABTest_CreateExperiment_SingleVariant (0.00s)
+=== RUN   TestABTest_CreateExperiment_NoControl
+--- PASS: TestABTest_CreateExperiment_NoControl (0.00s)
+=== RUN   TestABTest_CreateExperiment_MultipleControls
+--- PASS: TestABTest_CreateExperiment_MultipleControls (0.00s)
+=== RUN   TestABTest_CreateExperiment_NormalizeWeights
+--- PASS: TestABTest_CreateExperiment_NormalizeWeights (0.00s)
+=== RUN   TestABTest_StartExperiment
+--- PASS: TestABTest_StartExperiment (0.00s)
+=== RUN   TestABTest_StartExperiment_NotFound
+--- PASS: TestABTest_StartExperiment_NotFound (0.00s)
+=== RUN   TestABTest_StartExperiment_AlreadyRunning
+--- PASS: TestABTest_StartExperiment_AlreadyRunning (0.00s)
+=== RUN   TestABTest_StartExperiment_MaxReached
+--- PASS: TestABTest_StartExperiment_MaxReached (0.00s)
+=== RUN   TestABTest_StopExperiment
+--- PASS: TestABTest_StopExperiment (0.00s)
+=== RUN   TestABTest_StopExperiment_NotRunning
+--- PASS: TestABTest_StopExperiment_NotRunning (0.00s)
+=== RUN   TestABTest_GetVariantForUser
+--- PASS: TestABTest_GetVariantForUser (0.00s)
+=== RUN   TestABTest_GetVariantForUser_Consistent
+--- PASS: TestABTest_GetVariantForUser_Consistent (0.00s)
+=== RUN   TestABTest_GetVariantForUser_NotRunning
+--- PASS: TestABTest_GetVariantForUser_NotRunning (0.00s)
+=== RUN   TestABTest_RecordEvent_Impression
+--- PASS: TestABTest_RecordEvent_Impression (0.00s)
+=== RUN   TestABTest_RecordEvent_Conversion
+--- PASS: TestABTest_RecordEvent_Conversion (0.00s)
+=== RUN   TestABTest_RecordEvent_CustomMetric
+--- PASS: TestABTest_RecordEvent_CustomMetric (0.00s)
+=== RUN   TestABTest_RecordEvent_VariantNotFound
+--- PASS: TestABTest_RecordEvent_VariantNotFound (0.00s)
+=== RUN   TestABTest_AnalyzeExperiment
+--- PASS: TestABTest_AnalyzeExperiment (0.00s)
+=== RUN   TestABTest_AnalyzeExperiment_NotFound
+--- PASS: TestABTest_AnalyzeExperiment_NotFound (0.00s)
+=== RUN   TestABTest_ListExperiments
+--- PASS: TestABTest_ListExperiments (0.00s)
+=== RUN   TestABTest_ListExperiments_StatusFilter
+--- PASS: TestABTest_ListExperiments_StatusFilter (0.00s)
+=== RUN   TestABTest_GetStats
+--- PASS: TestABTest_GetStats (0.00s)
+=== RUN   TestABTest_UpdateConfig
+--- PASS: TestABTest_UpdateConfig (0.00s)
+=== RUN   TestABTest_GetBanditRecommendation
+--- PASS: TestABTest_GetBanditRecommendation (0.00s)
+=== RUN   TestABTest_GetBanditRecommendation_NotBandit
+--- PASS: TestABTest_GetBanditRecommendation_NotBandit (0.00s)
+=== RUN   TestABTest_Concurrency
+--- PASS: TestABTest_Concurrency (0.00s)
+=== RUN   TestABTest_AutoStopOnSignificance
+--- PASS: TestABTest_AutoStopOnSignificance (0.00s)
+=== RUN   TestABTest_CalculatePValue
+--- PASS: TestABTest_CalculatePValue (0.00s)
+=== RUN   TestABTest_CalculateStandardError
+--- PASS: TestABTest_CalculateStandardError (0.00s)
+=== RUN   TestABTest_Duration
+--- PASS: TestABTest_Duration (0.00s)
+=== RUN   TestBidLandscape_Disabled
+--- PASS: TestBidLandscape_Disabled (0.00s)
+=== RUN   TestBidLandscape_WithConfig
+--- PASS: TestBidLandscape_WithConfig (0.00s)
+=== RUN   TestBidLandscape_RecordBid
+--- PASS: TestBidLandscape_RecordBid (0.00s)
+=== RUN   TestCreativeOptimization_Disabled
+--- PASS: TestCreativeOptimization_Disabled (0.00s)
+=== RUN   TestCreativeOptimization_WithPool
+--- PASS: TestCreativeOptimization_WithPool (0.00s)
+=== RUN   TestCreativeOptimization_TrackPerformance
+--- PASS: TestCreativeOptimization_TrackPerformance (0.00s)
+=== RUN   TestIncrementality_Disabled
+--- PASS: TestIncrementality_Disabled (0.00s)
+=== RUN   TestIncrementality_UserAssignment
+--- PASS: TestIncrementality_UserAssignment (0.00s)
+=== RUN   TestIncrementality_RecordConversion
+--- PASS: TestIncrementality_RecordConversion (0.00s)
+=== RUN   TestPrivacySandbox_Disabled
+--- PASS: TestPrivacySandbox_Disabled (0.00s)
+=== RUN   TestPrivacySandbox_TopicsAPI
+--- PASS: TestPrivacySandbox_TopicsAPI (0.00s)
+=== RUN   TestPrivacySandbox_InterestGroups
+--- PASS: TestPrivacySandbox_InterestGroups (0.00s)
+=== RUN   TestContextualAI_Disabled
+--- PASS: TestContextualAI_Disabled (0.00s)
+=== RUN   TestContextualAI_ContentAnalysis
+--- PASS: TestContextualAI_ContentAnalysis (0.00s)
+=== RUN   TestContextualAI_BrandSafety
+--- PASS: TestContextualAI_BrandSafety (0.00s)
+=== RUN   TestRealTimeAlerts_Disabled
+--- PASS: TestRealTimeAlerts_Disabled (0.00s)
+=== RUN   TestRealTimeAlerts_BudgetWarning
+--- PASS: TestRealTimeAlerts_BudgetWarning (0.00s)
+=== RUN   TestRealTimeAlerts_RecordMetrics
+--- PASS: TestRealTimeAlerts_RecordMetrics (0.00s)
+=== RUN   TestCompetitiveIntelligence_Disabled
+--- PASS: TestCompetitiveIntelligence_Disabled (0.00s)
+=== RUN   TestCompetitiveIntelligence_RecordOutcome
+--- PASS: TestCompetitiveIntelligence_RecordOutcome (0.00s)
+=== RUN   TestCompetitiveIntelligence_WithTracking
+--- PASS: TestCompetitiveIntelligence_WithTracking (0.00s)
+=== RUN   TestUnifiedID_Disabled
+--- PASS: TestUnifiedID_Disabled (0.00s)
+=== RUN   TestUnifiedID_WithProviders
+--- PASS: TestUnifiedID_WithProviders (0.00s)
+=== RUN   TestUnifiedID_LinkIdentities
+--- PASS: TestUnifiedID_LinkIdentities (0.00s)
+=== RUN   TestUnifiedID_CrossDevice
+--- PASS: TestUnifiedID_CrossDevice (0.00s)
+=== RUN   TestUnifiedID_ConsentRequired
+--- PASS: TestUnifiedID_ConsentRequired (0.00s)
+=== RUN   TestAllServicesInitialized
+--- PASS: TestAllServicesInitialized (0.00s)
+=== RUN   TestAttribution_EmptyUserID
+--- PASS: TestAttribution_EmptyUserID (0.00s)
+=== RUN   TestAttribution_NoTouchpoints
+--- PASS: TestAttribution_NoTouchpoints (0.00s)
+=== RUN   TestAttribution_LastClick
+--- PASS: TestAttribution_LastClick (0.00s)
+=== RUN   TestAttribution_FirstClick
+--- PASS: TestAttribution_FirstClick (0.00s)
+=== RUN   TestAttribution_Linear
+--- PASS: TestAttribution_Linear (0.00s)
+=== RUN   TestAttribution_TimeDecay
+--- PASS: TestAttribution_TimeDecay (0.00s)
+=== RUN   TestAttribution_TimeDecay_DefaultHalfLife
+--- PASS: TestAttribution_TimeDecay_DefaultHalfLife (0.00s)
+=== RUN   TestAttribution_PositionBased_SingleTouchpoint
+--- PASS: TestAttribution_PositionBased_SingleTouchpoint (0.00s)
+=== RUN   TestAttribution_PositionBased_TwoTouchpoints
+--- PASS: TestAttribution_PositionBased_TwoTouchpoints (0.00s)
+=== RUN   TestAttribution_PositionBased_ManyTouchpoints
+--- PASS: TestAttribution_PositionBased_ManyTouchpoints (0.00s)
+=== RUN   TestAttribution_UnknownModelFallsBackToLastClick
+--- PASS: TestAttribution_UnknownModelFallsBackToLastClick (0.00s)
+=== RUN   TestAttribution_BidAdjustment_NoData
+--- PASS: TestAttribution_BidAdjustment_NoData (0.00s)
+=== RUN   TestAttribution_BidAdjustment_EmptyUser
+--- PASS: TestAttribution_BidAdjustment_EmptyUser (0.00s)
+=== RUN   TestAttribution_BidAdjustment_WithData
+--- PASS: TestAttribution_BidAdjustment_WithData (0.00s)
+=== RUN   TestAttribution_RecordConversionTouchpoint
+--- PASS: TestAttribution_RecordConversionTouchpoint (0.00s)
+=== RUN   TestAttribution_CompareModels
+--- PASS: TestAttribution_CompareModels (0.00s)
+=== RUN   TestAttribution_GetAttributionSummary
+--- PASS: TestAttribution_GetAttributionSummary (0.00s)
+=== RUN   TestAudienceModeling_NilConfig
+--- PASS: TestAudienceModeling_NilConfig (0.00s)
+=== RUN   TestAudienceModeling_Suppression_Segment
+--- PASS: TestAudienceModeling_Suppression_Segment (0.00s)
+=== RUN   TestAudienceModeling_Suppression_Event
+--- PASS: TestAudienceModeling_Suppression_Event (0.00s)
+=== RUN   TestAudienceModeling_Suppression_AlreadyConverted
+--- PASS: TestAudienceModeling_Suppression_AlreadyConverted (0.00s)
+=== RUN   TestAudienceModeling_SeedAudience
+--- PASS: TestAudienceModeling_SeedAudience (0.00s)
+=== RUN   TestAudienceModeling_Lookalike
+--- PASS: TestAudienceModeling_Lookalike (0.00s)
+=== RUN   TestAudienceModeling_Lookalike_BelowThreshold
+--- PASS: TestAudienceModeling_Lookalike_BelowThreshold (0.00s)
+=== RUN   TestAudienceModeling_PropensityScoring
+--- PASS: TestAudienceModeling_PropensityScoring (0.00s)
+=== RUN   TestAudienceModeling_PropensityScoring_LTV
+--- PASS: TestAudienceModeling_PropensityScoring_LTV (0.00s)
+=== RUN   TestAudienceModeling_PropensityScoring_ChurnRisk
+--- PASS: TestAudienceModeling_PropensityScoring_ChurnRisk (0.00s)
+=== RUN   TestAudienceModeling_ScoreBidMapping
+--- PASS: TestAudienceModeling_ScoreBidMapping (0.00s)
+=== RUN   TestAudienceModeling_MinScoreThreshold
+--- PASS: TestAudienceModeling_MinScoreThreshold (0.00s)
+=== RUN   TestAudienceModeling_Prospecting
+--- PASS: TestAudienceModeling_Prospecting (0.00s)
+=== RUN   TestAudienceModeling_InterestSimilarity
+--- PASS: TestAudienceModeling_InterestSimilarity (0.00s)
+=== RUN   TestAudienceModeling_InterestSimilarity_NoOverlap
+--- PASS: TestAudienceModeling_InterestSimilarity_NoOverlap (0.00s)
+=== RUN   TestAudienceModeling_SuppressionNoUserID
+--- PASS: TestAudienceModeling_SuppressionNoUserID (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_BaseScore
+--- PASS: TestAudienceModeling_GeoSimilarity_BaseScore (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_CountryMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_CountryMatch (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_CityMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_CityMatch (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_BothMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_BothMatch (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_NoMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_NoMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_BaseScore
+--- PASS: TestAudienceModeling_DeviceSimilarity_BaseScore (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_TypeMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_TypeMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_OSMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_OSMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_BrowserMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_BrowserMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_AllMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_AllMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_NoMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_NoMatch (0.00s)
+=== RUN   TestLRU_NewCache
+--- PASS: TestLRU_NewCache (0.00s)
+=== RUN   TestLRU_PutAndGet
+--- PASS: TestLRU_PutAndGet (0.00s)
+=== RUN   TestLRU_GetNotFound
+--- PASS: TestLRU_GetNotFound (0.00s)
+=== RUN   TestLRU_Eviction
+--- PASS: TestLRU_Eviction (0.00s)
+=== RUN   TestLRU_MoveToFront
+--- PASS: TestLRU_MoveToFront (0.00s)
+=== RUN   TestLRU_Remove
+--- PASS: TestLRU_Remove (0.00s)
+=== RUN   TestLRU_Clear
+--- PASS: TestLRU_Clear (0.00s)
+=== RUN   TestLRU_HitCount
+--- PASS: TestLRU_HitCount (0.00s)
+=== RUN   TestBidCache_NewService
+--- PASS: TestBidCache_NewService (0.00s)
+=== RUN   TestBidCache_NewServiceWithConfig
+--- PASS: TestBidCache_NewServiceWithConfig (0.00s)
+=== RUN   TestBidCache_GenerateCacheKey
+--- PASS: TestBidCache_GenerateCacheKey (0.00s)
+=== RUN   TestBidCache_SetAndGet
+--- PASS: TestBidCache_SetAndGet (0.00s)
+=== RUN   TestBidCache_GetMiss
+--- PASS: TestBidCache_GetMiss (0.00s)
+=== RUN   TestBidCache_SetWithTTL
+--- PASS: TestBidCache_SetWithTTL (0.15s)
+=== RUN   TestBidCache_StaleServe
+--- PASS: TestBidCache_StaleServe (0.08s)
+=== RUN   TestBidCache_ImpressionCache
+--- PASS: TestBidCache_ImpressionCache (0.00s)
+=== RUN   TestBidCache_ImpressionCacheExpired
+--- PASS: TestBidCache_ImpressionCacheExpired (0.08s)
+=== RUN   TestBidCache_PartnerCache
+--- PASS: TestBidCache_PartnerCache (0.00s)
+=== RUN   TestBidCache_PartnerCacheDisabled
+--- PASS: TestBidCache_PartnerCacheDisabled (0.00s)
+=== RUN   TestBidCache_WarmCache
+--- PASS: TestBidCache_WarmCache (0.00s)
+=== RUN   TestBidCache_WarmCacheDisabled
+--- PASS: TestBidCache_WarmCacheDisabled (0.00s)
+=== RUN   TestBidCache_Invalidate
+--- PASS: TestBidCache_Invalidate (0.00s)
+=== RUN   TestBidCache_InvalidatePartner
+--- PASS: TestBidCache_InvalidatePartner (0.00s)
+=== RUN   TestBidCache_InvalidateCampaign
+--- PASS: TestBidCache_InvalidateCampaign (0.00s)
+=== RUN   TestBidCache_CleanExpired
+--- PASS: TestBidCache_CleanExpired (0.08s)
+=== RUN   TestBidCache_GetStats
+--- PASS: TestBidCache_GetStats (0.00s)
+=== RUN   TestBidCache_GetHitRate
+--- PASS: TestBidCache_GetHitRate (0.00s)
+=== RUN   TestBidCache_ResetStats
+--- PASS: TestBidCache_ResetStats (0.00s)
+=== RUN   TestBidCache_Clear
+--- PASS: TestBidCache_Clear (0.00s)
+=== RUN   TestBidCache_GetConfig
+--- PASS: TestBidCache_GetConfig (0.00s)
+=== RUN   TestBidCache_UpdateConfig
+--- PASS: TestBidCache_UpdateConfig (0.00s)
+=== RUN   TestBidCache_Size
+--- PASS: TestBidCache_Size (0.00s)
+=== RUN   TestBidCache_Concurrency
+--- PASS: TestBidCache_Concurrency (0.00s)
+=== RUN   TestLRU_Concurrency
+--- PASS: TestLRU_Concurrency (0.00s)
+=== RUN   TestBL_NewService
+--- PASS: TestBL_NewService (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_Disabled
+--- PASS: TestBL_AnalyzeLandscape_Disabled (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_NoData
+--- PASS: TestBL_AnalyzeLandscape_NoData (0.00s)
+=== RUN   TestBL_RecordBid
+--- PASS: TestBL_RecordBid (0.00s)
+=== RUN   TestBL_RecordBid_MultipleBids
+--- PASS: TestBL_RecordBid_MultipleBids (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_WithSufficientData
+--- PASS: TestBL_AnalyzeLandscape_WithSufficientData (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_OptimalRange
+--- PASS: TestBL_AnalyzeLandscape_OptimalRange (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_MarketConditions
+=== RUN   TestBL_AnalyzeLandscape_MarketConditions/soft_market
+=== RUN   TestBL_AnalyzeLandscape_MarketConditions/competitive_market
+=== RUN   TestBL_AnalyzeLandscape_MarketConditions/aggressive_market
+--- PASS: TestBL_AnalyzeLandscape_MarketConditions (0.00s)
+    --- PASS: TestBL_AnalyzeLandscape_MarketConditions/soft_market (0.00s)
+    --- PASS: TestBL_AnalyzeLandscape_MarketConditions/competitive_market (0.00s)
+    --- PASS: TestBL_AnalyzeLandscape_MarketConditions/aggressive_market (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_Confidence
+--- PASS: TestBL_AnalyzeLandscape_Confidence (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_Caching
+--- PASS: TestBL_AnalyzeLandscape_Caching (0.00s)
+=== RUN   TestBL_AnalyzeLandscape_CacheInvalidation
+--- PASS: TestBL_AnalyzeLandscape_CacheInvalidation (0.00s)
+=== RUN   TestBL_BidMultiplier_Range
+--- PASS: TestBL_BidMultiplier_Range (0.00s)
+=== RUN   TestBL_LandscapeKey_Generation
+=== RUN   TestBL_LandscapeKey_Generation/full_info
+=== RUN   TestBL_LandscapeKey_Generation/minimal
+=== RUN   TestBL_LandscapeKey_Generation/partial
+--- PASS: TestBL_LandscapeKey_Generation (0.00s)
+    --- PASS: TestBL_LandscapeKey_Generation/full_info (0.00s)
+    --- PASS: TestBL_LandscapeKey_Generation/minimal (0.00s)
+    --- PASS: TestBL_LandscapeKey_Generation/partial (0.00s)
+=== RUN   TestBL_HistoryLimit
+--- PASS: TestBL_HistoryLimit (0.00s)
+=== RUN   TestBL_Concurrency
+--- PASS: TestBL_Concurrency (0.00s)
+=== RUN   TestBL_AnalysisWindowFilter
+--- PASS: TestBL_AnalysisWindowFilter (0.00s)
+=== RUN   TestBL_RecommendedBid
+--- PASS: TestBL_RecommendedBid (0.00s)
+=== RUN   TestBL_PercentileCalculation
+--- PASS: TestBL_PercentileCalculation (0.00s)
+=== RUN   TestBL_WinLossTracking
+--- PASS: TestBL_WinLossTracking (0.00s)
+=== RUN   TestBL_DeviceTypeSegmentation
+--- PASS: TestBL_DeviceTypeSegmentation (0.00s)
+=== RUN   TestBL_GeoSegmentation
+--- PASS: TestBL_GeoSegmentation (0.00s)
+=== RUN   TestBiddingService_GetBackendBaseURL
+--- PASS: TestBiddingService_GetBackendBaseURL (0.00s)
+=== RUN   TestBiddingService_GetDynamicCreativeService
+--- PASS: TestBiddingService_GetDynamicCreativeService (0.00s)
+=== RUN   TestBiddingService_TrackClick
+--- PASS: TestBiddingService_TrackClick (0.00s)
+=== RUN   TestBiddingService_TrackImpression
+--- PASS: TestBiddingService_TrackImpression (0.00s)
+=== RUN   TestBiddingService_GetBidLandscape
+--- PASS: TestBiddingService_GetBidLandscape (0.00s)
+=== RUN   TestBiddingService_GetSegmentPerformance
+--- PASS: TestBiddingService_GetSegmentPerformance (0.00s)
+=== RUN   TestBiddingService_GetOptimalBidFloor
+--- PASS: TestBiddingService_GetOptimalBidFloor (0.00s)
+=== RUN   TestBiddingService_RecordImpression
+--- PASS: TestBiddingService_RecordImpression (0.00s)
+=== RUN   TestBiddingService_RecordClick
+--- PASS: TestBiddingService_RecordClick (0.00s)
+=== RUN   TestBiddingService_GetAttribution
+--- PASS: TestBiddingService_GetAttribution (0.00s)
+=== RUN   TestBiddingService_RecordUserEvent
+--- PASS: TestBiddingService_RecordUserEvent (0.00s)
+=== RUN   TestBiddingService_GetUserEvents
+--- PASS: TestBiddingService_GetUserEvents (0.00s)
+=== RUN   TestBiddingService_RecordTouchpoint
+--- PASS: TestBiddingService_RecordTouchpoint (0.00s)
+=== RUN   TestBiddingService_GetMultiTouchAttribution
+--- PASS: TestBiddingService_GetMultiTouchAttribution (0.00s)
+=== RUN   TestBiddingService_GetAutoBidRecommendations
+    bidding_extended_test.go:188: Got 0 recommendations
+--- PASS: TestBiddingService_GetAutoBidRecommendations (0.00s)
+=== RUN   TestBiddingService_GetCrossDeviceFrequency
+--- PASS: TestBiddingService_GetCrossDeviceFrequency (0.00s)
+=== RUN   TestBiddingService_LinkUserDevices
+--- PASS: TestBiddingService_LinkUserDevices (0.00s)
+=== RUN   TestBiddingService_GetUserDeviceGraph
+    bidding_extended_test.go:223: Got device graph with 0 devices
+--- PASS: TestBiddingService_GetUserDeviceGraph (0.00s)
+=== RUN   TestBiddingService_GetSupplyPathAnalytics
+    bidding_extended_test.go:234: Got 0 analytics entries
+--- PASS: TestBiddingService_GetSupplyPathAnalytics (0.00s)
+=== RUN   TestBiddingService_IncrementFormatStats
+--- PASS: TestBiddingService_IncrementFormatStats (0.00s)
+=== RUN   TestBiddingService_GetMetrics
+    bidding_extended_test.go:256: Got metrics data
+--- PASS: TestBiddingService_GetMetrics (0.00s)
+=== RUN   TestBiddingService_RefreshCampaigns
+    bidding_extended_test.go:268: Expected error without backend: failed to fetch campaigns from backend: Get "http://test-backend:8080/internal/campaigns/active": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestBiddingService_RefreshCampaigns (2.00s)
+=== RUN   TestCountOverlap
+=== RUN   TestCountOverlap/No_overlap
+=== RUN   TestCountOverlap/Partial_overlap
+=== RUN   TestCountOverlap/Complete_overlap
+=== RUN   TestCountOverlap/Empty_slices
+=== RUN   TestCountOverlap/One_empty
+--- PASS: TestCountOverlap (0.00s)
+    --- PASS: TestCountOverlap/No_overlap (0.00s)
+    --- PASS: TestCountOverlap/Partial_overlap (0.00s)
+    --- PASS: TestCountOverlap/Complete_overlap (0.00s)
+    --- PASS: TestCountOverlap/Empty_slices (0.00s)
+    --- PASS: TestCountOverlap/One_empty (0.00s)
+=== RUN   TestBidCacheService_SetWithTTL
+--- PASS: TestBidCacheService_SetWithTTL (0.00s)
+=== RUN   TestBidCacheService_InvalidateCampaign
+--- PASS: TestBidCacheService_InvalidateCampaign (0.00s)
+=== RUN   TestBidCacheService_GetConfig
+--- PASS: TestBidCacheService_GetConfig (0.00s)
+=== RUN   TestBidCacheService_UpdateConfig
+--- PASS: TestBidCacheService_UpdateConfig (0.00s)
+=== RUN   TestS2SBiddingService_SetTimeout
+--- PASS: TestS2SBiddingService_SetTimeout (0.00s)
+=== RUN   TestDynamicBidService_UpdateHourlyMultiplier
+--- PASS: TestDynamicBidService_UpdateHourlyMultiplier (0.00s)
+=== RUN   TestDynamicBidService_UpdateDeviceMultiplier
+--- PASS: TestDynamicBidService_UpdateDeviceMultiplier (0.00s)
+=== RUN   TestCompetitiveIntelligenceService_GetCompetitorProfile
+    bidding_extended_test.go:451: Competitor not found (expected for empty service)
+--- PASS: TestCompetitiveIntelligenceService_GetCompetitorProfile (0.00s)
+=== RUN   TestCompetitiveIntelligenceService_GetSegmentFloor
+    bidding_extended_test.go:463: Got segment floor: 0.000000
+--- PASS: TestCompetitiveIntelligenceService_GetSegmentFloor (0.00s)
+=== RUN   TestRealTimeAlertService_GetActiveAlerts
+--- PASS: TestRealTimeAlertService_GetActiveAlerts (0.00s)
+=== RUN   TestRealTimeAlertService_AcknowledgeAlert
+--- PASS: TestRealTimeAlertService_AcknowledgeAlert (0.00s)
+=== RUN   TestRealTimeAlertService_ClearOldAlerts
+--- PASS: TestRealTimeAlertService_ClearOldAlerts (0.00s)
+=== RUN   TestProcessBid_FraudCheck
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestProcessBid_FraudCheck (0.50s)
+=== RUN   TestProcessBid_BidOptimization
+Optimized Bid: 2.5000 (Multiplier: 2.50) Reason: [high_value_user]
+--- PASS: TestProcessBid_BidOptimization (0.00s)
+=== RUN   TestProcessBid_BudgetEnforcement
+Warning: Fraud Service call failed: Post "http://fraud-detection:6001/api/detect": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: Fraud Service call failed: Post "http://fraud-detection:6001/api/detect": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestProcessBid_BudgetEnforcement (1.50s)
+=== RUN   TestProcessBid_UserSegments
+Warning: Fraud Service call failed: Post "http://fraud-detection:6001/api/detect": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: AI Service call failed (Count: 2): Post "http://ad-matching:6002/api/match": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestProcessBid_UserSegments (1.50s)
+=== RUN   TestProcessBid_GeoBlocked
+Warning: Fraud Service call failed: Post "http://fraud-detection:6001/api/detect": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestProcessBid_GeoBlocked (0.50s)
+=== RUN   TestProcessBid_AIScoring
+Warning: Fraud Service call failed: Post "http://fraud-detection:6001/api/detect": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestProcessBid_AIScoring (1.00s)
+=== RUN   TestProcessBid_VideoVAST
+Optimized Bid: 0.0000 (Multiplier: 0.00) Reason: []
+--- PASS: TestProcessBid_VideoVAST (0.00s)
+=== RUN   TestProcessBid_Native
+Optimized Bid: 0.0000 (Multiplier: 0.00) Reason: []
+--- PASS: TestProcessBid_Native (0.00s)
+=== RUN   TestCalculateShadedBid
+=== RUN   TestCalculateShadedBid/Standard_bid_shading
+=== RUN   TestCalculateShadedBid/Equal_bids
+=== RUN   TestCalculateShadedBid/Second_bid_below_floor
+=== RUN   TestCalculateShadedBid/Large_gap_between_bids
+=== RUN   TestCalculateShadedBid/Floor_exceeds_second_bid
+=== RUN   TestCalculateShadedBid/Very_small_gap
+=== RUN   TestCalculateShadedBid/Zero_second_bid
+--- PASS: TestCalculateShadedBid (0.00s)
+    --- PASS: TestCalculateShadedBid/Standard_bid_shading (0.00s)
+    --- PASS: TestCalculateShadedBid/Equal_bids (0.00s)
+    --- PASS: TestCalculateShadedBid/Second_bid_below_floor (0.00s)
+    --- PASS: TestCalculateShadedBid/Large_gap_between_bids (0.00s)
+    --- PASS: TestCalculateShadedBid/Floor_exceeds_second_bid (0.00s)
+    --- PASS: TestCalculateShadedBid/Very_small_gap (0.00s)
+    --- PASS: TestCalculateShadedBid/Zero_second_bid (0.00s)
+=== RUN   TestCalculateShadedBid_RespectsFloor
+--- PASS: TestCalculateShadedBid_RespectsFloor (0.00s)
+=== RUN   TestCalculateShadedBid_DoesNotExceedFirst
+--- PASS: TestCalculateShadedBid_DoesNotExceedFirst (0.00s)
+=== RUN   TestHaversineDistance
+=== RUN   TestHaversineDistance/Same_point
+=== RUN   TestHaversineDistance/NYC_to_LA
+=== RUN   TestHaversineDistance/London_to_Paris
+=== RUN   TestHaversineDistance/Small_distance_-_1km_apart
+=== RUN   TestHaversineDistance/Equator_points
+=== RUN   TestHaversineDistance/Antipodal_points
+--- PASS: TestHaversineDistance (0.00s)
+    --- PASS: TestHaversineDistance/Same_point (0.00s)
+    --- PASS: TestHaversineDistance/NYC_to_LA (0.00s)
+    --- PASS: TestHaversineDistance/London_to_Paris (0.00s)
+    --- PASS: TestHaversineDistance/Small_distance_-_1km_apart (0.00s)
+    --- PASS: TestHaversineDistance/Equator_points (0.00s)
+    --- PASS: TestHaversineDistance/Antipodal_points (0.00s)
+=== RUN   TestHaversineDistance_Symmetric
+--- PASS: TestHaversineDistance_Symmetric (0.00s)
+=== RUN   TestDegreesToRadians
+=== RUN   TestDegreesToRadians/Zero
+=== RUN   TestDegreesToRadians/90_degrees
+=== RUN   TestDegreesToRadians/180_degrees
+=== RUN   TestDegreesToRadians/360_degrees
+=== RUN   TestDegreesToRadians/45_degrees
+=== RUN   TestDegreesToRadians/Negative
+--- PASS: TestDegreesToRadians (0.00s)
+    --- PASS: TestDegreesToRadians/Zero (0.00s)
+    --- PASS: TestDegreesToRadians/90_degrees (0.00s)
+    --- PASS: TestDegreesToRadians/180_degrees (0.00s)
+    --- PASS: TestDegreesToRadians/360_degrees (0.00s)
+    --- PASS: TestDegreesToRadians/45_degrees (0.00s)
+    --- PASS: TestDegreesToRadians/Negative (0.00s)
+=== RUN   TestExtractPageContent
+=== RUN   TestExtractPageContent/All_fields_present
+=== RUN   TestExtractPageContent/Only_title
+=== RUN   TestExtractPageContent/Only_keywords
+=== RUN   TestExtractPageContent/Empty_context
+=== RUN   TestExtractPageContent/Nil_context
+--- PASS: TestExtractPageContent (0.00s)
+    --- PASS: TestExtractPageContent/All_fields_present (0.00s)
+    --- PASS: TestExtractPageContent/Only_title (0.00s)
+    --- PASS: TestExtractPageContent/Only_keywords (0.00s)
+    --- PASS: TestExtractPageContent/Empty_context (0.00s)
+    --- PASS: TestExtractPageContent/Nil_context (0.00s)
+=== RUN   TestExtractPageCategories
+=== RUN   TestExtractPageCategories/Categories_from_categories_field
+=== RUN   TestExtractPageCategories/Categories_from_iab_categories_field
+=== RUN   TestExtractPageCategories/Both_fields_present
+=== RUN   TestExtractPageCategories/Empty_context
+=== RUN   TestExtractPageCategories/Nil_context
+--- PASS: TestExtractPageCategories (0.00s)
+    --- PASS: TestExtractPageCategories/Categories_from_categories_field (0.00s)
+    --- PASS: TestExtractPageCategories/Categories_from_iab_categories_field (0.00s)
+    --- PASS: TestExtractPageCategories/Both_fields_present (0.00s)
+    --- PASS: TestExtractPageCategories/Empty_context (0.00s)
+    --- PASS: TestExtractPageCategories/Nil_context (0.00s)
+=== RUN   TestGetUserSegments
+=== RUN   TestGetUserSegments/From_user_segments
+=== RUN   TestGetUserSegments/From_audience_ids
+=== RUN   TestGetUserSegments/From_user_categories
+=== RUN   TestGetUserSegments/Empty_when_no_data
+--- PASS: TestGetUserSegments (0.00s)
+    --- PASS: TestGetUserSegments/From_user_segments (0.00s)
+    --- PASS: TestGetUserSegments/From_audience_ids (0.00s)
+    --- PASS: TestGetUserSegments/From_user_categories (0.00s)
+    --- PASS: TestGetUserSegments/Empty_when_no_data (0.00s)
+=== RUN   TestExtractWeatherData
+=== RUN   TestExtractWeatherData/Full_weather_data
+=== RUN   TestExtractWeatherData/Weather_condition_from_weather_condition
+=== RUN   TestExtractWeatherData/Temperature_from_temp_field
+=== RUN   TestExtractWeatherData/Empty_context_returns_nil
+=== RUN   TestExtractWeatherData/Nil_context_returns_nil
+--- PASS: TestExtractWeatherData (0.00s)
+    --- PASS: TestExtractWeatherData/Full_weather_data (0.00s)
+    --- PASS: TestExtractWeatherData/Weather_condition_from_weather_condition (0.00s)
+    --- PASS: TestExtractWeatherData/Temperature_from_temp_field (0.00s)
+    --- PASS: TestExtractWeatherData/Empty_context_returns_nil (0.00s)
+    --- PASS: TestExtractWeatherData/Nil_context_returns_nil (0.00s)
+=== RUN   TestMatchWeatherCondition
+=== RUN   TestMatchWeatherCondition/Direct_match_-_sunny
+=== RUN   TestMatchWeatherCondition/Synonym_match_-_clear_to_sunny
+=== RUN   TestMatchWeatherCondition/Synonym_match_-_rain_to_rainy
+=== RUN   TestMatchWeatherCondition/Synonym_match_-_overcast_to_cloudy
+=== RUN   TestMatchWeatherCondition/Temperature_based_-_hot
+=== RUN   TestMatchWeatherCondition/Temperature_based_-_cold
+=== RUN   TestMatchWeatherCondition/No_match
+=== RUN   TestMatchWeatherCondition/Case_insensitive
+=== RUN   TestMatchWeatherCondition/Thunder_to_stormy
+=== RUN   TestMatchWeatherCondition/Fog_to_foggy
+=== RUN   TestMatchWeatherCondition/Snow_to_snowy
+--- PASS: TestMatchWeatherCondition (0.00s)
+    --- PASS: TestMatchWeatherCondition/Direct_match_-_sunny (0.00s)
+    --- PASS: TestMatchWeatherCondition/Synonym_match_-_clear_to_sunny (0.00s)
+    --- PASS: TestMatchWeatherCondition/Synonym_match_-_rain_to_rainy (0.00s)
+    --- PASS: TestMatchWeatherCondition/Synonym_match_-_overcast_to_cloudy (0.00s)
+    --- PASS: TestMatchWeatherCondition/Temperature_based_-_hot (0.00s)
+    --- PASS: TestMatchWeatherCondition/Temperature_based_-_cold (0.00s)
+    --- PASS: TestMatchWeatherCondition/No_match (0.00s)
+    --- PASS: TestMatchWeatherCondition/Case_insensitive (0.00s)
+    --- PASS: TestMatchWeatherCondition/Thunder_to_stormy (0.00s)
+    --- PASS: TestMatchWeatherCondition/Fog_to_foggy (0.00s)
+    --- PASS: TestMatchWeatherCondition/Snow_to_snowy (0.00s)
+=== RUN   TestExtractNetworkInfo
+=== RUN   TestExtractNetworkInfo/All_network_info_present
+=== RUN   TestExtractNetworkInfo/Numeric_connection_type_-_WiFi
+=== RUN   TestExtractNetworkInfo/Numeric_connection_type_-_Ethernet
+=== RUN   TestExtractNetworkInfo/Numeric_connection_type_-_Cellular_(4G)
+=== RUN   TestExtractNetworkInfo/Numeric_connection_type_-_5G
+=== RUN   TestExtractNetworkInfo/Empty_context
+=== RUN   TestExtractNetworkInfo/String_connectiontype
+--- PASS: TestExtractNetworkInfo (0.00s)
+    --- PASS: TestExtractNetworkInfo/All_network_info_present (0.00s)
+    --- PASS: TestExtractNetworkInfo/Numeric_connection_type_-_WiFi (0.00s)
+    --- PASS: TestExtractNetworkInfo/Numeric_connection_type_-_Ethernet (0.00s)
+    --- PASS: TestExtractNetworkInfo/Numeric_connection_type_-_Cellular_(4G) (0.00s)
+    --- PASS: TestExtractNetworkInfo/Numeric_connection_type_-_5G (0.00s)
+    --- PASS: TestExtractNetworkInfo/Empty_context (0.00s)
+    --- PASS: TestExtractNetworkInfo/String_connectiontype (0.00s)
+=== RUN   TestMatchCarrier
+=== RUN   TestMatchCarrier/Direct_match
+=== RUN   TestMatchCarrier/Case_insensitive_match
+=== RUN   TestMatchCarrier/Partial_match
+=== RUN   TestMatchCarrier/Alias_match_-_ATT_variations
+=== RUN   TestMatchCarrier/Alias_match_-_T-Mobile
+=== RUN   TestMatchCarrier/No_match
+=== RUN   TestMatchCarrier/Empty_user_carrier
+=== RUN   TestMatchCarrier/Vodafone_alias
+--- PASS: TestMatchCarrier (0.00s)
+    --- PASS: TestMatchCarrier/Direct_match (0.00s)
+    --- PASS: TestMatchCarrier/Case_insensitive_match (0.00s)
+    --- PASS: TestMatchCarrier/Partial_match (0.00s)
+    --- PASS: TestMatchCarrier/Alias_match_-_ATT_variations (0.00s)
+    --- PASS: TestMatchCarrier/Alias_match_-_T-Mobile (0.00s)
+    --- PASS: TestMatchCarrier/No_match (0.00s)
+    --- PASS: TestMatchCarrier/Empty_user_carrier (0.00s)
+    --- PASS: TestMatchCarrier/Vodafone_alias (0.00s)
+=== RUN   TestCheckBrandSafety
+=== RUN   TestCheckBrandSafety/No_restrictions
+=== RUN   TestCheckBrandSafety/Blocked_publisher
+=== RUN   TestCheckBrandSafety/Publisher_not_in_blocked_list
+=== RUN   TestCheckBrandSafety/Blocked_category
+=== RUN   TestCheckBrandSafety/Blocked_keyword_in_content
+=== RUN   TestCheckBrandSafety/Blocked_keyword_case_insensitive
+--- PASS: TestCheckBrandSafety (0.00s)
+    --- PASS: TestCheckBrandSafety/No_restrictions (0.00s)
+    --- PASS: TestCheckBrandSafety/Blocked_publisher (0.00s)
+    --- PASS: TestCheckBrandSafety/Publisher_not_in_blocked_list (0.00s)
+    --- PASS: TestCheckBrandSafety/Blocked_category (0.00s)
+    --- PASS: TestCheckBrandSafety/Blocked_keyword_in_content (0.00s)
+    --- PASS: TestCheckBrandSafety/Blocked_keyword_case_insensitive (0.00s)
+=== RUN   TestExtractUserLocation
+=== RUN   TestExtractUserLocation/From_device_geo
+=== RUN   TestExtractUserLocation/From_context_lat/lon
+=== RUN   TestExtractUserLocation/From_context_latitude/longitude
+=== RUN   TestExtractUserLocation/No_location_data
+=== RUN   TestExtractUserLocation/Empty_request
+--- PASS: TestExtractUserLocation (0.00s)
+    --- PASS: TestExtractUserLocation/From_device_geo (0.00s)
+    --- PASS: TestExtractUserLocation/From_context_lat/lon (0.00s)
+    --- PASS: TestExtractUserLocation/From_context_latitude/longitude (0.00s)
+    --- PASS: TestExtractUserLocation/No_location_data (0.00s)
+    --- PASS: TestExtractUserLocation/Empty_request (0.00s)
+=== RUN   TestChurn_NewService
+--- PASS: TestChurn_NewService (0.00s)
+=== RUN   TestChurn_RecordUserActivity_NewUser
+--- PASS: TestChurn_RecordUserActivity_NewUser (0.00s)
+=== RUN   TestChurn_RecordUserActivity_EventTypes
+--- PASS: TestChurn_RecordUserActivity_EventTypes (0.00s)
+=== RUN   TestChurn_RecordUserActivity_DeviceTracking
+--- PASS: TestChurn_RecordUserActivity_DeviceTracking (0.00s)
+=== RUN   TestChurn_RecordUserActivity_SessionLength
+--- PASS: TestChurn_RecordUserActivity_SessionLength (0.00s)
+=== RUN   TestChurn_RecordUserActivity_ActiveDays
+--- PASS: TestChurn_RecordUserActivity_ActiveDays (0.00s)
+=== RUN   TestChurn_PredictChurn_Disabled
+--- PASS: TestChurn_PredictChurn_Disabled (0.00s)
+=== RUN   TestChurn_PredictChurn_UnknownUser
+--- PASS: TestChurn_PredictChurn_UnknownUser (0.00s)
+=== RUN   TestChurn_PredictChurn_NewUser
+--- PASS: TestChurn_PredictChurn_NewUser (0.00s)
+=== RUN   TestChurn_PredictChurn_ActiveUser
+--- PASS: TestChurn_PredictChurn_ActiveUser (0.00s)
+=== RUN   TestChurn_PredictChurn_RiskLevels
+--- PASS: TestChurn_PredictChurn_RiskLevels (0.00s)
+=== RUN   TestChurn_PredictChurn_CachesPrediction
+--- PASS: TestChurn_PredictChurn_CachesPrediction (0.00s)
+=== RUN   TestChurn_PredictChurn_TopFactors
+--- PASS: TestChurn_PredictChurn_TopFactors (0.00s)
+=== RUN   TestChurn_PredictChurn_DaysUntilChurn
+--- PASS: TestChurn_PredictChurn_DaysUntilChurn (0.00s)
+=== RUN   TestChurn_PredictChurn_RecommendedAction
+--- PASS: TestChurn_PredictChurn_RecommendedAction (0.00s)
+=== RUN   TestChurn_GetHighRiskUsers_Empty
+--- PASS: TestChurn_GetHighRiskUsers_Empty (0.00s)
+=== RUN   TestChurn_GetHighRiskUsers_WithLimit
+--- PASS: TestChurn_GetHighRiskUsers_WithLimit (0.00s)
+=== RUN   TestChurn_GetHighRiskUsers_Sorted
+--- PASS: TestChurn_GetHighRiskUsers_Sorted (0.00s)
+=== RUN   TestChurn_GetChurnStats_Empty
+--- PASS: TestChurn_GetChurnStats_Empty (0.00s)
+=== RUN   TestChurn_GetChurnStats_WithData
+--- PASS: TestChurn_GetChurnStats_WithData (0.00s)
+=== RUN   TestChurn_GetConfig
+--- PASS: TestChurn_GetConfig (0.00s)
+=== RUN   TestChurn_SetConfig
+--- PASS: TestChurn_SetConfig (0.00s)
+=== RUN   TestChurn_BatchPredict
+--- PASS: TestChurn_BatchPredict (0.00s)
+=== RUN   TestChurn_CalculateFeatures
+--- PASS: TestChurn_CalculateFeatures (0.00s)
+=== RUN   TestChurn_NormalizeFeature
+--- PASS: TestChurn_NormalizeFeature (0.00s)
+=== RUN   TestChurn_NormalizeFeature_ZeroStdDev
+--- PASS: TestChurn_NormalizeFeature_ZeroStdDev (0.00s)
+=== RUN   TestChurn_CalculateDiversity
+=== RUN   TestChurn_CalculateDiversity/empty
+=== RUN   TestChurn_CalculateDiversity/single
+=== RUN   TestChurn_CalculateDiversity/uniform_two
+--- PASS: TestChurn_CalculateDiversity (0.00s)
+    --- PASS: TestChurn_CalculateDiversity/empty (0.00s)
+    --- PASS: TestChurn_CalculateDiversity/single (0.00s)
+    --- PASS: TestChurn_CalculateDiversity/uniform_two (0.00s)
+=== RUN   TestChurn_CalculateWeeklyConsistency
+=== RUN   TestChurn_CalculateWeeklyConsistency/short
+=== RUN   TestChurn_CalculateWeeklyConsistency/consistent
+=== RUN   TestChurn_CalculateWeeklyConsistency/varied
+--- PASS: TestChurn_CalculateWeeklyConsistency (0.00s)
+    --- PASS: TestChurn_CalculateWeeklyConsistency/short (0.00s)
+    --- PASS: TestChurn_CalculateWeeklyConsistency/consistent (0.00s)
+    --- PASS: TestChurn_CalculateWeeklyConsistency/varied (0.00s)
+=== RUN   TestChurn_CalculateActivityDrop
+=== RUN   TestChurn_CalculateActivityDrop/short
+=== RUN   TestChurn_CalculateActivityDrop/no_drop
+=== RUN   TestChurn_CalculateActivityDrop/big_drop
+--- PASS: TestChurn_CalculateActivityDrop (0.00s)
+    --- PASS: TestChurn_CalculateActivityDrop/short (0.00s)
+    --- PASS: TestChurn_CalculateActivityDrop/no_drop (0.00s)
+    --- PASS: TestChurn_CalculateActivityDrop/big_drop (0.00s)
+=== RUN   TestChurn_IdentifyTopFactors
+--- PASS: TestChurn_IdentifyTopFactors (0.00s)
+=== RUN   TestChurn_EstimateDaysUntilChurn
+=== RUN   TestChurn_EstimateDaysUntilChurn/low_risk
+=== RUN   TestChurn_EstimateDaysUntilChurn/high_risk
+=== RUN   TestChurn_EstimateDaysUntilChurn/high_with_drop
+--- PASS: TestChurn_EstimateDaysUntilChurn (0.00s)
+    --- PASS: TestChurn_EstimateDaysUntilChurn/low_risk (0.00s)
+    --- PASS: TestChurn_EstimateDaysUntilChurn/high_risk (0.00s)
+    --- PASS: TestChurn_EstimateDaysUntilChurn/high_with_drop (0.00s)
+=== RUN   TestChurn_RecommendAction
+--- PASS: TestChurn_RecommendAction (0.00s)
+=== RUN   TestChurn_Concurrency
+--- PASS: TestChurn_Concurrency (0.00s)
+=== RUN   TestChurn_UpdateWeeklyActivity
+--- PASS: TestChurn_UpdateWeeklyActivity (0.00s)
+=== RUN   TestCI_NewService
+--- PASS: TestCI_NewService (0.00s)
+=== RUN   TestCI_AnalyzeCompetition_Disabled
+--- PASS: TestCI_AnalyzeCompetition_Disabled (0.00s)
+=== RUN   TestCI_AnalyzeCompetition_Enabled
+--- PASS: TestCI_AnalyzeCompetition_Enabled (0.00s)
+=== RUN   TestCI_RecordAuctionOutcome_Win
+--- PASS: TestCI_RecordAuctionOutcome_Win (0.00s)
+=== RUN   TestCI_RecordAuctionOutcome_Loss
+--- PASS: TestCI_RecordAuctionOutcome_Loss (0.00s)
+=== RUN   TestCI_RecordAuctionOutcome_UpdatesFloor
+--- PASS: TestCI_RecordAuctionOutcome_UpdatesFloor (0.00s)
+=== RUN   TestCI_GetCompetitorProfile
+--- PASS: TestCI_GetCompetitorProfile (0.00s)
+=== RUN   TestCI_GetCompetitorProfile_NotFound
+--- PASS: TestCI_GetCompetitorProfile_NotFound (0.00s)
+=== RUN   TestCI_GetSegmentFloor
+--- PASS: TestCI_GetSegmentFloor (0.00s)
+=== RUN   TestCI_GetSegmentFloor_NotFound
+--- PASS: TestCI_GetSegmentFloor_NotFound (0.00s)
+=== RUN   TestCI_GetMarketReport
+--- PASS: TestCI_GetMarketReport (0.00s)
+=== RUN   TestCI_MarketShare
+--- PASS: TestCI_MarketShare (0.00s)
+=== RUN   TestCI_CompetitiveModes
+=== RUN   TestCI_CompetitiveModes/aggressive
+=== RUN   TestCI_CompetitiveModes/defensive
+=== RUN   TestCI_CompetitiveModes/balanced
+--- PASS: TestCI_CompetitiveModes (0.00s)
+    --- PASS: TestCI_CompetitiveModes/aggressive (0.00s)
+    --- PASS: TestCI_CompetitiveModes/defensive (0.00s)
+    --- PASS: TestCI_CompetitiveModes/balanced (0.00s)
+=== RUN   TestCI_TrackCompetitors
+--- PASS: TestCI_TrackCompetitors (0.00s)
+=== RUN   TestCI_CompetitorTrends
+--- PASS: TestCI_CompetitorTrends (0.00s)
+=== RUN   TestCI_MarketShareGoal
+--- PASS: TestCI_MarketShareGoal (0.00s)
+=== RUN   TestCI_HistoryLimit
+--- PASS: TestCI_HistoryLimit (0.00s)
+=== RUN   TestCI_Concurrency
+--- PASS: TestCI_Concurrency (0.00s)
+=== RUN   TestCI_RecommendedActions
+--- PASS: TestCI_RecommendedActions (0.00s)
+=== RUN   TestCI_SegmentKeyGeneration
+=== RUN   TestCI_SegmentKeyGeneration/with_slot_and_format
+=== RUN   TestCI_SegmentKeyGeneration/without_slot
+=== RUN   TestCI_SegmentKeyGeneration/minimal
+--- PASS: TestCI_SegmentKeyGeneration (0.00s)
+    --- PASS: TestCI_SegmentKeyGeneration/with_slot_and_format (0.00s)
+    --- PASS: TestCI_SegmentKeyGeneration/without_slot (0.00s)
+    --- PASS: TestCI_SegmentKeyGeneration/minimal (0.00s)
+=== RUN   TestCI_CompetitorProfileUpdate
+--- PASS: TestCI_CompetitorProfileUpdate (0.00s)
+=== RUN   TestCI_FloorSmoothing
+--- PASS: TestCI_FloorSmoothing (0.00s)
+=== RUN   TestCI_LastSeenUpdate
+--- PASS: TestCI_LastSeenUpdate (0.00s)
+=== RUN   TestCtxAI_NewService
+--- PASS: TestCtxAI_NewService (0.00s)
+=== RUN   TestCtxAI_AnalyzeContext_Disabled
+--- PASS: TestCtxAI_AnalyzeContext_Disabled (0.00s)
+=== RUN   TestCtxAI_AnalyzeContext_NoContent
+--- PASS: TestCtxAI_AnalyzeContext_NoContent (0.00s)
+=== RUN   TestCtxAI_AnalyzeContext_Success
+--- PASS: TestCtxAI_AnalyzeContext_Success (0.00s)
+=== RUN   TestCtxAI_ExtractPageContent_AllFields
+--- PASS: TestCtxAI_ExtractPageContent_AllFields (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_Sports
+--- PASS: TestCtxAI_CategorizeContent_Sports (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_Technology
+--- PASS: TestCtxAI_CategorizeContent_Technology (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_MultipleCategories
+--- PASS: TestCtxAI_CategorizeContent_MultipleCategories (0.00s)
+=== RUN   TestCtxAI_CategorizeContent_MinConfidence
+--- PASS: TestCtxAI_CategorizeContent_MinConfidence (0.00s)
+=== RUN   TestCtxAI_GetCategoryName
+--- PASS: TestCtxAI_GetCategoryName (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Positive
+--- PASS: TestCtxAI_AnalyzeSentiment_Positive (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Negative
+--- PASS: TestCtxAI_AnalyzeSentiment_Negative (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Neutral
+--- PASS: TestCtxAI_AnalyzeSentiment_Neutral (0.00s)
+=== RUN   TestCtxAI_AnalyzeSentiment_Empty
+--- PASS: TestCtxAI_AnalyzeSentiment_Empty (0.00s)
+=== RUN   TestCtxAI_DetectEntities_Locations
+--- PASS: TestCtxAI_DetectEntities_Locations (0.00s)
+=== RUN   TestCtxAI_DetectEntities_Organizations
+--- PASS: TestCtxAI_DetectEntities_Organizations (0.00s)
+=== RUN   TestCtxAI_DetectEntities_Empty
+--- PASS: TestCtxAI_DetectEntities_Empty (0.00s)
+=== RUN   TestCtxAI_DetectEmotion_Joy
+--- PASS: TestCtxAI_DetectEmotion_Joy (0.00s)
+=== RUN   TestCtxAI_DetectEmotion_Fear
+--- PASS: TestCtxAI_DetectEmotion_Fear (0.00s)
+=== RUN   TestCtxAI_DetectEmotion_Neutral
+--- PASS: TestCtxAI_DetectEmotion_Neutral (0.00s)
+=== RUN   TestCtxAI_AssessContentQuality_High
+--- PASS: TestCtxAI_AssessContentQuality_High (0.00s)
+=== RUN   TestCtxAI_AssessContentQuality_Low
+--- PASS: TestCtxAI_AssessContentQuality_Low (0.00s)
+=== RUN   TestCtxAI_CheckBrandSafety_Safe
+--- PASS: TestCtxAI_CheckBrandSafety_Safe (0.00s)
+=== RUN   TestCtxAI_CheckBrandSafety_UnsafeKeywords
+--- PASS: TestCtxAI_CheckBrandSafety_UnsafeKeywords (0.00s)
+=== RUN   TestCtxAI_CheckBrandSafety_NegativeSentiment
+--- PASS: TestCtxAI_CheckBrandSafety_NegativeSentiment (0.00s)
+=== RUN   TestCtxAI_EvaluateCategoryTargeting_Match
+--- PASS: TestCtxAI_EvaluateCategoryTargeting_Match (0.00s)
+=== RUN   TestCtxAI_EvaluateCategoryTargeting_Excluded
+--- PASS: TestCtxAI_EvaluateCategoryTargeting_Excluded (0.00s)
+=== RUN   TestCtxAI_EvaluateCategoryTargeting_DefaultBoost
+--- PASS: TestCtxAI_EvaluateCategoryTargeting_DefaultBoost (0.00s)
+=== RUN   TestCtxAI_EvaluateSentimentTargeting_Positive
+--- PASS: TestCtxAI_EvaluateSentimentTargeting_Positive (0.00s)
+=== RUN   TestCtxAI_EvaluateSentimentTargeting_Negative
+--- PASS: TestCtxAI_EvaluateSentimentTargeting_Negative (0.00s)
+=== RUN   TestCtxAI_EvaluateSentimentTargeting_NegativeNotTargeted
+--- PASS: TestCtxAI_EvaluateSentimentTargeting_NegativeNotTargeted (0.00s)
+=== RUN   TestCtxAI_EvaluateEntityTargeting_Match
+--- PASS: TestCtxAI_EvaluateEntityTargeting_Match (0.00s)
+=== RUN   TestCtxAI_EvaluateEntityTargeting_Excluded
+--- PASS: TestCtxAI_EvaluateEntityTargeting_Excluded (0.00s)
+=== RUN   TestCtxAI_CalculateSemanticSimilarity
+--- PASS: TestCtxAI_CalculateSemanticSimilarity (0.00s)
+=== RUN   TestCtxAI_CalculateSemanticSimilarity_NoMatch
+--- PASS: TestCtxAI_CalculateSemanticSimilarity_NoMatch (0.00s)
+=== RUN   TestCtxAI_CalculateSemanticSimilarity_Empty
+--- PASS: TestCtxAI_CalculateSemanticSimilarity_Empty (0.00s)
+=== RUN   TestCtxAI_BrandSafetyBlock
+--- PASS: TestCtxAI_BrandSafetyBlock (0.00s)
+=== RUN   TestCtxAI_SemanticTargeting
+--- PASS: TestCtxAI_SemanticTargeting (0.00s)
+=== RUN   TestCtxAI_MultiplierCapped
+--- PASS: TestCtxAI_MultiplierCapped (0.00s)
+=== RUN   TestCreativeOpt_NewService
+--- PASS: TestCreativeOpt_NewService (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_Disabled
+--- PASS: TestCreativeOpt_SelectCreative_Disabled (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_NilConfig
+--- PASS: TestCreativeOpt_SelectCreative_NilConfig (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_EmptyPool
+--- PASS: TestCreativeOpt_SelectCreative_EmptyPool (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_NoActiveCreatives
+--- PASS: TestCreativeOpt_SelectCreative_NoActiveCreatives (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_PlacementRule
+--- PASS: TestCreativeOpt_SelectCreative_PlacementRule (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_Exploration
+--- PASS: TestCreativeOpt_SelectCreative_Exploration (0.00s)
+=== RUN   TestCreativeOpt_SelectCreative_Exploitation
+--- PASS: TestCreativeOpt_SelectCreative_Exploitation (0.00s)
+=== RUN   TestCreativeOpt_RecordImpression
+--- PASS: TestCreativeOpt_RecordImpression (0.00s)
+=== RUN   TestCreativeOpt_RecordClick
+--- PASS: TestCreativeOpt_RecordClick (0.00s)
+=== RUN   TestCreativeOpt_RecordConversion
+--- PASS: TestCreativeOpt_RecordConversion (0.00s)
+=== RUN   TestCreativeOpt_RecordEngagement
+--- PASS: TestCreativeOpt_RecordEngagement (0.00s)
+=== RUN   TestCreativeOpt_GetCreativePerformance_NotFound
+--- PASS: TestCreativeOpt_GetCreativePerformance_NotFound (0.00s)
+=== RUN   TestCreativeOpt_CheckAutoPause_Disabled
+--- PASS: TestCreativeOpt_CheckAutoPause_Disabled (0.00s)
+=== RUN   TestCreativeOpt_CheckAutoPause_NilConfig
+--- PASS: TestCreativeOpt_CheckAutoPause_NilConfig (0.00s)
+=== RUN   TestCreativeOpt_CheckAutoPause_PoorPerformers
+--- PASS: TestCreativeOpt_CheckAutoPause_PoorPerformers (0.00s)
+=== RUN   TestCreativeOpt_CheckAutoPause_InsufficientData
+--- PASS: TestCreativeOpt_CheckAutoPause_InsufficientData (0.00s)
+=== RUN   TestCreativeOpt_FilterActiveCreatives
+--- PASS: TestCreativeOpt_FilterActiveCreatives (0.00s)
+=== RUN   TestCreativeOpt_DetectPlacementType_FromFormats
+--- PASS: TestCreativeOpt_DetectPlacementType_FromFormats (0.00s)
+=== RUN   TestCreativeOpt_DetectPlacementType_WideRatio
+--- PASS: TestCreativeOpt_DetectPlacementType_WideRatio (0.00s)
+=== RUN   TestCreativeOpt_DetectPlacementType_TallRatio
+--- PASS: TestCreativeOpt_DetectPlacementType_TallRatio (0.00s)
+=== RUN   TestCreativeOpt_CalculateScore_CTR
+--- PASS: TestCreativeOpt_CalculateScore_CTR (0.00s)
+=== RUN   TestCreativeOpt_CalculateScore_CVR
+--- PASS: TestCreativeOpt_CalculateScore_CVR (0.00s)
+=== RUN   TestCreativeOpt_CalculateScore_Engagement
+--- PASS: TestCreativeOpt_CalculateScore_Engagement (0.00s)
+=== RUN   TestCreativeOpt_CalculateScore_Viewability
+--- PASS: TestCreativeOpt_CalculateScore_Viewability (0.00s)
+=== RUN   TestCreativeOpt_CalculateScore_Composite
+--- PASS: TestCreativeOpt_CalculateScore_Composite (0.00s)
+=== RUN   TestCreativeOpt_CalculateScore_ZeroImpressions
+--- PASS: TestCreativeOpt_CalculateScore_ZeroImpressions (0.00s)
+=== RUN   TestCreativeOpt_ExploitWithInsufficientData
+--- PASS: TestCreativeOpt_ExploitWithInsufficientData (0.00s)
+=== RUN   TestCreativeOpt_PlacementTracking
+--- PASS: TestCreativeOpt_PlacementTracking (0.00s)
+=== RUN   TestCreativeOpt_Concurrency
+--- PASS: TestCreativeOpt_Concurrency (0.00s)
+=== RUN   TestCreativeOpt_AlternativeCreatives
+--- PASS: TestCreativeOpt_AlternativeCreatives (0.00s)
+=== RUN   TestCreativeOpt_DefaultExplorationRate
+--- PASS: TestCreativeOpt_DefaultExplorationRate (0.00s)
+=== RUN   TestDayparting_Disabled
+--- PASS: TestDayparting_Disabled (0.00s)
+=== RUN   TestDayparting_ManualHourlyMultipliers
+--- PASS: TestDayparting_ManualHourlyMultipliers (0.00s)
+=== RUN   TestDayparting_AutoOptimize_InsufficientData
+--- PASS: TestDayparting_AutoOptimize_InsufficientData (0.00s)
+=== RUN   TestDayparting_AutoOptimize_WithData
+--- PASS: TestDayparting_AutoOptimize_WithData (0.00s)
+=== RUN   TestDayparting_ClampMin
+--- PASS: TestDayparting_ClampMin (0.00s)
+=== RUN   TestDayparting_ClampMax
+--- PASS: TestDayparting_ClampMax (0.00s)
+=== RUN   TestDayparting_ClampDefaultBounds
+--- PASS: TestDayparting_ClampDefaultBounds (0.00s)
+=== RUN   TestDayparting_RecordHourlyPerf
+--- PASS: TestDayparting_RecordHourlyPerf (0.00s)
+=== RUN   TestDayparting_RecordMultiEvents
+--- PASS: TestDayparting_RecordMultiEvents (0.00s)
+=== RUN   TestDayparting_OptimalHours_NoData
+--- PASS: TestDayparting_OptimalHours_NoData (0.00s)
+=== RUN   TestDayparting_OptimalHours_WithData
+--- PASS: TestDayparting_OptimalHours_WithData (0.00s)
+=== RUN   TestDayparting_ParseCacheEmpty
+--- PASS: TestDayparting_ParseCacheEmpty (0.00s)
+=== RUN   TestDayparting_ParseCacheValid
+--- PASS: TestDayparting_ParseCacheValid (0.00s)
+=== RUN   TestDayparting_ManualPriority
+--- PASS: TestDayparting_ManualPriority (0.00s)
+=== RUN   TestDirectPub_RegisterPublisher
+--- PASS: TestDirectPub_RegisterPublisher (0.00s)
+=== RUN   TestDirectPub_RegisterPublisher_Validation
+=== RUN   TestDirectPub_RegisterPublisher_Validation/missing_domain
+=== RUN   TestDirectPub_RegisterPublisher_Validation/valid_publisher
+--- PASS: TestDirectPub_RegisterPublisher_Validation (0.00s)
+    --- PASS: TestDirectPub_RegisterPublisher_Validation/missing_domain (0.00s)
+    --- PASS: TestDirectPub_RegisterPublisher_Validation/valid_publisher (0.00s)
+=== RUN   TestDirectPub_GetPublisher
+--- PASS: TestDirectPub_GetPublisher (0.00s)
+=== RUN   TestDirectPub_GetPublisher_NotFound
+--- PASS: TestDirectPub_GetPublisher_NotFound (0.00s)
+=== RUN   TestDirectPub_ActivatePublisher
+--- PASS: TestDirectPub_ActivatePublisher (0.00s)
+=== RUN   TestDirectPub_ActivatePublisher_NotFound
+--- PASS: TestDirectPub_ActivatePublisher_NotFound (0.00s)
+=== RUN   TestDirectPub_SuspendPublisher
+--- PASS: TestDirectPub_SuspendPublisher (0.00s)
+=== RUN   TestDirectPub_ListPublishers
+--- PASS: TestDirectPub_ListPublishers (0.00s)
+=== RUN   TestDirectPub_ListPublishers_ByStatus
+--- PASS: TestDirectPub_ListPublishers_ByStatus (0.00s)
+=== RUN   TestDirectPub_UpdatePublisher
+--- PASS: TestDirectPub_UpdatePublisher (0.00s)
+=== RUN   TestDirectPub_AddIntegration
+--- PASS: TestDirectPub_AddIntegration (0.00s)
+=== RUN   TestDirectPub_GetIntegration
+--- PASS: TestDirectPub_GetIntegration (0.00s)
+=== RUN   TestDirectPub_AnalyzeSupplyPath
+--- PASS: TestDirectPub_AnalyzeSupplyPath (0.00s)
+=== RUN   TestDirectPub_RecordPathMetrics
+--- PASS: TestDirectPub_RecordPathMetrics (0.00s)
+=== RUN   TestDirectPub_GetPathMetrics_NotFound
+--- PASS: TestDirectPub_GetPathMetrics_NotFound (0.00s)
+=== RUN   TestDirectPub_GetDirectRate
+--- PASS: TestDirectPub_GetDirectRate (0.00s)
+=== RUN   TestDirectPub_GetStats
+--- PASS: TestDirectPub_GetStats (0.00s)
+=== RUN   TestDirectPub_IntegrationTypes
+=== RUN   TestDirectPub_IntegrationTypes/direct
+=== RUN   TestDirectPub_IntegrationTypes/reseller
+=== RUN   TestDirectPub_IntegrationTypes/header_bidding
+--- PASS: TestDirectPub_IntegrationTypes (0.00s)
+    --- PASS: TestDirectPub_IntegrationTypes/direct (0.00s)
+    --- PASS: TestDirectPub_IntegrationTypes/reseller (0.00s)
+    --- PASS: TestDirectPub_IntegrationTypes/header_bidding (0.00s)
+=== RUN   TestDirectPub_Concurrency
+--- PASS: TestDirectPub_Concurrency (0.00s)
+=== RUN   TestDynBid_NewService
+--- PASS: TestDynBid_NewService (0.00s)
+=== RUN   TestDynBid_CalculateDynamicBid_Disabled
+--- PASS: TestDynBid_CalculateDynamicBid_Disabled (0.00s)
+=== RUN   TestDynBid_CalculateDynamicBid_Enabled
+--- PASS: TestDynBid_CalculateDynamicBid_Enabled (0.00s)
+=== RUN   TestDynBid_DeviceMultipliers
+--- PASS: TestDynBid_DeviceMultipliers (0.00s)
+=== RUN   TestDynBid_HourlyMultipliers
+--- PASS: TestDynBid_HourlyMultipliers (0.00s)
+=== RUN   TestDynBid_ClampMultiplier
+--- PASS: TestDynBid_ClampMultiplier (0.00s)
+=== RUN   TestDynBid_PublisherFactor_NoData
+--- PASS: TestDynBid_PublisherFactor_NoData (0.00s)
+=== RUN   TestDynBid_PublisherFactor_WithData
+--- PASS: TestDynBid_PublisherFactor_WithData (0.00s)
+=== RUN   TestDynBid_ContextFactor_NoData
+--- PASS: TestDynBid_ContextFactor_NoData (0.00s)
+=== RUN   TestDynBid_ContextFactor_GoodPerformance
+--- PASS: TestDynBid_ContextFactor_GoodPerformance (0.00s)
+=== RUN   TestDynBid_ContextFactor_PoorPerformance
+--- PASS: TestDynBid_ContextFactor_PoorPerformance (0.00s)
+=== RUN   TestDynBid_CompetitionFactor
+--- PASS: TestDynBid_CompetitionFactor (0.00s)
+=== RUN   TestDynBid_GoalFactor
+--- PASS: TestDynBid_GoalFactor (0.00s)
+=== RUN   TestDynBid_CalculateConfidence
+--- PASS: TestDynBid_CalculateConfidence (0.00s)
+=== RUN   TestDynBid_PredictWinRate
+--- PASS: TestDynBid_PredictWinRate (0.00s)
+=== RUN   TestDynBid_PredictROI
+--- PASS: TestDynBid_PredictROI (0.00s)
+=== RUN   TestDynBid_GenerateRecommendation
+--- PASS: TestDynBid_GenerateRecommendation (0.00s)
+=== RUN   TestDynBid_RecordOutcome_Win
+--- PASS: TestDynBid_RecordOutcome_Win (0.00s)
+=== RUN   TestDynBid_RecordOutcome_Loss
+--- PASS: TestDynBid_RecordOutcome_Loss (0.00s)
+=== RUN   TestDynBid_UpdatePublisherStats
+--- PASS: TestDynBid_UpdatePublisherStats (0.00s)
+=== RUN   TestDynBid_UpdateHourlyMultiplier
+--- PASS: TestDynBid_UpdateHourlyMultiplier (0.00s)
+=== RUN   TestDynBid_UpdateDeviceMultiplier
+--- PASS: TestDynBid_UpdateDeviceMultiplier (0.00s)
+=== RUN   TestDynBid_GetBidAnalytics
+--- PASS: TestDynBid_GetBidAnalytics (0.00s)
+=== RUN   TestDynBid_SetConfig
+--- PASS: TestDynBid_SetConfig (0.00s)
+=== RUN   TestDynBid_BuildContextKey
+--- PASS: TestDynBid_BuildContextKey (0.00s)
+=== RUN   TestDynBid_Concurrency
+--- PASS: TestDynBid_Concurrency (0.00s)
+=== RUN   TestDynBid_FactorsInResult
+--- PASS: TestDynBid_FactorsInResult (0.00s)
+=== RUN   TestDCO_NewService
+--- PASS: TestDCO_NewService (0.00s)
+=== RUN   TestDCO_CreateTemplate
+--- PASS: TestDCO_CreateTemplate (0.00s)
+=== RUN   TestDCO_CreateTemplate_Validation
+=== RUN   TestDCO_CreateTemplate_Validation/missing_name
+=== RUN   TestDCO_CreateTemplate_Validation/no_slots
+=== RUN   TestDCO_CreateTemplate_Validation/valid_template
+--- PASS: TestDCO_CreateTemplate_Validation (0.00s)
+    --- PASS: TestDCO_CreateTemplate_Validation/missing_name (0.00s)
+    --- PASS: TestDCO_CreateTemplate_Validation/no_slots (0.00s)
+    --- PASS: TestDCO_CreateTemplate_Validation/valid_template (0.00s)
+=== RUN   TestDCO_GetTemplate
+--- PASS: TestDCO_GetTemplate (0.00s)
+=== RUN   TestDCO_GetTemplate_NotFound
+--- PASS: TestDCO_GetTemplate_NotFound (0.00s)
+=== RUN   TestDCO_CreateElement
+--- PASS: TestDCO_CreateElement (0.00s)
+=== RUN   TestDCO_CreateElement_Validation
+--- PASS: TestDCO_CreateElement_Validation (0.00s)
+=== RUN   TestDCO_GetElement
+--- PASS: TestDCO_GetElement (0.00s)
+=== RUN   TestDCO_GetElement_NotFound
+--- PASS: TestDCO_GetElement_NotFound (0.00s)
+=== RUN   TestDCO_GetElementsByType
+--- PASS: TestDCO_GetElementsByType (0.00s)
+=== RUN   TestDCO_GenerateOptimizedCreative
+--- PASS: TestDCO_GenerateOptimizedCreative (0.00s)
+=== RUN   TestDCO_GenerateOptimizedCreative_InvalidTemplate
+--- PASS: TestDCO_GenerateOptimizedCreative_InvalidTemplate (0.00s)
+=== RUN   TestDCO_RecordImpression
+--- PASS: TestDCO_RecordImpression (0.00s)
+=== RUN   TestDCO_RecordImpression_NotFound
+--- PASS: TestDCO_RecordImpression_NotFound (0.00s)
+=== RUN   TestDCO_RecordClick
+--- PASS: TestDCO_RecordClick (0.00s)
+=== RUN   TestDCO_RecordConversion
+--- PASS: TestDCO_RecordConversion (0.00s)
+=== RUN   TestDCO_GetTopCombinations
+--- PASS: TestDCO_GetTopCombinations (0.00s)
+=== RUN   TestDCO_GetDCOStats
+--- PASS: TestDCO_GetDCOStats (0.00s)
+=== RUN   TestDCO_UpdateConfig
+--- PASS: TestDCO_UpdateConfig (0.00s)
+=== RUN   TestDCO_ElementTypes
+=== RUN   TestDCO_ElementTypes/headline
+=== RUN   TestDCO_ElementTypes/image
+=== RUN   TestDCO_ElementTypes/cta
+=== RUN   TestDCO_ElementTypes/description
+=== RUN   TestDCO_ElementTypes/logo
+--- PASS: TestDCO_ElementTypes (0.00s)
+    --- PASS: TestDCO_ElementTypes/headline (0.00s)
+    --- PASS: TestDCO_ElementTypes/image (0.00s)
+    --- PASS: TestDCO_ElementTypes/cta (0.00s)
+    --- PASS: TestDCO_ElementTypes/description (0.00s)
+    --- PASS: TestDCO_ElementTypes/logo (0.00s)
+=== RUN   TestDCO_ContextVariants
+=== RUN   TestDCO_ContextVariants/news_mobile
+=== RUN   TestDCO_ContextVariants/sports_desktop
+=== RUN   TestDCO_ContextVariants/finance_tablet
+=== RUN   TestDCO_ContextVariants/_
+--- PASS: TestDCO_ContextVariants (0.00s)
+    --- PASS: TestDCO_ContextVariants/news_mobile (0.00s)
+    --- PASS: TestDCO_ContextVariants/sports_desktop (0.00s)
+    --- PASS: TestDCO_ContextVariants/finance_tablet (0.00s)
+    --- PASS: TestDCO_ContextVariants/_ (0.00s)
+=== RUN   TestDCO_Constraints
+--- PASS: TestDCO_Constraints (0.00s)
+=== RUN   TestDCO_PerformanceTracking
+--- PASS: TestDCO_PerformanceTracking (0.00s)
+=== RUN   TestDCO_Concurrency
+--- PASS: TestDCO_Concurrency (0.00s)
+=== RUN   TestDCO_UserPreferences
+--- PASS: TestDCO_UserPreferences (0.00s)
+=== RUN   TestCreativeOptimization_NilInputHandling
+    edge_cases_test.go:22: Recovered from nil campaign panic (expected behavior)
+--- PASS: TestCreativeOptimization_NilInputHandling (0.00s)
+=== RUN   TestCreativeOptimization_BasicCampaign
+--- PASS: TestCreativeOptimization_BasicCampaign (0.00s)
+=== RUN   TestDynamicBidEdge_DisabledService
+--- PASS: TestDynamicBidEdge_DisabledService (0.00s)
+=== RUN   TestDynamicBidEdge_HighBaseBid
+--- PASS: TestDynamicBidEdge_HighBaseBid (0.00s)
+=== RUN   TestDynamicBidEdge_ZeroBid
+--- PASS: TestDynamicBidEdge_ZeroBid (0.00s)
+=== RUN   TestDaypartingEdge_NilCampaignPanic
+    edge_cases_test.go:124: Recovered from nil campaign panic (expected behavior)
+--- PASS: TestDaypartingEdge_NilCampaignPanic (0.00s)
+=== RUN   TestDaypartingEdge_EmptyCampaign
+--- PASS: TestDaypartingEdge_EmptyCampaign (0.00s)
+=== RUN   TestBidCacheEdge_ConcurrentAccess
+--- PASS: TestBidCacheEdge_ConcurrentAccess (0.00s)
+=== RUN   TestPGEdge_ConcurrentDeals
+--- PASS: TestPGEdge_ConcurrentDeals (0.00s)
+=== RUN   TestDPEdge_ConcurrentRegistration
+--- PASS: TestDPEdge_ConcurrentRegistration (0.00s)
+=== RUN   TestIntegration_PGWithDP
+--- PASS: TestIntegration_PGWithDP (0.00s)
+=== RUN   TestIntegration_S2SCache
+--- PASS: TestIntegration_S2SCache (0.00s)
+=== RUN   TestBiddingService_CoreGetters
+--- PASS: TestBiddingService_CoreGetters (0.00s)
+=== RUN   TestCoreServices_StatsNotPanic
+--- PASS: TestCoreServices_StatsNotPanic (0.00s)
+=== RUN   TestInc_NewService
+--- PASS: TestInc_NewService (0.00s)
+=== RUN   TestInc_EvaluateUser_Disabled
+--- PASS: TestInc_EvaluateUser_Disabled (0.00s)
+=== RUN   TestInc_EvaluateUser_DefaultExperimentID
+--- PASS: TestInc_EvaluateUser_DefaultExperimentID (0.00s)
+=== RUN   TestInc_EvaluateUser_Running
+--- PASS: TestInc_EvaluateUser_Running (0.00s)
+=== RUN   TestInc_EvaluateUser_DeterministicAssignment
+--- PASS: TestInc_EvaluateUser_DeterministicAssignment (0.00s)
+=== RUN   TestInc_EvaluateUser_GeoHoldout
+--- PASS: TestInc_EvaluateUser_GeoHoldout (0.00s)
+=== RUN   TestInc_EvaluateUser_TimeHoldout
+--- PASS: TestInc_EvaluateUser_TimeHoldout (0.00s)
+=== RUN   TestInc_EvaluateUser_ControlPercentBounds
+=== RUN   TestInc_EvaluateUser_ControlPercentBounds/zero
+=== RUN   TestInc_EvaluateUser_ControlPercentBounds/negative
+=== RUN   TestInc_EvaluateUser_ControlPercentBounds/hundred_plus
+=== RUN   TestInc_EvaluateUser_ControlPercentBounds/valid
+--- PASS: TestInc_EvaluateUser_ControlPercentBounds (0.00s)
+    --- PASS: TestInc_EvaluateUser_ControlPercentBounds/zero (0.00s)
+    --- PASS: TestInc_EvaluateUser_ControlPercentBounds/negative (0.00s)
+    --- PASS: TestInc_EvaluateUser_ControlPercentBounds/hundred_plus (0.00s)
+    --- PASS: TestInc_EvaluateUser_ControlPercentBounds/valid (0.00s)
+=== RUN   TestInc_RecordImpression
+--- PASS: TestInc_RecordImpression (0.00s)
+=== RUN   TestInc_RecordImpression_NoExperiment
+--- PASS: TestInc_RecordImpression_NoExperiment (0.00s)
+=== RUN   TestInc_RecordConversion
+--- PASS: TestInc_RecordConversion (0.00s)
+=== RUN   TestInc_RecordConversion_NoExperiment
+--- PASS: TestInc_RecordConversion_NoExperiment (0.00s)
+=== RUN   TestInc_GetExperimentResults_NotFound
+--- PASS: TestInc_GetExperimentResults_NotFound (0.00s)
+=== RUN   TestInc_GetExperimentResults_InsufficientData
+--- PASS: TestInc_GetExperimentResults_InsufficientData (0.00s)
+=== RUN   TestInc_GetExperimentResults_WithData
+--- PASS: TestInc_GetExperimentResults_WithData (0.00s)
+=== RUN   TestInc_GetExperimentResults_LiftCalculation
+--- PASS: TestInc_GetExperimentResults_LiftCalculation (0.00s)
+=== RUN   TestInc_GetExperimentResults_ZeroControlConversions
+--- PASS: TestInc_GetExperimentResults_ZeroControlConversions (0.00s)
+=== RUN   TestInc_GetExperimentResults_Significance
+--- PASS: TestInc_GetExperimentResults_Significance (0.00s)
+=== RUN   TestInc_GetExperimentResults_Recommendations
+=== RUN   TestInc_GetExperimentResults_Recommendations/strong_lift
+=== RUN   TestInc_GetExperimentResults_Recommendations/moderate_lift
+=== RUN   TestInc_GetExperimentResults_Recommendations/no_lift
+=== RUN   TestInc_GetExperimentResults_Recommendations/negative_lift
+--- PASS: TestInc_GetExperimentResults_Recommendations (0.00s)
+    --- PASS: TestInc_GetExperimentResults_Recommendations/strong_lift (0.00s)
+    --- PASS: TestInc_GetExperimentResults_Recommendations/moderate_lift (0.00s)
+    --- PASS: TestInc_GetExperimentResults_Recommendations/no_lift (0.00s)
+    --- PASS: TestInc_GetExperimentResults_Recommendations/negative_lift (0.00s)
+=== RUN   TestInc_GetUserExperimentGroup_NotFound
+--- PASS: TestInc_GetUserExperimentGroup_NotFound (0.00s)
+=== RUN   TestInc_GetUserExperimentGroup_Control
+--- PASS: TestInc_GetUserExperimentGroup_Control (0.00s)
+=== RUN   TestInc_GetUserExperimentGroup_Test
+--- PASS: TestInc_GetUserExperimentGroup_Test (0.00s)
+=== RUN   TestInc_GetUserExperimentGroup_Unknown
+--- PASS: TestInc_GetUserExperimentGroup_Unknown (0.00s)
+=== RUN   TestInc_AggregateStats
+--- PASS: TestInc_AggregateStats (0.00s)
+=== RUN   TestInc_AggregateStats_Empty
+--- PASS: TestInc_AggregateStats_Empty (0.00s)
+=== RUN   TestInc_CalculateSignificance_ZeroUsers
+--- PASS: TestInc_CalculateSignificance_ZeroUsers (0.00s)
+=== RUN   TestInc_HashToGroup
+--- PASS: TestInc_HashToGroup (0.00s)
+=== RUN   TestInc_Concurrency
+--- PASS: TestInc_Concurrency (0.00s)
+=== RUN   TestInc_NormalCDF
+--- PASS: TestInc_NormalCDF (0.00s)
+=== RUN   TestInc_Erf
+--- PASS: TestInc_Erf (0.00s)
+=== RUN   TestLA_NewService
+--- PASS: TestLA_NewService (0.00s)
+=== RUN   TestLA_RegisterUserProfile
+--- PASS: TestLA_RegisterUserProfile (0.00s)
+=== RUN   TestLA_CreateUserProfile
+--- PASS: TestLA_CreateUserProfile (0.00s)
+=== RUN   TestLA_UpdateUserBehavior
+--- PASS: TestLA_UpdateUserBehavior (0.00s)
+=== RUN   TestLA_UpdateUserBehavior_NonexistentUser
+--- PASS: TestLA_UpdateUserBehavior_NonexistentUser (0.00s)
+=== RUN   TestLA_GenerateLookalike_Disabled
+--- PASS: TestLA_GenerateLookalike_Disabled (0.00s)
+=== RUN   TestLA_GenerateLookalike_InsufficientSeed
+--- PASS: TestLA_GenerateLookalike_InsufficientSeed (0.00s)
+=== RUN   TestLA_GenerateLookalike_NoProfiles
+--- PASS: TestLA_GenerateLookalike_NoProfiles (0.00s)
+=== RUN   TestLA_GenerateLookalike_Success
+--- PASS: TestLA_GenerateLookalike_Success (0.00s)
+=== RUN   TestLA_GetLookalikeAudience_NotFound
+--- PASS: TestLA_GetLookalikeAudience_NotFound (0.00s)
+=== RUN   TestLA_GetLookalikeAudience_Expired
+--- PASS: TestLA_GetLookalikeAudience_Expired (0.00s)
+=== RUN   TestLA_GetLookalikeAudience_Valid
+--- PASS: TestLA_GetLookalikeAudience_Valid (0.00s)
+=== RUN   TestLA_IsUserInLookalike_NotFound
+--- PASS: TestLA_IsUserInLookalike_NotFound (0.00s)
+=== RUN   TestLA_IsUserInLookalike_UserInAudience
+--- PASS: TestLA_IsUserInLookalike_UserInAudience (0.00s)
+=== RUN   TestLA_IsUserInLookalike_UserNotInAudience
+--- PASS: TestLA_IsUserInLookalike_UserNotInAudience (0.00s)
+=== RUN   TestLA_GetLookalikeStats_Empty
+--- PASS: TestLA_GetLookalikeStats_Empty (0.00s)
+=== RUN   TestLA_GetLookalikeStats_WithData
+--- PASS: TestLA_GetLookalikeStats_WithData (0.00s)
+=== RUN   TestLA_BuildSeedProfile_Empty
+--- PASS: TestLA_BuildSeedProfile_Empty (0.00s)
+=== RUN   TestLA_BuildSeedProfile_NoValidUsers
+--- PASS: TestLA_BuildSeedProfile_NoValidUsers (0.00s)
+=== RUN   TestLA_BuildSeedProfile_WithUsers
+--- PASS: TestLA_BuildSeedProfile_WithUsers (0.00s)
+=== RUN   TestLA_CosineSimilarity
+=== RUN   TestLA_CosineSimilarity/identical
+=== RUN   TestLA_CosineSimilarity/orthogonal
+=== RUN   TestLA_CosineSimilarity/opposite
+=== RUN   TestLA_CosineSimilarity/diff_length
+=== RUN   TestLA_CosineSimilarity/zero_vector
+--- PASS: TestLA_CosineSimilarity (0.00s)
+    --- PASS: TestLA_CosineSimilarity/identical (0.00s)
+    --- PASS: TestLA_CosineSimilarity/orthogonal (0.00s)
+    --- PASS: TestLA_CosineSimilarity/opposite (0.00s)
+    --- PASS: TestLA_CosineSimilarity/diff_length (0.00s)
+    --- PASS: TestLA_CosineSimilarity/zero_vector (0.00s)
+=== RUN   TestLA_TopN
+--- PASS: TestLA_TopN (0.00s)
+=== RUN   TestLA_TopN_EmptyMap
+--- PASS: TestLA_TopN_EmptyMap (0.00s)
+=== RUN   TestLA_TopN_LessItems
+--- PASS: TestLA_TopN_LessItems (0.00s)
+=== RUN   TestLA_GenerateAudienceID
+--- PASS: TestLA_GenerateAudienceID (0.00s)
+=== RUN   TestLA_CalculateAudienceQuality_Empty
+--- PASS: TestLA_CalculateAudienceQuality_Empty (0.00s)
+=== RUN   TestLA_CalculateAudienceQuality_WithUsers
+--- PASS: TestLA_CalculateAudienceQuality_WithUsers (0.00s)
+=== RUN   TestLA_CalculateFeatureOverlap
+--- PASS: TestLA_CalculateFeatureOverlap (0.00s)
+=== RUN   TestLA_AddToFeatureVector
+--- PASS: TestLA_AddToFeatureVector (0.00s)
+=== RUN   TestLA_FindMatchedFeatures
+--- PASS: TestLA_FindMatchedFeatures (0.00s)
+=== RUN   TestLA_Concurrency
+--- PASS: TestLA_Concurrency (0.00s)
+=== RUN   TestNewChurnPredictionService
+--- PASS: TestNewChurnPredictionService (0.00s)
+=== RUN   TestChurnPredictionService_RecordUserActivity
+--- PASS: TestChurnPredictionService_RecordUserActivity (0.00s)
+=== RUN   TestChurnPredictionService_PredictChurn
+--- PASS: TestChurnPredictionService_PredictChurn (0.00s)
+=== RUN   TestChurnPredictionService_PredictChurn_NonexistentUser
+--- PASS: TestChurnPredictionService_PredictChurn_NonexistentUser (0.00s)
+=== RUN   TestChurnPredictionService_GetHighRiskUsers
+--- PASS: TestChurnPredictionService_GetHighRiskUsers (0.00s)
+=== RUN   TestChurnPredictionService_GetChurnStats
+--- PASS: TestChurnPredictionService_GetChurnStats (0.00s)
+=== RUN   TestChurnPredictionService_ConfigManagement
+--- PASS: TestChurnPredictionService_ConfigManagement (0.00s)
+=== RUN   TestChurnPredictionService_BatchPredict
+--- PASS: TestChurnPredictionService_BatchPredict (0.00s)
+=== RUN   TestChurnPredictionService_RiskLevels
+--- PASS: TestChurnPredictionService_RiskLevels (0.00s)
+=== RUN   TestNewABTestingService
+--- PASS: TestNewABTestingService (0.00s)
+=== RUN   TestABTestingService_CreateExperiment
+--- PASS: TestABTestingService_CreateExperiment (0.00s)
+=== RUN   TestABTestingService_CreateExperiment_Validation
+--- PASS: TestABTestingService_CreateExperiment_Validation (0.00s)
+=== RUN   TestABTestingService_StartAndStopExperiment
+--- PASS: TestABTestingService_StartAndStopExperiment (0.00s)
+=== RUN   TestABTestingService_GetVariantForUser
+--- PASS: TestABTestingService_GetVariantForUser (0.00s)
+=== RUN   TestABTestingService_GetVariantForUser_NotRunning
+--- PASS: TestABTestingService_GetVariantForUser_NotRunning (0.00s)
+=== RUN   TestABTestingService_RecordEvent
+--- PASS: TestABTestingService_RecordEvent (0.00s)
+=== RUN   TestABTestingService_RecordEvent_CustomMetric
+--- PASS: TestABTestingService_RecordEvent_CustomMetric (0.00s)
+=== RUN   TestABTestingService_AnalyzeExperiment
+--- PASS: TestABTestingService_AnalyzeExperiment (0.00s)
+=== RUN   TestABTestingService_AnalyzeExperiment_InsufficientData
+--- PASS: TestABTestingService_AnalyzeExperiment_InsufficientData (0.00s)
+=== RUN   TestABTestingService_ListExperiments
+--- PASS: TestABTestingService_ListExperiments (0.00s)
+=== RUN   TestABTestingService_GetBanditRecommendation
+--- PASS: TestABTestingService_GetBanditRecommendation (0.00s)
+=== RUN   TestABTestingService_UpdateConfig
+--- PASS: TestABTestingService_UpdateConfig (0.00s)
+=== RUN   TestABTestingService_GetStats
+--- PASS: TestABTestingService_GetStats (0.00s)
+=== RUN   TestABTestingService_MaxRunningExperiments
+--- PASS: TestABTestingService_MaxRunningExperiments (0.00s)
+=== RUN   TestABTestingService_WeightNormalization
+--- PASS: TestABTestingService_WeightNormalization (0.00s)
+=== RUN   TestABTestingService_StatisticalSignificance
+--- PASS: TestABTestingService_StatisticalSignificance (0.00s)
+=== RUN   TestChurnAndABTestingIntegration
+--- PASS: TestChurnAndABTestingIntegration (0.00s)
+=== RUN   TestNewDynamicCreativeService
+--- PASS: TestNewDynamicCreativeService (0.00s)
+=== RUN   TestDCOCreateTemplate
+--- PASS: TestDCOCreateTemplate (0.00s)
+=== RUN   TestDCOGetTemplate
+--- PASS: TestDCOGetTemplate (0.00s)
+=== RUN   TestDCOGetTemplate_NotFound
+--- PASS: TestDCOGetTemplate_NotFound (0.00s)
+=== RUN   TestDCOCreateElement
+--- PASS: TestDCOCreateElement (0.00s)
+=== RUN   TestDCOGetElement
+--- PASS: TestDCOGetElement (0.00s)
+=== RUN   TestDCOGetElement_NotFound
+--- PASS: TestDCOGetElement_NotFound (0.00s)
+=== RUN   TestDCOGenerateOptimizedCreative
+--- PASS: TestDCOGenerateOptimizedCreative (0.00s)
+=== RUN   TestDCORecordImpression
+--- PASS: TestDCORecordImpression (0.00s)
+=== RUN   TestDCORecordClick
+--- PASS: TestDCORecordClick (0.00s)
+=== RUN   TestDCORecordConversion
+--- PASS: TestDCORecordConversion (0.00s)
+=== RUN   TestDCOGetTopCombinations
+--- PASS: TestDCOGetTopCombinations (0.00s)
+=== RUN   TestDCOGetStats
+--- PASS: TestDCOGetStats (0.00s)
+=== RUN   TestDCOConfig
+--- PASS: TestDCOConfig (0.00s)
+=== RUN   TestDCOUpdateConfig
+--- PASS: TestDCOUpdateConfig (0.00s)
+=== RUN   TestNewPerformancePredictionService
+--- PASS: TestNewPerformancePredictionService (0.00s)
+=== RUN   TestPredictionRecordPerformance
+--- PASS: TestPredictionRecordPerformance (0.00s)
+=== RUN   TestPredictionPredict
+--- PASS: TestPredictionPredict (0.00s)
+=== RUN   TestPredictionPredict_InsufficientData
+--- PASS: TestPredictionPredict_InsufficientData (0.00s)
+=== RUN   TestPredictionForecast
+--- PASS: TestPredictionForecast (0.00s)
+=== RUN   TestPredictionForecast_InsufficientData
+--- PASS: TestPredictionForecast_InsufficientData (0.00s)
+=== RUN   TestPredictionGetAccuracy
+--- PASS: TestPredictionGetAccuracy (0.00s)
+=== RUN   TestPredictionGetStats
+--- PASS: TestPredictionGetStats (0.00s)
+=== RUN   TestPredictionConfig
+--- PASS: TestPredictionConfig (0.00s)
+=== RUN   TestPredictionUpdateConfig
+--- PASS: TestPredictionUpdateConfig (0.00s)
+=== RUN   TestDCOMultipleTemplates
+--- PASS: TestDCOMultipleTemplates (0.00s)
+=== RUN   TestDCOMultipleElements
+--- PASS: TestDCOMultipleElements (0.00s)
+=== RUN   TestPredictionMultipleEntityTypes
+--- PASS: TestPredictionMultipleEntityTypes (0.00s)
+=== RUN   TestDCOGetElementsByType
+--- PASS: TestDCOGetElementsByType (0.00s)
+=== RUN   TestDynamicBidService_NewService
+--- PASS: TestDynamicBidService_NewService (0.00s)
+=== RUN   TestDynamicBidService_CalculateDynamicBid
+--- PASS: TestDynamicBidService_CalculateDynamicBid (0.00s)
+=== RUN   TestDynamicBidService_RecordOutcome
+--- PASS: TestDynamicBidService_RecordOutcome (0.00s)
+=== RUN   TestDynamicBidService_HourlyMultipliers
+--- PASS: TestDynamicBidService_HourlyMultipliers (0.00s)
+=== RUN   TestDynamicBidService_SetConfig
+--- PASS: TestDynamicBidService_SetConfig (0.00s)
+=== RUN   TestDynamicBidService_GetConfig
+--- PASS: TestDynamicBidService_GetConfig (0.00s)
+=== RUN   TestDynamicBidService_GetBidAnalytics
+--- PASS: TestDynamicBidService_GetBidAnalytics (0.00s)
+=== RUN   TestLookalikeService_NewService
+--- PASS: TestLookalikeService_NewService (0.00s)
+=== RUN   TestLookalikeService_RegisterUserProfile
+--- PASS: TestLookalikeService_RegisterUserProfile (0.00s)
+=== RUN   TestLookalikeService_GenerateLookalike_InsufficientSeed
+--- PASS: TestLookalikeService_GenerateLookalike_InsufficientSeed (0.00s)
+=== RUN   TestLookalikeService_GenerateLookalike_Disabled
+--- PASS: TestLookalikeService_GenerateLookalike_Disabled (0.00s)
+=== RUN   TestLookalikeService_GetLookalikeAudience
+--- PASS: TestLookalikeService_GetLookalikeAudience (0.00s)
+=== RUN   TestLookalikeService_IsUserInLookalike
+--- PASS: TestLookalikeService_IsUserInLookalike (0.00s)
+=== RUN   TestLookalikeService_GetLookalikeStats
+--- PASS: TestLookalikeService_GetLookalikeStats (0.00s)
+=== RUN   TestUserClusteringService_NewService
+--- PASS: TestUserClusteringService_NewService (0.00s)
+=== RUN   TestUserClusteringService_RegisterUser
+--- PASS: TestUserClusteringService_RegisterUser (0.00s)
+=== RUN   TestUserClusteringService_RunClustering
+--- PASS: TestUserClusteringService_RunClustering (0.00s)
+=== RUN   TestUserClusteringService_GetUserCluster
+--- PASS: TestUserClusteringService_GetUserCluster (0.00s)
+=== RUN   TestUserClusteringService_GetClusterUsers
+--- PASS: TestUserClusteringService_GetClusterUsers (0.00s)
+=== RUN   TestUserClusteringService_GetClusteringStats
+--- PASS: TestUserClusteringService_GetClusteringStats (0.00s)
+=== RUN   TestUserClusteringService_EuclideanDistance
+--- PASS: TestUserClusteringService_EuclideanDistance (0.00s)
+=== RUN   TestUserClusteringService_RunClustering_InsufficientUsers
+--- PASS: TestUserClusteringService_RunClustering_InsufficientUsers (0.00s)
+=== RUN   TestUserClusteringService_RunClustering_Disabled
+--- PASS: TestUserClusteringService_RunClustering_Disabled (0.00s)
+=== RUN   TestPerfPred_NewService
+--- PASS: TestPerfPred_NewService (0.00s)
+=== RUN   TestPerfPred_RecordPerformance
+--- PASS: TestPerfPred_RecordPerformance (0.00s)
+=== RUN   TestPerfPred_RecordPerformance_ZeroImpressions
+--- PASS: TestPerfPred_RecordPerformance_ZeroImpressions (0.00s)
+=== RUN   TestPerfPred_Predict
+--- PASS: TestPerfPred_Predict (0.00s)
+=== RUN   TestPerfPred_Predict_WithMetrics
+--- PASS: TestPerfPred_Predict_WithMetrics (0.00s)
+=== RUN   TestPerfPred_Predict_Impressions
+--- PASS: TestPerfPred_Predict_Impressions (0.00s)
+=== RUN   TestPerfPred_Forecast
+--- PASS: TestPerfPred_Forecast (0.00s)
+=== RUN   TestPerfPred_Forecast_Summary
+--- PASS: TestPerfPred_Forecast_Summary (0.00s)
+=== RUN   TestPerfPred_GetPredictionAccuracy
+--- PASS: TestPerfPred_GetPredictionAccuracy (0.00s)
+=== RUN   TestPerfPred_GetStats
+--- PASS: TestPerfPred_GetStats (0.00s)
+=== RUN   TestPerfPred_GetConfig
+--- PASS: TestPerfPred_GetConfig (0.00s)
+=== RUN   TestPerfPred_UpdateConfig
+--- PASS: TestPerfPred_UpdateConfig (0.00s)
+=== RUN   TestPerfPred_MetricPrediction_Bounds
+--- PASS: TestPerfPred_MetricPrediction_Bounds (0.00s)
+=== RUN   TestPerfPred_Confidence_Levels
+=== RUN   TestPerfPred_Confidence_Levels/few_samples
+=== RUN   TestPerfPred_Confidence_Levels/moderate_samples
+=== RUN   TestPerfPred_Confidence_Levels/many_samples
+--- PASS: TestPerfPred_Confidence_Levels (0.00s)
+    --- PASS: TestPerfPred_Confidence_Levels/few_samples (0.00s)
+    --- PASS: TestPerfPred_Confidence_Levels/moderate_samples (0.00s)
+    --- PASS: TestPerfPred_Confidence_Levels/many_samples (0.00s)
+=== RUN   TestPerfPred_TrendAnalysis
+--- PASS: TestPerfPred_TrendAnalysis (0.00s)
+=== RUN   TestPerfPred_EntityTypes
+=== RUN   TestPerfPred_EntityTypes/campaign
+=== RUN   TestPerfPred_EntityTypes/creative
+=== RUN   TestPerfPred_EntityTypes/placement
+--- PASS: TestPerfPred_EntityTypes (0.00s)
+    --- PASS: TestPerfPred_EntityTypes/campaign (0.00s)
+    --- PASS: TestPerfPred_EntityTypes/creative (0.00s)
+    --- PASS: TestPerfPred_EntityTypes/placement (0.00s)
+=== RUN   TestPerfPred_ContextFactors
+=== RUN   TestPerfPred_ContextFactors/morning_mobile
+=== RUN   TestPerfPred_ContextFactors/afternoon_desktop
+=== RUN   TestPerfPred_ContextFactors/evening_tablet
+=== RUN   TestPerfPred_ContextFactors/night_ctv
+--- PASS: TestPerfPred_ContextFactors (0.00s)
+    --- PASS: TestPerfPred_ContextFactors/morning_mobile (0.00s)
+    --- PASS: TestPerfPred_ContextFactors/afternoon_desktop (0.00s)
+    --- PASS: TestPerfPred_ContextFactors/evening_tablet (0.00s)
+    --- PASS: TestPerfPred_ContextFactors/night_ctv (0.00s)
+=== RUN   TestPerfPred_Recommendations
+--- PASS: TestPerfPred_Recommendations (0.00s)
+=== RUN   TestPerfPred_NoHistoricalData
+--- PASS: TestPerfPred_NoHistoricalData (0.00s)
+=== RUN   TestPerfPred_Concurrency
+--- PASS: TestPerfPred_Concurrency (0.00s)
+=== RUN   TestPerfPred_FeatureImportance
+--- PASS: TestPerfPred_FeatureImportance (0.00s)
+=== RUN   TestPerfPred_DerivedMetrics
+--- PASS: TestPerfPred_DerivedMetrics (0.00s)
+=== RUN   TestNewProgrammaticGuaranteedService
+--- PASS: TestNewProgrammaticGuaranteedService (0.00s)
+=== RUN   TestPGCreateDeal
+--- PASS: TestPGCreateDeal (0.00s)
+=== RUN   TestPGCreateDealValidation
+--- PASS: TestPGCreateDealValidation (0.00s)
+=== RUN   TestPGGetDeal
+--- PASS: TestPGGetDeal (0.00s)
+=== RUN   TestPGActivateDeal
+--- PASS: TestPGActivateDeal (0.00s)
+=== RUN   TestPGPauseDeal
+--- PASS: TestPGPauseDeal (0.00s)
+=== RUN   TestPGListDeals
+--- PASS: TestPGListDeals (0.00s)
+=== RUN   TestPGListDealsFiltered
+--- PASS: TestPGListDealsFiltered (0.00s)
+=== RUN   TestPGRecordImpression
+--- PASS: TestPGRecordImpression (0.00s)
+=== RUN   TestPGCheckEligibility
+--- PASS: TestPGCheckEligibility (0.00s)
+=== RUN   TestPGDeliveryProgress
+--- PASS: TestPGDeliveryProgress (0.00s)
+=== RUN   TestPGStats
+--- PASS: TestPGStats (0.00s)
+=== RUN   TestNewDirectPublisherService
+--- PASS: TestNewDirectPublisherService (0.00s)
+=== RUN   TestDPRegisterPublisher
+--- PASS: TestDPRegisterPublisher (0.00s)
+=== RUN   TestDPRegisterPublisherValidation
+--- PASS: TestDPRegisterPublisherValidation (0.00s)
+=== RUN   TestDPGetPublisher
+--- PASS: TestDPGetPublisher (0.00s)
+=== RUN   TestDPActivatePublisher
+--- PASS: TestDPActivatePublisher (0.00s)
+=== RUN   TestDPActivatePublisherLowQuality
+--- PASS: TestDPActivatePublisherLowQuality (0.00s)
+=== RUN   TestDPListPublishers
+--- PASS: TestDPListPublishers (0.00s)
+=== RUN   TestDPListPublishersFiltered
+--- PASS: TestDPListPublishersFiltered (0.00s)
+=== RUN   TestDPAddIntegration
+--- PASS: TestDPAddIntegration (0.00s)
+=== RUN   TestDPAnalyzeSupplyPath
+--- PASS: TestDPAnalyzeSupplyPath (0.00s)
+=== RUN   TestDPGetDirectRate
+--- PASS: TestDPGetDirectRate (0.00s)
+=== RUN   TestDPRecordPathMetrics
+--- PASS: TestDPRecordPathMetrics (0.00s)
+=== RUN   TestDPStats
+--- PASS: TestDPStats (0.00s)
+=== RUN   TestNewS2SBiddingService
+--- PASS: TestNewS2SBiddingService (0.00s)
+=== RUN   TestS2SRegisterPartner
+--- PASS: TestS2SRegisterPartner (0.00s)
+=== RUN   TestS2SRegisterPartnerValidation
+--- PASS: TestS2SRegisterPartnerValidation (0.00s)
+=== RUN   TestS2SListPartners
+--- PASS: TestS2SListPartners (0.00s)
+=== RUN   TestS2SRemovePartner
+--- PASS: TestS2SRemovePartner (0.00s)
+=== RUN   TestS2SEnableDisablePartner
+--- PASS: TestS2SEnableDisablePartner (0.00s)
+=== RUN   TestS2SStats
+--- PASS: TestS2SStats (0.00s)
+=== RUN   TestNewBidCacheService
+--- PASS: TestNewBidCacheService (0.00s)
+=== RUN   TestBidCacheSetGet
+--- PASS: TestBidCacheSetGet (0.00s)
+=== RUN   TestBidCacheExpiration
+--- PASS: TestBidCacheExpiration (0.10s)
+=== RUN   TestBidCacheHitRate
+--- PASS: TestBidCacheHitRate (0.00s)
+=== RUN   TestBidCacheClear
+--- PASS: TestBidCacheClear (0.00s)
+=== RUN   TestBidCacheStats
+--- PASS: TestBidCacheStats (0.00s)
+=== RUN   TestBidCacheGenerateKey
+--- PASS: TestBidCacheGenerateKey (0.00s)
+=== RUN   TestPMP_Support
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+Warning: Optimization Service call failed: Post "http://bid-optimizer:6003/api/optimize": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+--- PASS: TestPMP_Support (1.50s)
+=== RUN   TestPS_NewService
+--- PASS: TestPS_NewService (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_Disabled
+--- PASS: TestPS_EvaluatePrivacySandbox_Disabled (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_NoTopics
+--- PASS: TestPS_EvaluatePrivacySandbox_NoTopics (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_TopicMatch
+--- PASS: TestPS_EvaluatePrivacySandbox_TopicMatch (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_TopicMatchDefaultBoost
+--- PASS: TestPS_EvaluatePrivacySandbox_TopicMatchDefaultBoost (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_ExcludedTopic
+--- PASS: TestPS_EvaluatePrivacySandbox_ExcludedTopic (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_TopicsFromContext
+--- PASS: TestPS_EvaluatePrivacySandbox_TopicsFromContext (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_Attribution
+--- PASS: TestPS_EvaluatePrivacySandbox_Attribution (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_Fledge
+--- PASS: TestPS_EvaluatePrivacySandbox_Fledge (0.00s)
+=== RUN   TestPS_EvaluatePrivacySandbox_ProtectedAudience
+--- PASS: TestPS_EvaluatePrivacySandbox_ProtectedAudience (0.00s)
+=== RUN   TestPS_RegisterUserTopic
+--- PASS: TestPS_RegisterUserTopic (0.00s)
+=== RUN   TestPS_RegisterUserTopic_MaxFive
+--- PASS: TestPS_RegisterUserTopic_MaxFive (0.00s)
+=== RUN   TestPS_AddToInterestGroup
+--- PASS: TestPS_AddToInterestGroup (0.00s)
+=== RUN   TestPS_AddToInterestGroup_NoDuplicates
+--- PASS: TestPS_AddToInterestGroup_NoDuplicates (0.00s)
+=== RUN   TestPS_GetUserInterestGroups_Empty
+--- PASS: TestPS_GetUserInterestGroups_Empty (0.00s)
+=== RUN   TestPS_GetTopicName
+--- PASS: TestPS_GetTopicName (0.00s)
+=== RUN   TestPS_GenerateAttributionSource_Disabled
+--- PASS: TestPS_GenerateAttributionSource_Disabled (0.00s)
+=== RUN   TestPS_GenerateAttributionSource_Enabled
+--- PASS: TestPS_GenerateAttributionSource_Enabled (0.00s)
+=== RUN   TestPS_GenerateAttributionSource_NoDebug
+--- PASS: TestPS_GenerateAttributionSource_NoDebug (0.00s)
+=== RUN   TestPS_GenerateFledgeBid
+--- PASS: TestPS_GenerateFledgeBid (0.00s)
+=== RUN   TestPS_GenerateFledgeBid_NoTenant
+--- PASS: TestPS_GenerateFledgeBid_NoTenant (0.00s)
+=== RUN   TestPS_GeneratePrivateAggregationReport
+--- PASS: TestPS_GeneratePrivateAggregationReport (0.00s)
+=== RUN   TestPS_SimulateSharedStorage
+--- PASS: TestPS_SimulateSharedStorage (0.00s)
+=== RUN   TestPS_CleanupExpiredTopics
+--- PASS: TestPS_CleanupExpiredTopics (0.00s)
+=== RUN   TestPS_ContainsString
+--- PASS: TestPS_ContainsString (0.00s)
+=== RUN   TestPS_CheckFledgeEligibility_Chrome
+--- PASS: TestPS_CheckFledgeEligibility_Chrome (0.00s)
+=== RUN   TestPS_CheckFledgeEligibility_NonChrome
+--- PASS: TestPS_CheckFledgeEligibility_NonChrome (0.00s)
+=== RUN   TestPS_Concurrency
+--- PASS: TestPS_Concurrency (0.00s)
+=== RUN   TestPS_TopicTaxonomy
+--- PASS: TestPS_TopicTaxonomy (0.00s)
+=== RUN   TestProgrammaticGuaranteed_CreateDeal
+--- PASS: TestProgrammaticGuaranteed_CreateDeal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_CreateDeal_Validation
+=== RUN   TestProgrammaticGuaranteed_CreateDeal_Validation/missing_buyer
+=== RUN   TestProgrammaticGuaranteed_CreateDeal_Validation/missing_seller
+=== RUN   TestProgrammaticGuaranteed_CreateDeal_Validation/valid_deal
+--- PASS: TestProgrammaticGuaranteed_CreateDeal_Validation (0.00s)
+    --- PASS: TestProgrammaticGuaranteed_CreateDeal_Validation/missing_buyer (0.00s)
+    --- PASS: TestProgrammaticGuaranteed_CreateDeal_Validation/missing_seller (0.00s)
+    --- PASS: TestProgrammaticGuaranteed_CreateDeal_Validation/valid_deal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_GetDeal
+--- PASS: TestProgrammaticGuaranteed_GetDeal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_GetDeal_NotFound
+--- PASS: TestProgrammaticGuaranteed_GetDeal_NotFound (0.00s)
+=== RUN   TestProgrammaticGuaranteed_ActivateDeal
+--- PASS: TestProgrammaticGuaranteed_ActivateDeal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_ActivateDeal_NotFound
+--- PASS: TestProgrammaticGuaranteed_ActivateDeal_NotFound (0.00s)
+=== RUN   TestProgrammaticGuaranteed_PauseDeal
+--- PASS: TestProgrammaticGuaranteed_PauseDeal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_CancelDeal
+--- PASS: TestProgrammaticGuaranteed_CancelDeal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_ListDeals
+--- PASS: TestProgrammaticGuaranteed_ListDeals (0.00s)
+=== RUN   TestProgrammaticGuaranteed_ListDeals_ByStatus
+--- PASS: TestProgrammaticGuaranteed_ListDeals_ByStatus (0.00s)
+=== RUN   TestProgrammaticGuaranteed_RecordImpression
+--- PASS: TestProgrammaticGuaranteed_RecordImpression (0.00s)
+=== RUN   TestProgrammaticGuaranteed_RecordImpression_NotFound
+--- PASS: TestProgrammaticGuaranteed_RecordImpression_NotFound (0.00s)
+=== RUN   TestProgrammaticGuaranteed_GetDeliveryProgress
+--- PASS: TestProgrammaticGuaranteed_GetDeliveryProgress (0.00s)
+=== RUN   TestProgrammaticGuaranteed_GetStats
+--- PASS: TestProgrammaticGuaranteed_GetStats (0.00s)
+=== RUN   TestProgrammaticGuaranteed_CheckEligibility
+    programmatic_guaranteed_test.go:374: Note: Eligibility may require specific matching criteria
+--- PASS: TestProgrammaticGuaranteed_CheckEligibility (0.00s)
+=== RUN   TestProgrammaticGuaranteed_UpdateDeal
+--- PASS: TestProgrammaticGuaranteed_UpdateDeal (0.00s)
+=== RUN   TestProgrammaticGuaranteed_DealTypes
+=== RUN   TestProgrammaticGuaranteed_DealTypes/guaranteed
+=== RUN   TestProgrammaticGuaranteed_DealTypes/preferred
+=== RUN   TestProgrammaticGuaranteed_DealTypes/private_auction
+--- PASS: TestProgrammaticGuaranteed_DealTypes (0.00s)
+    --- PASS: TestProgrammaticGuaranteed_DealTypes/guaranteed (0.00s)
+    --- PASS: TestProgrammaticGuaranteed_DealTypes/preferred (0.00s)
+    --- PASS: TestProgrammaticGuaranteed_DealTypes/private_auction (0.00s)
+=== RUN   TestProgrammaticGuaranteed_Concurrency
+--- PASS: TestProgrammaticGuaranteed_Concurrency (0.00s)
+=== RUN   TestRTA_NewService
+--- PASS: TestRTA_NewService (0.00s)
+=== RUN   TestRTA_CheckAlerts_Disabled
+--- PASS: TestRTA_CheckAlerts_Disabled (0.00s)
+=== RUN   TestRTA_CheckAlerts_BudgetWarning
+--- PASS: TestRTA_CheckAlerts_BudgetWarning (0.00s)
+=== RUN   TestRTA_CheckAlerts_BudgetCritical
+--- PASS: TestRTA_CheckAlerts_BudgetCritical (0.00s)
+=== RUN   TestRTA_CheckAlerts_ZeroBudget
+--- PASS: TestRTA_CheckAlerts_ZeroBudget (0.00s)
+=== RUN   TestRTA_CheckAlerts_MultipleCritical
+--- PASS: TestRTA_CheckAlerts_MultipleCritical (0.00s)
+=== RUN   TestRTA_CheckPacingAlerts_UnderPacing
+--- PASS: TestRTA_CheckPacingAlerts_UnderPacing (0.00s)
+=== RUN   TestRTA_RecordMetrics
+--- PASS: TestRTA_RecordMetrics (0.00s)
+=== RUN   TestRTA_RecordMetrics_MaxHistory
+--- PASS: TestRTA_RecordMetrics_MaxHistory (0.00s)
+=== RUN   TestRTA_RecordMetrics_BaselineCalculation
+--- PASS: TestRTA_RecordMetrics_BaselineCalculation (0.00s)
+=== RUN   TestRTA_CheckPerformanceAlerts_Disabled
+--- PASS: TestRTA_CheckPerformanceAlerts_Disabled (0.00s)
+=== RUN   TestRTA_CheckPerformanceAlerts_CTRDrop
+--- PASS: TestRTA_CheckPerformanceAlerts_CTRDrop (0.00s)
+=== RUN   TestRTA_CheckPerformanceAlerts_CVRDrop
+--- PASS: TestRTA_CheckPerformanceAlerts_CVRDrop (0.00s)
+=== RUN   TestRTA_CheckPerformanceAlerts_WinRateDrop
+--- PASS: TestRTA_CheckPerformanceAlerts_WinRateDrop (0.00s)
+=== RUN   TestRTA_DetectAnomaly_Disabled
+--- PASS: TestRTA_DetectAnomaly_Disabled (0.00s)
+=== RUN   TestRTA_DetectAnomaly_NoHistory
+--- PASS: TestRTA_DetectAnomaly_NoHistory (0.00s)
+=== RUN   TestRTA_DetectAnomaly_InsufficientHistory
+--- PASS: TestRTA_DetectAnomaly_InsufficientHistory (0.00s)
+=== RUN   TestRTA_DetectAnomaly_NormalValue
+--- PASS: TestRTA_DetectAnomaly_NormalValue (0.00s)
+=== RUN   TestRTA_DetectAnomaly_AnomalousValue
+--- PASS: TestRTA_DetectAnomaly_AnomalousValue (0.00s)
+=== RUN   TestRTA_DetectAnomaly_DifferentMetrics
+--- PASS: TestRTA_DetectAnomaly_DifferentMetrics (0.00s)
+=== RUN   TestRTA_DetectAnomaly_Sensitivity
+=== RUN   TestRTA_DetectAnomaly_Sensitivity/low_sensitivity
+=== RUN   TestRTA_DetectAnomaly_Sensitivity/high_sensitivity
+=== RUN   TestRTA_DetectAnomaly_Sensitivity/medium_default
+--- PASS: TestRTA_DetectAnomaly_Sensitivity (0.00s)
+    --- PASS: TestRTA_DetectAnomaly_Sensitivity/low_sensitivity (0.00s)
+    --- PASS: TestRTA_DetectAnomaly_Sensitivity/high_sensitivity (0.00s)
+    --- PASS: TestRTA_DetectAnomaly_Sensitivity/medium_default (0.00s)
+=== RUN   TestRTA_GetActiveAlerts_Empty
+--- PASS: TestRTA_GetActiveAlerts_Empty (0.00s)
+=== RUN   TestRTA_GetActiveAlerts_FiltersByCampaign
+--- PASS: TestRTA_GetActiveAlerts_FiltersByCampaign (0.00s)
+=== RUN   TestRTA_GetActiveAlerts_ExcludesAcknowledged
+--- PASS: TestRTA_GetActiveAlerts_ExcludesAcknowledged (0.00s)
+=== RUN   TestRTA_AcknowledgeAlert_Exists
+--- PASS: TestRTA_AcknowledgeAlert_Exists (0.00s)
+=== RUN   TestRTA_AcknowledgeAlert_NotExists
+--- PASS: TestRTA_AcknowledgeAlert_NotExists (0.00s)
+=== RUN   TestRTA_ClearOldAlerts
+--- PASS: TestRTA_ClearOldAlerts (0.00s)
+=== RUN   TestRTA_CalculateStats
+=== RUN   TestRTA_CalculateStats/empty
+=== RUN   TestRTA_CalculateStats/single
+=== RUN   TestRTA_CalculateStats/uniform
+=== RUN   TestRTA_CalculateStats/varied
+--- PASS: TestRTA_CalculateStats (0.00s)
+    --- PASS: TestRTA_CalculateStats/empty (0.00s)
+    --- PASS: TestRTA_CalculateStats/single (0.00s)
+    --- PASS: TestRTA_CalculateStats/uniform (0.00s)
+    --- PASS: TestRTA_CalculateStats/varied (0.00s)
+=== RUN   TestRTA_AlertCooldown
+--- PASS: TestRTA_AlertCooldown (0.00s)
+=== RUN   TestRTA_Concurrency
+--- PASS: TestRTA_Concurrency (0.00s)
+=== RUN   TestRTA_SpendSpike
+--- PASS: TestRTA_SpendSpike (0.00s)
+=== RUN   TestRTA_DefaultThresholds
+--- PASS: TestRTA_DefaultThresholds (0.00s)
+=== RUN   TestRTA_BidAdjustmentChaining
+--- PASS: TestRTA_BidAdjustmentChaining (0.00s)
+=== RUN   TestS2S_NewService_CreatesInstance
+--- PASS: TestS2S_NewService_CreatesInstance (0.00s)
+=== RUN   TestS2S_NewService_DefaultTimeout
+--- PASS: TestS2S_NewService_DefaultTimeout (0.00s)
+=== RUN   TestS2S_NewService_HTTPClientInitialized
+--- PASS: TestS2S_NewService_HTTPClientInitialized (0.00s)
+=== RUN   TestS2S_RegisterPartner_Success
+--- PASS: TestS2S_RegisterPartner_Success (0.00s)
+=== RUN   TestS2S_RegisterPartner_MissingID
+--- PASS: TestS2S_RegisterPartner_MissingID (0.00s)
+=== RUN   TestS2S_RegisterPartner_MissingEndpoint
+--- PASS: TestS2S_RegisterPartner_MissingEndpoint (0.00s)
+=== RUN   TestS2S_RegisterPartner_SetsDefaults
+--- PASS: TestS2S_RegisterPartner_SetsDefaults (0.00s)
+=== RUN   TestS2S_RegisterPartner_PreservesCustomTimeout
+--- PASS: TestS2S_RegisterPartner_PreservesCustomTimeout (0.00s)
+=== RUN   TestS2S_GetPartner_Success
+--- PASS: TestS2S_GetPartner_Success (0.00s)
+=== RUN   TestS2S_GetPartner_NotFound
+--- PASS: TestS2S_GetPartner_NotFound (0.00s)
+=== RUN   TestS2S_UpdatePartner_Success
+--- PASS: TestS2S_UpdatePartner_Success (0.00s)
+=== RUN   TestS2S_UpdatePartner_NotFound
+--- PASS: TestS2S_UpdatePartner_NotFound (0.00s)
+=== RUN   TestS2S_UpdatePartner_SetsUpdatedAt
+--- PASS: TestS2S_UpdatePartner_SetsUpdatedAt (0.01s)
+=== RUN   TestS2S_RemovePartner_Success
+--- PASS: TestS2S_RemovePartner_Success (0.00s)
+=== RUN   TestS2S_RemovePartner_NotFound
+--- PASS: TestS2S_RemovePartner_NotFound (0.00s)
+=== RUN   TestS2S_ListPartners_Empty
+--- PASS: TestS2S_ListPartners_Empty (0.00s)
+=== RUN   TestS2S_ListPartners_MultiplePartners
+--- PASS: TestS2S_ListPartners_MultiplePartners (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_Success
+--- PASS: TestS2S_ProcessBidRequest_Success (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_GeneratesID
+--- PASS: TestS2S_ProcessBidRequest_GeneratesID (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_NoPartners
+--- PASS: TestS2S_ProcessBidRequest_NoPartners (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_MultiplePartners
+--- PASS: TestS2S_ProcessBidRequest_MultiplePartners (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_FilterByPartnerIDs
+--- PASS: TestS2S_ProcessBidRequest_FilterByPartnerIDs (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_RecordsLatency
+--- PASS: TestS2S_ProcessBidRequest_RecordsLatency (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_IncrementCounters
+--- PASS: TestS2S_ProcessBidRequest_IncrementCounters (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_CustomTimeout
+--- PASS: TestS2S_ProcessBidRequest_CustomTimeout (0.00s)
+=== RUN   TestS2S_SelectWinningBid_Success
+--- PASS: TestS2S_SelectWinningBid_Success (0.00s)
+=== RUN   TestS2S_SelectWinningBid_NoBids
+--- PASS: TestS2S_SelectWinningBid_NoBids (0.00s)
+=== RUN   TestS2S_SelectWinningBid_UpdatesWinStats
+--- PASS: TestS2S_SelectWinningBid_UpdatesWinStats (0.00s)
+=== RUN   TestS2S_SelectWinningBid_MultipleBidsPerSeat
+--- PASS: TestS2S_SelectWinningBid_MultipleBidsPerSeat (0.00s)
+=== RUN   TestS2S_GetStats_Empty
+--- PASS: TestS2S_GetStats_Empty (0.00s)
+=== RUN   TestS2S_GetStats_WithPartners
+--- PASS: TestS2S_GetStats_WithPartners (0.00s)
+=== RUN   TestS2S_GetStats_TracksWinRate
+--- PASS: TestS2S_GetStats_TracksWinRate (0.00s)
+=== RUN   TestS2S_SetTimeout_UpdatesValue
+--- PASS: TestS2S_SetTimeout_UpdatesValue (0.00s)
+=== RUN   TestS2S_EnablePartner_Success
+--- PASS: TestS2S_EnablePartner_Success (0.00s)
+=== RUN   TestS2S_EnablePartner_NotFound
+--- PASS: TestS2S_EnablePartner_NotFound (0.00s)
+=== RUN   TestS2S_DisablePartner_Success
+--- PASS: TestS2S_DisablePartner_Success (0.00s)
+=== RUN   TestS2S_DisablePartner_NotFound
+--- PASS: TestS2S_DisablePartner_NotFound (0.00s)
+=== RUN   TestS2S_DisablePartner_ExcludesFromBidding
+--- PASS: TestS2S_DisablePartner_ExcludesFromBidding (0.00s)
+=== RUN   TestS2S_GetActivePartners_ReturnsOnlyEnabled
+--- PASS: TestS2S_GetActivePartners_ReturnsOnlyEnabled (0.00s)
+=== RUN   TestS2S_GetActivePartners_FiltersByID
+--- PASS: TestS2S_GetActivePartners_FiltersByID (0.00s)
+=== RUN   TestS2S_GetActivePartners_IgnoresDisabledInFilter
+--- PASS: TestS2S_GetActivePartners_IgnoresDisabledInFilter (0.00s)
+=== RUN   TestS2S_GenerateMockBid_ReturnsValidBid
+--- PASS: TestS2S_GenerateMockBid_ReturnsValidBid (0.00s)
+=== RUN   TestS2S_GenerateMockBid_NoImpressions
+--- PASS: TestS2S_GenerateMockBid_NoImpressions (0.00s)
+=== RUN   TestS2S_GenerateMockBid_UsesBidFloor
+--- PASS: TestS2S_GenerateMockBid_UsesBidFloor (0.00s)
+=== RUN   TestS2S_ConcurrentPartnerRegistration
+--- PASS: TestS2S_ConcurrentPartnerRegistration (0.00s)
+=== RUN   TestS2S_ConcurrentBidRequests
+--- PASS: TestS2S_ConcurrentBidRequests (0.00s)
+=== RUN   TestS2S_ConcurrentStatsAccess
+--- PASS: TestS2S_ConcurrentStatsAccess (0.00s)
+=== RUN   TestS2S_BidRequest_WithVideoImpression
+--- PASS: TestS2S_BidRequest_WithVideoImpression (0.00s)
+=== RUN   TestS2S_BidRequest_WithNativeImpression
+--- PASS: TestS2S_BidRequest_WithNativeImpression (0.00s)
+=== RUN   TestS2S_BidRequest_WithAppContext
+--- PASS: TestS2S_BidRequest_WithAppContext (0.00s)
+=== RUN   TestS2S_QueryPartner_UpdatesStats
+--- PASS: TestS2S_QueryPartner_UpdatesStats (0.00s)
+=== RUN   TestS2S_QueryPartner_TracksLatency
+--- PASS: TestS2S_QueryPartner_TracksLatency (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_EmptyPartnerIDs
+--- PASS: TestS2S_ProcessBidRequest_EmptyPartnerIDs (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_NonexistentPartnerIDs
+--- PASS: TestS2S_ProcessBidRequest_NonexistentPartnerIDs (0.00s)
+=== RUN   TestS2S_PartnerResponse_Currency
+--- PASS: TestS2S_PartnerResponse_Currency (0.00s)
+=== RUN   TestS2SBiddingService_RegisterPartner
+--- PASS: TestS2SBiddingService_RegisterPartner (0.00s)
+=== RUN   TestS2SBiddingService_RegisterPartnerValidation
+--- PASS: TestS2SBiddingService_RegisterPartnerValidation (0.00s)
+=== RUN   TestS2SBiddingService_UpdatePartner
+--- PASS: TestS2SBiddingService_UpdatePartner (0.00s)
+=== RUN   TestS2SBiddingService_RemovePartner
+--- PASS: TestS2SBiddingService_RemovePartner (0.00s)
+=== RUN   TestS2SBiddingService_ListPartners
+--- PASS: TestS2SBiddingService_ListPartners (0.00s)
+=== RUN   TestS2SBiddingService_ProcessBidRequest
+--- PASS: TestS2SBiddingService_ProcessBidRequest (0.00s)
+=== RUN   TestS2SBiddingService_ProcessBidRequest_NoPartners
+--- PASS: TestS2SBiddingService_ProcessBidRequest_NoPartners (0.00s)
+=== RUN   TestS2SBiddingService_SelectWinningBid
+--- PASS: TestS2SBiddingService_SelectWinningBid (0.00s)
+=== RUN   TestS2SBiddingService_SelectWinningBid_NoBids
+--- PASS: TestS2SBiddingService_SelectWinningBid_NoBids (0.00s)
+=== RUN   TestS2SBiddingService_EnableDisablePartner
+--- PASS: TestS2SBiddingService_EnableDisablePartner (0.00s)
+=== RUN   TestS2SBiddingService_GetStats
+--- PASS: TestS2SBiddingService_GetStats (0.00s)
+=== RUN   TestBidCacheService_SetAndGet
+--- PASS: TestBidCacheService_SetAndGet (0.00s)
+=== RUN   TestBidCacheService_TTLExpiration
+--- PASS: TestBidCacheService_TTLExpiration (0.06s)
+=== RUN   TestBidCacheService_StaleServe
+--- PASS: TestBidCacheService_StaleServe (0.06s)
+=== RUN   TestBidCacheService_GenerateCacheKey
+--- PASS: TestBidCacheService_GenerateCacheKey (0.00s)
+=== RUN   TestBidCacheService_ImpressionCache
+--- PASS: TestBidCacheService_ImpressionCache (0.00s)
+=== RUN   TestBidCacheService_PartnerCache
+--- PASS: TestBidCacheService_PartnerCache (0.00s)
+=== RUN   TestBidCacheService_WarmCache
+--- PASS: TestBidCacheService_WarmCache (0.00s)
+=== RUN   TestBidCacheService_Invalidate
+--- PASS: TestBidCacheService_Invalidate (0.00s)
+=== RUN   TestBidCacheService_InvalidatePartner
+--- PASS: TestBidCacheService_InvalidatePartner (0.00s)
+=== RUN   TestBidCacheService_CleanExpired
+--- PASS: TestBidCacheService_CleanExpired (0.02s)
+=== RUN   TestBidCacheService_GetStats
+--- PASS: TestBidCacheService_GetStats (0.00s)
+=== RUN   TestBidCacheService_GetHitRate
+--- PASS: TestBidCacheService_GetHitRate (0.00s)
+=== RUN   TestBidCacheService_Clear
+--- PASS: TestBidCacheService_Clear (0.00s)
+=== RUN   TestBidCacheService_LRUEviction
+--- PASS: TestBidCacheService_LRUEviction (0.00s)
+=== RUN   TestBidCacheService_ResetStats
+--- PASS: TestBidCacheService_ResetStats (0.00s)
+=== RUN   TestNewSupplyPathAnalyticsService
+--- PASS: TestNewSupplyPathAnalyticsService (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetSupplyChainMetrics_NilCache
+--- PASS: TestSupplyPathAnalytics_GetSupplyChainMetrics_NilCache (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetServicePerformance_NilCache
+--- PASS: TestSupplyPathAnalytics_GetServicePerformance_NilCache (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetBidPathAnalytics_NilCache
+--- PASS: TestSupplyPathAnalytics_GetBidPathAnalytics_NilCache (0.00s)
+=== RUN   TestSupplyPathAnalytics_AnalyzeSupplyPathEfficiency_NilMetrics
+--- PASS: TestSupplyPathAnalytics_AnalyzeSupplyPathEfficiency_NilMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_AnalyzeSupplyPathEfficiency_WithMetrics
+--- PASS: TestSupplyPathAnalytics_AnalyzeSupplyPathEfficiency_WithMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetTopBottlenecks_NilMetrics
+--- PASS: TestSupplyPathAnalytics_GetTopBottlenecks_NilMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetTopBottlenecks_WithMetrics
+--- PASS: TestSupplyPathAnalytics_GetTopBottlenecks_WithMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetCostAnalysis_NilMetrics
+--- PASS: TestSupplyPathAnalytics_GetCostAnalysis_NilMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_GetCostAnalysis_WithMetrics
+--- PASS: TestSupplyPathAnalytics_GetCostAnalysis_WithMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_AnalyzeDirectPublisherOpportunities_NilMetrics
+--- PASS: TestSupplyPathAnalytics_AnalyzeDirectPublisherOpportunities_NilMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_AnalyzeDirectPublisherOpportunities_WithMetrics
+--- PASS: TestSupplyPathAnalytics_AnalyzeDirectPublisherOpportunities_WithMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_CalculateCostBenefitAnalysis_NilMetrics
+--- PASS: TestSupplyPathAnalytics_CalculateCostBenefitAnalysis_NilMetrics (0.00s)
+=== RUN   TestSupplyPathAnalytics_CalculateCostBenefitAnalysis_WithMetrics
+--- PASS: TestSupplyPathAnalytics_CalculateCostBenefitAnalysis_WithMetrics (0.00s)
+=== RUN   TestUID_NewService
+--- PASS: TestUID_NewService (0.00s)
+=== RUN   TestUID_ResolveIdentity_Disabled
+--- PASS: TestUID_ResolveIdentity_Disabled (0.00s)
+=== RUN   TestUID_ResolveIdentity_NoUserID
+--- PASS: TestUID_ResolveIdentity_NoUserID (0.00s)
+=== RUN   TestUID_ResolveIdentity_ConsentRequired
+--- PASS: TestUID_ResolveIdentity_ConsentRequired (0.00s)
+=== RUN   TestUID_ResolveIdentity_WithConsent
+--- PASS: TestUID_ResolveIdentity_WithConsent (0.00s)
+=== RUN   TestUID_ResolveIdentity_WithConsentString
+--- PASS: TestUID_ResolveIdentity_WithConsentString (0.00s)
+=== RUN   TestUID_ResolveIdentity_ProviderMatch
+--- PASS: TestUID_ResolveIdentity_ProviderMatch (0.00s)
+=== RUN   TestUID_ResolveIdentity_FromGraph
+--- PASS: TestUID_ResolveIdentity_FromGraph (0.00s)
+=== RUN   TestUID_ResolveIdentity_StaleGraphEntry
+--- PASS: TestUID_ResolveIdentity_StaleGraphEntry (0.00s)
+=== RUN   TestUID_ExtractUserID_FromUser
+--- PASS: TestUID_ExtractUserID_FromUser (0.00s)
+=== RUN   TestUID_ExtractUserID_FromDevice
+--- PASS: TestUID_ExtractUserID_FromDevice (0.00s)
+=== RUN   TestUID_ExtractUserID_FromContext
+--- PASS: TestUID_ExtractUserID_FromContext (0.00s)
+=== RUN   TestUID_GetOrderedProviders_FallbackOrder
+--- PASS: TestUID_GetOrderedProviders_FallbackOrder (0.00s)
+=== RUN   TestUID_GetOrderedProviders_ByPriority
+--- PASS: TestUID_GetOrderedProviders_ByPriority (0.00s)
+=== RUN   TestUID_GetProviderMatchRate
+--- PASS: TestUID_GetProviderMatchRate (0.00s)
+=== RUN   TestUID_LinkIdentities
+--- PASS: TestUID_LinkIdentities (0.00s)
+=== RUN   TestUID_LinkIdentities_UpdateExisting
+--- PASS: TestUID_LinkIdentities_UpdateExisting (0.00s)
+=== RUN   TestUID_LinkIdentities_DeviceTypes
+--- PASS: TestUID_LinkIdentities_DeviceTypes (0.00s)
+=== RUN   TestUID_AddSegments
+--- PASS: TestUID_AddSegments (0.00s)
+=== RUN   TestUID_AddSegments_NonexistentUser
+--- PASS: TestUID_AddSegments_NonexistentUser (0.00s)
+=== RUN   TestUID_SetConsent
+--- PASS: TestUID_SetConsent (0.00s)
+=== RUN   TestUID_SetConsent_Nonexistent
+--- PASS: TestUID_SetConsent_Nonexistent (0.00s)
+=== RUN   TestUID_GetProviderStats
+--- PASS: TestUID_GetProviderStats (0.00s)
+=== RUN   TestUID_GetIdentityReport
+--- PASS: TestUID_GetIdentityReport (0.00s)
+=== RUN   TestUID_CleanupStaleIdentities
+--- PASS: TestUID_CleanupStaleIdentities (0.00s)
+=== RUN   TestUID_CalculateCrossDeviceReach_Empty
+--- PASS: TestUID_CalculateCrossDeviceReach_Empty (0.00s)
+=== RUN   TestUID_CalculateCrossDeviceReach_WithData
+--- PASS: TestUID_CalculateCrossDeviceReach_WithData (0.00s)
+=== RUN   TestUID_DebugIdentity_Found
+--- PASS: TestUID_DebugIdentity_Found (0.00s)
+=== RUN   TestUID_DebugIdentity_NotFound
+--- PASS: TestUID_DebugIdentity_NotFound (0.00s)
+=== RUN   TestUID_CheckConsent_Default
+--- PASS: TestUID_CheckConsent_Default (0.00s)
+=== RUN   TestUID_ShouldMatch_Deterministic
+--- PASS: TestUID_ShouldMatch_Deterministic (0.00s)
+=== RUN   TestUID_GetConsentStatus
+--- PASS: TestUID_GetConsentStatus (0.00s)
+=== RUN   TestUID_Max
+--- PASS: TestUID_Max (0.00s)
+=== RUN   TestUID_Concurrency
+--- PASS: TestUID_Concurrency (0.00s)
+=== RUN   TestUID_EnrichProfile
+--- PASS: TestUID_EnrichProfile (0.00s)
+=== RUN   TestUID_EnrichWithLinkedIDs
+--- PASS: TestUID_EnrichWithLinkedIDs (0.00s)
+=== RUN   TestCluster_NewService
+--- PASS: TestCluster_NewService (0.00s)
+=== RUN   TestCluster_RegisterUser
+--- PASS: TestCluster_RegisterUser (0.00s)
+=== RUN   TestCluster_BuildUserFeatures_Interests
+--- PASS: TestCluster_BuildUserFeatures_Interests (0.00s)
+=== RUN   TestCluster_BuildUserFeatures_Devices
+--- PASS: TestCluster_BuildUserFeatures_Devices (0.00s)
+=== RUN   TestCluster_BuildUserFeatures_Behavior
+--- PASS: TestCluster_BuildUserFeatures_Behavior (0.00s)
+=== RUN   TestCluster_EuclideanDistance
+--- PASS: TestCluster_EuclideanDistance (0.00s)
+=== RUN   TestCluster_EuclideanDistance_DifferentLengths
+--- PASS: TestCluster_EuclideanDistance_DifferentLengths (0.00s)
+=== RUN   TestCluster_RunClustering_Disabled
+--- PASS: TestCluster_RunClustering_Disabled (0.00s)
+=== RUN   TestCluster_RunClustering_InsufficientData
+--- PASS: TestCluster_RunClustering_InsufficientData (0.00s)
+=== RUN   TestCluster_RunClustering_Success
+--- PASS: TestCluster_RunClustering_Success (0.00s)
+=== RUN   TestCluster_KMeans
+--- PASS: TestCluster_KMeans (0.00s)
+=== RUN   TestCluster_KMeansPlusPlusInit
+--- PASS: TestCluster_KMeansPlusPlusInit (0.00s)
+=== RUN   TestCluster_GetUserCluster_Exists
+    user_clustering_test.go:286: cluster may be nil if user not assigned
+--- PASS: TestCluster_GetUserCluster_Exists (0.00s)
+=== RUN   TestCluster_GetUserCluster_NotExists
+--- PASS: TestCluster_GetUserCluster_NotExists (0.00s)
+=== RUN   TestCluster_GetClusterUsers
+--- PASS: TestCluster_GetClusterUsers (0.00s)
+=== RUN   TestCluster_GetClusterUsers_Empty
+--- PASS: TestCluster_GetClusterUsers_Empty (0.00s)
+=== RUN   TestCluster_GetClusteringStats
+--- PASS: TestCluster_GetClusteringStats (0.00s)
+=== RUN   TestCluster_CalculateCohesion_Empty
+--- PASS: TestCluster_CalculateCohesion_Empty (0.00s)
+=== RUN   TestCluster_CalculateCohesion_WithUsers
+--- PASS: TestCluster_CalculateCohesion_WithUsers (0.00s)
+=== RUN   TestCluster_CalculateSilhouetteScore
+--- PASS: TestCluster_CalculateSilhouetteScore (0.00s)
+=== RUN   TestCluster_CalculateSilhouetteScore_Single
+--- PASS: TestCluster_CalculateSilhouetteScore_Single (0.00s)
+=== RUN   TestCluster_ExtractClusterFeatures
+--- PASS: TestCluster_ExtractClusterFeatures (0.00s)
+=== RUN   TestCluster_ExtractClusterFeatures_MediumEngagement
+--- PASS: TestCluster_ExtractClusterFeatures_MediumEngagement (0.00s)
+=== RUN   TestCluster_ExtractClusterFeatures_LowEngagement
+--- PASS: TestCluster_ExtractClusterFeatures_LowEngagement (0.00s)
+=== RUN   TestCluster_GenerateClusterName
+--- PASS: TestCluster_GenerateClusterName (0.00s)
+=== RUN   TestCluster_TopNStrings
+--- PASS: TestCluster_TopNStrings (0.00s)
+=== RUN   TestCluster_TopNStrings_Empty
+--- PASS: TestCluster_TopNStrings_Empty (0.00s)
+=== RUN   TestCluster_Concurrency
+--- PASS: TestCluster_Concurrency (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	9.269s
