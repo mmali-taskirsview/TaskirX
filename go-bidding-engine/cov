@@ -161,7 +161,7 @@ github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:709.13,710.1
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:713.3,716.31 3 1
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:716.31,718.4 1 1
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.3,719.48 1 1
-github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.48,721.4 1 1
+github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.48,721.4 1 0
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:727.37,730.2 1 1
 github.com/taskirx/go-bidding-engine/internal/service/attribution.go:21.67,23.2 1 1
 github.com/taskirx/go-bidding-engine/internal/service/attribution.go:33.147,34.18 1 1
@@ -3050,7 +3050,7 @@ github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.g
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:145.61,147.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:147.8,149.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:152.96,153.23 1 1
-github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:153.23,155.3 1 0
+github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:153.23,155.3 1 1
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:157.2,158.29 2 1
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:158.29,160.3 1 1
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:161.2,163.15 2 1
@@ -3325,7 +3325,7 @@ github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:1
 github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:167.21,174.4 1 1
 github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:178.2,183.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:186.187,200.25 6 1
-github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:200.25,202.3 1 1
+github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:200.25,202.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:204.2,204.31 1 1
 github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:204.31,207.58 2 1
 github.com/taskirx/go-bidding-engine/internal/service/creative_optimization.go:207.58,214.12 2 1
@@ -4719,7 +4719,7 @@ github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:1
 github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:134.2,134.39 1 1
 github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:134.39,135.42 1 1
 github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:135.42,136.59 1 1
-github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:136.59,138.5 1 0
+github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:136.59,138.5 1 1
 github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:142.2,142.40 1 1
 github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:142.40,144.3 1 1
 github.com/taskirx/go-bidding-engine/internal/service/supply_path_analytics.go:146.2,146.22 1 1
