@@ -874,3 +874,392 @@ func TestHandleAdvancedServicesStatus(t *testing.T) {
 	}
 }
 
+// ============================================================================
+// PROGRAMMATIC GUARANTEED TESTS
+// ============================================================================
+
+func TestHandleCreatePGDeal(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/pg/deals", handler.HandleCreatePGDeal)
+
+	reqBody := map[string]interface{}{
+		"name":                  "Test PG Deal",
+		"buyer_id":              "buyer-001",
+		"seller_id":             "seller-001",
+		"committed_impressions": 1000000,
+		"fixed_price":           5.0,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/pg/deals", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusCreated {
+		t.Errorf("Expected status 200 or 201, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleCreatePGDeal_InvalidRequest(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/pg/deals", handler.HandleCreatePGDeal)
+
+	// Missing required fields
+	reqBody := map[string]interface{}{
+		"name": "Test Deal",
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/pg/deals", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleGetPGDeal(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/deals/:deal_id", handler.HandleGetPGDeal)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deals/deal-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 is expected for non-existent deal
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK {
+		t.Errorf("Expected status 404 or 200, got %d", w.Code)
+	}
+}
+
+func TestHandleListPGDeals(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/deals", handler.HandleListPGDeals)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deals", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleListPGDeals_WithFilters(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/deals", handler.HandleListPGDeals)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deals?buyer_id=buyer-001&status=active", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleActivatePGDeal(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/pg/deals/:deal_id/activate", handler.HandleActivatePGDeal)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/pg/deals/deal-001/activate", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404, 400, or 200 are all acceptable
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 404, 400, or 200, got %d", w.Code)
+	}
+}
+
+func TestHandlePausePGDeal(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/pg/deals/:deal_id/pause", handler.HandlePausePGDeal)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/pg/deals/deal-001/pause", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404, 400, or 200 are all acceptable
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 404, 400, or 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetPGDeliveryProgress(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/deals/:deal_id/progress", handler.HandleGetPGDeliveryProgress)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deals/deal-001/progress", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 is expected for non-existent deal
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK {
+		t.Errorf("Expected status 404 or 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetPGStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/stats", handler.HandleGetPGStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// DIRECT PUBLISHER TESTS
+// ============================================================================
+
+func TestHandleRegisterDirectPublisher(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/direct-publishers", handler.HandleRegisterDirectPublisher)
+
+	reqBody := map[string]interface{}{
+		"name":               "Test Publisher",
+		"domain":             "example.com",
+		"viewability_rate":   0.85,
+		"ivt_rate":           0.02,
+		"brand_safety_score": 0.9,
+		"is_direct_seller":   true,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/direct-publishers", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusCreated {
+		t.Errorf("Expected status 200 or 201, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleRegisterDirectPublisher_InvalidRequest(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/direct-publishers", handler.HandleRegisterDirectPublisher)
+
+	// Missing required domain
+	reqBody := map[string]interface{}{
+		"name": "Test Publisher",
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/direct-publishers", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleGetDirectPublisher(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/direct-publishers/:publisher_id", handler.HandleGetDirectPublisher)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/direct-publishers/pub-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 is expected for non-existent publisher
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK {
+		t.Errorf("Expected status 404 or 200, got %d", w.Code)
+	}
+}
+
+func TestHandleListDirectPublishers(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/direct-publishers", handler.HandleListDirectPublishers)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/direct-publishers", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleListDirectPublishers_WithFilters(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/direct-publishers", handler.HandleListDirectPublishers)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/direct-publishers?status=active&min_quality=0.8", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleActivateDirectPublisher(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/direct-publishers/:publisher_id/activate", handler.HandleActivateDirectPublisher)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/direct-publishers/pub-001/activate", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 or 400 is expected for non-existent or low quality publisher
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 404, 400, or 200, got %d", w.Code)
+	}
+}
+
+func TestHandleAnalyzeSupplyPath(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/direct-publishers/:publisher_id/supply-path", handler.HandleAnalyzeSupplyPath)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/direct-publishers/pub-001/supply-path", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 404 is expected for non-existent publisher
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK {
+		t.Errorf("Expected status 404 or 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetDirectPublisherStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/direct-publishers/stats", handler.HandleGetDirectPublisherStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/direct-publishers/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// S2S BIDDING TESTS
+// ============================================================================
+
+func TestHandleRegisterS2SPartner(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/s2s/partners", handler.HandleRegisterS2SPartner)
+
+	reqBody := map[string]interface{}{
+		"id":        "partner-001",
+		"name":      "Test Partner",
+		"endpoint":  "https://partner.com/bid",
+		"bid_floor": 0.5,
+		"timeout":   100,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/s2s/partners", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusCreated {
+		t.Errorf("Expected status 200 or 201, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleListS2SPartners(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/s2s/partners", handler.HandleListS2SPartners)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/s2s/partners", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetS2SStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/s2s/stats", handler.HandleGetS2SStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/s2s/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// BID CACHE TESTS
+// ============================================================================
+
+func TestHandleGetBidCacheStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/cache/stats", handler.HandleGetBidCacheStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/cache/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleClearBidCache(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/cache/clear", handler.HandleClearBidCache)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/cache/clear", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestHandleGetBidCacheHitRate(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/cache/hit-rate", handler.HandleGetBidCacheHitRate)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/cache/hit-rate", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
