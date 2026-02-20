@@ -1,0 +1,112 @@
+=== RUN   TestS2S_NewService_CreatesInstance
+--- PASS: TestS2S_NewService_CreatesInstance (0.00s)
+=== RUN   TestS2S_NewService_DefaultTimeout
+--- PASS: TestS2S_NewService_DefaultTimeout (0.00s)
+=== RUN   TestS2S_NewService_HTTPClientInitialized
+--- PASS: TestS2S_NewService_HTTPClientInitialized (0.00s)
+=== RUN   TestS2S_RegisterPartner_Success
+--- PASS: TestS2S_RegisterPartner_Success (0.00s)
+=== RUN   TestS2S_RegisterPartner_MissingID
+--- PASS: TestS2S_RegisterPartner_MissingID (0.00s)
+=== RUN   TestS2S_RegisterPartner_MissingEndpoint
+--- PASS: TestS2S_RegisterPartner_MissingEndpoint (0.00s)
+=== RUN   TestS2S_RegisterPartner_SetsDefaults
+--- PASS: TestS2S_RegisterPartner_SetsDefaults (0.00s)
+=== RUN   TestS2S_RegisterPartner_PreservesCustomTimeout
+--- PASS: TestS2S_RegisterPartner_PreservesCustomTimeout (0.00s)
+=== RUN   TestS2S_GetPartner_Success
+--- PASS: TestS2S_GetPartner_Success (0.00s)
+=== RUN   TestS2S_GetPartner_NotFound
+--- PASS: TestS2S_GetPartner_NotFound (0.00s)
+=== RUN   TestS2S_UpdatePartner_Success
+--- PASS: TestS2S_UpdatePartner_Success (0.00s)
+=== RUN   TestS2S_UpdatePartner_NotFound
+--- PASS: TestS2S_UpdatePartner_NotFound (0.00s)
+=== RUN   TestS2S_UpdatePartner_SetsUpdatedAt
+--- PASS: TestS2S_UpdatePartner_SetsUpdatedAt (0.01s)
+=== RUN   TestS2S_RemovePartner_Success
+--- PASS: TestS2S_RemovePartner_Success (0.00s)
+=== RUN   TestS2S_RemovePartner_NotFound
+--- PASS: TestS2S_RemovePartner_NotFound (0.00s)
+=== RUN   TestS2S_ListPartners_Empty
+--- PASS: TestS2S_ListPartners_Empty (0.00s)
+=== RUN   TestS2S_ListPartners_MultiplePartners
+--- PASS: TestS2S_ListPartners_MultiplePartners (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_Success
+--- PASS: TestS2S_ProcessBidRequest_Success (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_GeneratesID
+--- PASS: TestS2S_ProcessBidRequest_GeneratesID (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_NoPartners
+--- PASS: TestS2S_ProcessBidRequest_NoPartners (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_MultiplePartners
+--- PASS: TestS2S_ProcessBidRequest_MultiplePartners (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_FilterByPartnerIDs
+--- PASS: TestS2S_ProcessBidRequest_FilterByPartnerIDs (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_RecordsLatency
+--- PASS: TestS2S_ProcessBidRequest_RecordsLatency (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_IncrementCounters
+--- PASS: TestS2S_ProcessBidRequest_IncrementCounters (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_CustomTimeout
+--- PASS: TestS2S_ProcessBidRequest_CustomTimeout (0.00s)
+=== RUN   TestS2S_SelectWinningBid_Success
+--- PASS: TestS2S_SelectWinningBid_Success (0.00s)
+=== RUN   TestS2S_SelectWinningBid_NoBids
+--- PASS: TestS2S_SelectWinningBid_NoBids (0.00s)
+=== RUN   TestS2S_SelectWinningBid_UpdatesWinStats
+--- PASS: TestS2S_SelectWinningBid_UpdatesWinStats (0.00s)
+=== RUN   TestS2S_SelectWinningBid_MultipleBidsPerSeat
+--- PASS: TestS2S_SelectWinningBid_MultipleBidsPerSeat (0.00s)
+=== RUN   TestS2S_GetStats_Empty
+--- PASS: TestS2S_GetStats_Empty (0.00s)
+=== RUN   TestS2S_GetStats_WithPartners
+--- PASS: TestS2S_GetStats_WithPartners (0.00s)
+=== RUN   TestS2S_GetStats_TracksWinRate
+--- PASS: TestS2S_GetStats_TracksWinRate (0.00s)
+=== RUN   TestS2S_SetTimeout_UpdatesValue
+--- PASS: TestS2S_SetTimeout_UpdatesValue (0.00s)
+=== RUN   TestS2S_EnablePartner_Success
+--- PASS: TestS2S_EnablePartner_Success (0.00s)
+=== RUN   TestS2S_EnablePartner_NotFound
+--- PASS: TestS2S_EnablePartner_NotFound (0.00s)
+=== RUN   TestS2S_DisablePartner_Success
+--- PASS: TestS2S_DisablePartner_Success (0.00s)
+=== RUN   TestS2S_DisablePartner_NotFound
+--- PASS: TestS2S_DisablePartner_NotFound (0.00s)
+=== RUN   TestS2S_DisablePartner_ExcludesFromBidding
+--- PASS: TestS2S_DisablePartner_ExcludesFromBidding (0.00s)
+=== RUN   TestS2S_GetActivePartners_ReturnsOnlyEnabled
+--- PASS: TestS2S_GetActivePartners_ReturnsOnlyEnabled (0.00s)
+=== RUN   TestS2S_GetActivePartners_FiltersByID
+--- PASS: TestS2S_GetActivePartners_FiltersByID (0.00s)
+=== RUN   TestS2S_GetActivePartners_IgnoresDisabledInFilter
+--- PASS: TestS2S_GetActivePartners_IgnoresDisabledInFilter (0.00s)
+=== RUN   TestS2S_GenerateMockBid_ReturnsValidBid
+--- PASS: TestS2S_GenerateMockBid_ReturnsValidBid (0.00s)
+=== RUN   TestS2S_GenerateMockBid_NoImpressions
+--- PASS: TestS2S_GenerateMockBid_NoImpressions (0.00s)
+=== RUN   TestS2S_GenerateMockBid_UsesBidFloor
+--- PASS: TestS2S_GenerateMockBid_UsesBidFloor (0.00s)
+=== RUN   TestS2S_ConcurrentPartnerRegistration
+--- PASS: TestS2S_ConcurrentPartnerRegistration (0.00s)
+=== RUN   TestS2S_ConcurrentBidRequests
+--- PASS: TestS2S_ConcurrentBidRequests (0.00s)
+=== RUN   TestS2S_ConcurrentStatsAccess
+--- PASS: TestS2S_ConcurrentStatsAccess (0.00s)
+=== RUN   TestS2S_BidRequest_WithVideoImpression
+--- PASS: TestS2S_BidRequest_WithVideoImpression (0.00s)
+=== RUN   TestS2S_BidRequest_WithNativeImpression
+--- PASS: TestS2S_BidRequest_WithNativeImpression (0.00s)
+=== RUN   TestS2S_BidRequest_WithAppContext
+--- PASS: TestS2S_BidRequest_WithAppContext (0.00s)
+=== RUN   TestS2S_QueryPartner_UpdatesStats
+--- PASS: TestS2S_QueryPartner_UpdatesStats (0.00s)
+=== RUN   TestS2S_QueryPartner_TracksLatency
+--- PASS: TestS2S_QueryPartner_TracksLatency (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_EmptyPartnerIDs
+--- PASS: TestS2S_ProcessBidRequest_EmptyPartnerIDs (0.00s)
+=== RUN   TestS2S_ProcessBidRequest_NonexistentPartnerIDs
+--- PASS: TestS2S_ProcessBidRequest_NonexistentPartnerIDs (0.00s)
+=== RUN   TestS2S_PartnerResponse_Currency
+--- PASS: TestS2S_PartnerResponse_Currency (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.090s
