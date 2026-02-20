@@ -1,0 +1,58 @@
+=== RUN   TestCluster_NewService
+--- PASS: TestCluster_NewService (0.00s)
+=== RUN   TestCluster_RegisterUser
+--- PASS: TestCluster_RegisterUser (0.00s)
+=== RUN   TestCluster_BuildUserFeatures_Interests
+--- PASS: TestCluster_BuildUserFeatures_Interests (0.00s)
+=== RUN   TestCluster_BuildUserFeatures_Devices
+--- PASS: TestCluster_BuildUserFeatures_Devices (0.00s)
+=== RUN   TestCluster_BuildUserFeatures_Behavior
+--- PASS: TestCluster_BuildUserFeatures_Behavior (0.00s)
+=== RUN   TestCluster_EuclideanDistance
+--- PASS: TestCluster_EuclideanDistance (0.00s)
+=== RUN   TestCluster_EuclideanDistance_DifferentLengths
+--- PASS: TestCluster_EuclideanDistance_DifferentLengths (0.00s)
+=== RUN   TestCluster_RunClustering_Disabled
+--- PASS: TestCluster_RunClustering_Disabled (0.00s)
+=== RUN   TestCluster_RunClustering_InsufficientData
+--- PASS: TestCluster_RunClustering_InsufficientData (0.00s)
+=== RUN   TestCluster_RunClustering_Success
+--- PASS: TestCluster_RunClustering_Success (0.00s)
+=== RUN   TestCluster_KMeans
+--- PASS: TestCluster_KMeans (0.00s)
+=== RUN   TestCluster_KMeansPlusPlusInit
+--- PASS: TestCluster_KMeansPlusPlusInit (0.00s)
+=== RUN   TestCluster_GetUserCluster_Exists
+--- PASS: TestCluster_GetUserCluster_Exists (0.00s)
+=== RUN   TestCluster_GetUserCluster_NotExists
+--- PASS: TestCluster_GetUserCluster_NotExists (0.00s)
+=== RUN   TestCluster_GetClusterUsers
+--- PASS: TestCluster_GetClusterUsers (0.00s)
+=== RUN   TestCluster_GetClusterUsers_Empty
+--- PASS: TestCluster_GetClusterUsers_Empty (0.00s)
+=== RUN   TestCluster_GetClusteringStats
+--- PASS: TestCluster_GetClusteringStats (0.00s)
+=== RUN   TestCluster_CalculateCohesion_Empty
+--- PASS: TestCluster_CalculateCohesion_Empty (0.00s)
+=== RUN   TestCluster_CalculateCohesion_WithUsers
+--- PASS: TestCluster_CalculateCohesion_WithUsers (0.00s)
+=== RUN   TestCluster_CalculateSilhouetteScore
+--- PASS: TestCluster_CalculateSilhouetteScore (0.00s)
+=== RUN   TestCluster_CalculateSilhouetteScore_Single
+--- PASS: TestCluster_CalculateSilhouetteScore_Single (0.00s)
+=== RUN   TestCluster_ExtractClusterFeatures
+--- PASS: TestCluster_ExtractClusterFeatures (0.00s)
+=== RUN   TestCluster_ExtractClusterFeatures_MediumEngagement
+--- PASS: TestCluster_ExtractClusterFeatures_MediumEngagement (0.00s)
+=== RUN   TestCluster_ExtractClusterFeatures_LowEngagement
+--- PASS: TestCluster_ExtractClusterFeatures_LowEngagement (0.00s)
+=== RUN   TestCluster_GenerateClusterName
+--- PASS: TestCluster_GenerateClusterName (0.00s)
+=== RUN   TestCluster_TopNStrings
+--- PASS: TestCluster_TopNStrings (0.00s)
+=== RUN   TestCluster_TopNStrings_Empty
+--- PASS: TestCluster_TopNStrings_Empty (0.00s)
+=== RUN   TestCluster_Concurrency
+--- PASS: TestCluster_Concurrency (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.060s
