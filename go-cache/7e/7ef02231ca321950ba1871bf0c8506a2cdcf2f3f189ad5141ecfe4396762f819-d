@@ -1,0 +1,365 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\privacy_sandbox.go:1:1
+package service
+
+import (
+	"sync"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// PrivacySandboxService handles Privacy Sandbox API integration
+type PrivacySandboxService struct {
+	cache           cache.Cache
+	mu              sync.RWMutex
+	topicCache      map[string][]int    // userID -> topic IDs
+	fledgeAudiences map[string][]string // userID -> interest group names
+}
+
+// Chrome Topics Taxonomy (simplified subset)
+var topicTaxonomy = map[int]string{
+	1:  "Arts & Entertainment",
+	2:  "Autos & Vehicles",
+	3:  "Beauty & Fitness",
+	4:  "Books & Literature",
+	5:  "Business & Industrial",
+	6:  "Computers & Electronics",
+	7:  "Finance",
+	8:  "Food & Drink",
+	9:  "Games",
+	10: "Health",
+	11: "Hobbies & Leisure",
+	12: "Home & Garden",
+	13: "Internet & Telecom",
+	14: "Jobs & Education",
+	15: "Law & Government",
+	16: "News",
+	17: "Online Communities",
+	18: "People & Society",
+	19: "Pets & Animals",
+	20: "Real Estate",
+	21: "Reference",
+	22: "Science",
+	23: "Shopping",
+	24: "Sports",
+	25: "Travel",
+}
+
+// NewPrivacySandboxService creates a new Privacy Sandbox service
+func NewPrivacySandboxService(c cache.Cache) *PrivacySandboxService {goCover_65b09fc02769__465[0] = 1 ; goCover_65b09fc02769__465[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__465[2] = 465 ; goCover_65b09fc02769__465[3] = 1;
+	return &PrivacySandboxService{
+		cache:           c,
+		topicCache:      make(map[string][]int),
+		fledgeAudiences: make(map[string][]string),
+	}
+}
+
+// EvaluatePrivacySandbox evaluates Privacy Sandbox signals for targeting
+func (s *PrivacySandboxService) EvaluatePrivacySandbox(campaign *model.Campaign, req *model.BidRequest) *model.PrivacySandboxResult {goCover_65b09fc02769__466[0] = 12 ; goCover_65b09fc02769__466[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__466[2] = 466 ; goCover_65b09fc02769__466[3] = 1;
+	config := campaign.Targeting.PrivacySandbox
+	if config == nil || !config.Enabled {goCover_65b09fc02769__466[9] = 1;
+		return &model.PrivacySandboxResult{
+			TopicsAvailable: false,
+			TopicMatch:      false,
+			TopicMultiplier: 1.0,
+			Reason:          "privacy_sandbox_disabled",
+		}
+	}
+
+	goCover_65b09fc02769__466[4] = 1;result := &model.PrivacySandboxResult{
+		TopicMultiplier: 1.0,
+	}
+
+	// Check Topics API
+	if config.TopicsAPI != nil && config.TopicsAPI.Enabled {goCover_65b09fc02769__466[10] = 1;
+		s.evaluateTopicsAPI(config.TopicsAPI, req, result)
+	}
+
+	// Check Attribution API
+	goCover_65b09fc02769__466[5] = 1;if config.AttributionAPI != nil && config.AttributionAPI.Enabled {goCover_65b09fc02769__466[11] = 1;
+		result.AttributionEnabled = true
+	}
+
+	// Check FLEDGE/Protected Audience API
+	goCover_65b09fc02769__466[6] = 1;if config.FledgeEnabled {goCover_65b09fc02769__466[12] = 1;
+		result.FledgeEligible = s.checkFledgeEligibility(req)
+	}
+
+	// Apply fallback if no Privacy Sandbox signals available
+	goCover_65b09fc02769__466[7] = 1;if !result.TopicsAvailable && !result.FledgeEligible {goCover_65b09fc02769__466[13] = 1;
+		result.FallbackUsed = true
+		result.FallbackMethod = config.FallbackStrategy
+		if result.FallbackMethod == "" {goCover_65b09fc02769__466[14] = 1;
+			result.FallbackMethod = "contextual"
+		}
+	}
+
+	goCover_65b09fc02769__466[8] = 1;return result
+}
+
+func (s *PrivacySandboxService) evaluateTopicsAPI(config *model.TopicsAPIConfig, req *model.BidRequest, result *model.PrivacySandboxResult) {goCover_65b09fc02769__467[0] = 15 ; goCover_65b09fc02769__467[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__467[2] = 467 ; goCover_65b09fc02769__467[3] = 1;
+	// Get user topics from request context (simulating browser-provided topics)
+	userTopics := s.getUserTopics(req)
+
+	if len(userTopics) == 0 {goCover_65b09fc02769__467[6] = 1;
+		result.TopicsAvailable = false
+		return
+	}
+
+	goCover_65b09fc02769__467[4] = 1;result.TopicsAvailable = true
+	result.UserTopics = userTopics
+
+	// Check for topic matches
+	for _, userTopic := range userTopics {goCover_65b09fc02769__467[7] = 1;
+		// Check exclusions first
+		for _, excludeTopic := range config.ExcludeTopics {goCover_65b09fc02769__467[9] = 1;
+			if userTopic == excludeTopic {goCover_65b09fc02769__467[10] = 1;
+				result.TopicMatch = false
+				result.TopicMultiplier = 0 // Block bid
+				result.Reason = "excluded_topic_match"
+				return
+			}
+		}
+
+		// Check target topics
+		goCover_65b09fc02769__467[8] = 1;for _, targetTopic := range config.TargetTopics {goCover_65b09fc02769__467[11] = 1;
+			if userTopic == targetTopic {goCover_65b09fc02769__467[12] = 1;
+				result.TopicMatch = true
+
+				// Apply bid boost if configured
+				for _, boost := range config.TopicBidBoosts {goCover_65b09fc02769__467[15] = 1;
+					if boost.TopicID == userTopic {goCover_65b09fc02769__467[16] = 1;
+						result.TopicMultiplier = boost.Multiplier
+						break
+					}
+				}
+
+				goCover_65b09fc02769__467[13] = 1;if result.TopicMultiplier == 1.0 {goCover_65b09fc02769__467[17] = 1;
+					result.TopicMultiplier = 1.2 // Default 20% boost for topic match
+				}
+
+				goCover_65b09fc02769__467[14] = 1;result.Reason = "topic_match"
+				return
+			}
+		}
+	}
+
+	// No specific match, but topics available
+	goCover_65b09fc02769__467[5] = 1;result.TopicMatch = false
+	result.Reason = "topics_available_no_match"
+}
+
+func (s *PrivacySandboxService) getUserTopics(req *model.BidRequest) []int {goCover_65b09fc02769__468[0] = 9 ; goCover_65b09fc02769__468[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__468[2] = 468 ; goCover_65b09fc02769__468[3] = 1;
+	// In real implementation, topics come from browser via request headers
+	// or as part of the OpenRTB request extensions
+
+	// Check request context for topics
+	if req.Context != nil {goCover_65b09fc02769__468[6] = 1;
+		if topics, ok := req.Context["chrome_topics"].([]interface{}); ok {goCover_65b09fc02769__468[7] = 1;
+			result := make([]int, 0, len(topics))
+			for _, t := range topics {goCover_65b09fc02769__468[9] = 1;
+				if topicID, ok := t.(float64); ok {goCover_65b09fc02769__468[10] = 1;
+					result = append(result, int(topicID))
+				}
+			}
+			goCover_65b09fc02769__468[8] = 1;return result
+		}
+	}
+
+	// Check for topics in user extensions
+	goCover_65b09fc02769__468[4] = 1;s.mu.RLock()
+	topics, exists := s.topicCache[req.User.ID]
+	s.mu.RUnlock()
+
+	if exists {goCover_65b09fc02769__468[11] = 1;
+		return topics
+	}
+
+	goCover_65b09fc02769__468[5] = 1;return nil
+}
+
+func (s *PrivacySandboxService) checkFledgeEligibility(req *model.BidRequest) bool {goCover_65b09fc02769__469[0] = 8 ; goCover_65b09fc02769__469[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__469[2] = 469 ; goCover_65b09fc02769__469[3] = 1;
+	// Check if browser supports FLEDGE/Protected Audience API
+	if req.Context != nil {goCover_65b09fc02769__469[6] = 1;
+		if fledge, ok := req.Context["fledge_supported"].(bool); ok {goCover_65b09fc02769__469[8] = 1;
+			return fledge
+		}
+		goCover_65b09fc02769__469[7] = 1;if pa, ok := req.Context["protected_audience"].(bool); ok {goCover_65b09fc02769__469[9] = 1;
+			return pa
+		}
+	}
+
+	// Check user-agent or other signals
+	// Chrome 115+ supports Protected Audience
+	goCover_65b09fc02769__469[4] = 1;ua := req.Device.UserAgent
+	if ua != "" && containsString(ua, "Chrome/") {goCover_65b09fc02769__469[10] = 1;
+		// Simplified check - real implementation would parse version
+		return true
+	}
+
+	goCover_65b09fc02769__469[5] = 1;return false
+}
+
+// GenerateAttributionSource creates Attribution Reporting API source registration
+func (s *PrivacySandboxService) GenerateAttributionSource(config *model.AttributionAPIConfig, campaign *model.Campaign, req *model.BidRequest) map[string]interface{} {goCover_65b09fc02769__470[0] = 7 ; goCover_65b09fc02769__470[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__470[2] = 470 ; goCover_65b09fc02769__470[3] = 1;
+	if config == nil || !config.Enabled {goCover_65b09fc02769__470[7] = 1;
+		return nil
+	}
+
+	// Use campaign creative URL as destination since Campaign doesn't have LandingURL
+	goCover_65b09fc02769__470[4] = 1;destination := campaign.Creative.URL
+
+	source := map[string]interface{}{
+		"source_event_id":  config.SourceEventID,
+		"destination":      destination,
+		"reporting_origin": config.ReportingOrigin,
+		"expiry":           "604800", // 7 days
+		"priority":         "100",
+		"debug_key":        "",
+	}
+
+	if config.DebugMode {goCover_65b09fc02769__470[8] = 1;
+		source["debug_key"] = campaign.ID + "_" + req.ID
+	}
+
+	// Add aggregatable source if configured
+	goCover_65b09fc02769__470[5] = 1;if len(config.AggregatableValues) > 0 {goCover_65b09fc02769__470[9] = 1;
+		source["aggregatable_source"] = config.AggregatableValues
+	}
+
+	goCover_65b09fc02769__470[6] = 1;return source
+}
+
+// GenerateFledgeBid creates a FLEDGE/Protected Audience bid
+func (s *PrivacySandboxService) GenerateFledgeBid(campaign *model.Campaign, req *model.BidRequest) map[string]interface{} {goCover_65b09fc02769__471[0] = 3 ; goCover_65b09fc02769__471[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__471[2] = 471 ; goCover_65b09fc02769__471[3] = 1;
+	// Use campaign name as advertiser identifier since Campaign doesn't have AdvertiserDomain
+	advertiserID := campaign.TenantID
+	if advertiserID == "" {goCover_65b09fc02769__471[5] = 1;
+		advertiserID = campaign.ID
+	}
+
+	goCover_65b09fc02769__471[4] = 1;return map[string]interface{}{
+		"interest_group_owner": advertiserID,
+		"interest_group_name":  "campaign_" + campaign.ID,
+		"bid": map[string]interface{}{
+			"bid":              campaign.BidPrice,
+			"render":           campaign.Creative.URL,
+			"ad_cost":          campaign.BidPrice,
+			"modeling_signals": 0,
+		},
+		"bid_currency": "USD",
+	}
+}
+
+// RegisterUserTopic registers a topic observation for a user (for simulation/testing)
+func (s *PrivacySandboxService) RegisterUserTopic(userID string, topicID int) {goCover_65b09fc02769__472[0] = 5 ; goCover_65b09fc02769__472[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__472[2] = 472 ; goCover_65b09fc02769__472[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.topicCache[userID]; !exists {goCover_65b09fc02769__472[6] = 1;
+		s.topicCache[userID] = make([]int, 0, 5)
+	}
+
+	// Keep only last 5 topics (as per Topics API spec)
+	goCover_65b09fc02769__472[4] = 1;topics := s.topicCache[userID]
+	if len(topics) >= 5 {goCover_65b09fc02769__472[7] = 1;
+		topics = topics[1:]
+	}
+	goCover_65b09fc02769__472[5] = 1;topics = append(topics, topicID)
+	s.topicCache[userID] = topics
+}
+
+// AddToInterestGroup adds user to a FLEDGE interest group
+func (s *PrivacySandboxService) AddToInterestGroup(userID, groupName string) {goCover_65b09fc02769__473[0] = 6 ; goCover_65b09fc02769__473[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__473[2] = 473 ; goCover_65b09fc02769__473[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.fledgeAudiences[userID]; !exists {goCover_65b09fc02769__473[6] = 1;
+		s.fledgeAudiences[userID] = make([]string, 0)
+	}
+
+	// Check if already in group
+	goCover_65b09fc02769__473[4] = 1;for _, g := range s.fledgeAudiences[userID] {goCover_65b09fc02769__473[7] = 1;
+		if g == groupName {goCover_65b09fc02769__473[8] = 1;
+			return
+		}
+	}
+
+	goCover_65b09fc02769__473[5] = 1;s.fledgeAudiences[userID] = append(s.fledgeAudiences[userID], groupName)
+}
+
+// GetUserInterestGroups returns interest groups for a user
+func (s *PrivacySandboxService) GetUserInterestGroups(userID string) []string {goCover_65b09fc02769__474[0] = 3 ; goCover_65b09fc02769__474[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__474[2] = 474 ; goCover_65b09fc02769__474[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if groups, exists := s.fledgeAudiences[userID]; exists {goCover_65b09fc02769__474[5] = 1;
+		result := make([]string, len(groups))
+		copy(result, groups)
+		return result
+	}
+
+	goCover_65b09fc02769__474[4] = 1;return nil
+}
+
+// GetTopicName returns the human-readable name for a topic ID
+func (s *PrivacySandboxService) GetTopicName(topicID int) string {goCover_65b09fc02769__475[0] = 3 ; goCover_65b09fc02769__475[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__475[2] = 475 ; goCover_65b09fc02769__475[3] = 1;
+	if name, exists := topicTaxonomy[topicID]; exists {goCover_65b09fc02769__475[5] = 1;
+		return name
+	}
+	goCover_65b09fc02769__475[4] = 1;return "Unknown"
+}
+
+// SimulateSharedStorage simulates Shared Storage API read (for testing)
+func (s *PrivacySandboxService) SimulateSharedStorage(userID, key string) (string, bool) {goCover_65b09fc02769__476[0] = 1 ; goCover_65b09fc02769__476[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__476[2] = 476 ; goCover_65b09fc02769__476[3] = 1;
+	// In real implementation, this would interact with browser's Shared Storage
+	// For now, we simulate using our cache
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	cacheKey := "shared_storage:" + userID + ":" + key
+	// Simulated storage - would use actual cache in production
+	_ = cacheKey
+	return "", false
+}
+
+// GeneratePrivateAggregationReport creates a Private Aggregation API report
+func (s *PrivacySandboxService) GeneratePrivateAggregationReport(campaign *model.Campaign, bucket int64, value int) map[string]interface{} {goCover_65b09fc02769__477[0] = 1 ; goCover_65b09fc02769__477[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__477[2] = 477 ; goCover_65b09fc02769__477[3] = 1;
+	return map[string]interface{}{
+		"contributions": []map[string]interface{}{
+			{
+				"bucket": bucket,
+				"value":  value,
+			},
+		},
+		"debug_key":                      campaign.ID,
+		"aggregation_coordinator_origin": "https://publickeyservice.aws.privacysandboxservices.com",
+	}
+}
+
+// containsString checks if a string contains a substring
+func containsString(s, substr string) bool {goCover_65b09fc02769__478[0] = 1 ; goCover_65b09fc02769__478[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__478[2] = 478 ; goCover_65b09fc02769__478[3] = 1;
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStringHelper(s, substr))
+}
+
+func containsStringHelper(s, substr string) bool {goCover_65b09fc02769__479[0] = 4 ; goCover_65b09fc02769__479[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__479[2] = 479 ; goCover_65b09fc02769__479[3] = 1;
+	for i := 0; i <= len(s)-len(substr); i++ {goCover_65b09fc02769__479[5] = 1;
+		if s[i:i+len(substr)] == substr {goCover_65b09fc02769__479[6] = 1;
+			return true
+		}
+	}
+	goCover_65b09fc02769__479[4] = 1;return false
+}
+
+// CleanupExpiredTopics removes topics older than the retention period
+func (s *PrivacySandboxService) CleanupExpiredTopics(retentionDays int) {goCover_65b09fc02769__480[0] = 1 ; goCover_65b09fc02769__480[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__480[2] = 480 ; goCover_65b09fc02769__480[3] = 1;
+	// Topics API retains data for limited time (typically 3 weeks)
+	// This would clean up old entries
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	cutoff := time.Now().AddDate(0, 0, -retentionDays)
+	_ = cutoff // Would use with timestamp tracking in production
+}

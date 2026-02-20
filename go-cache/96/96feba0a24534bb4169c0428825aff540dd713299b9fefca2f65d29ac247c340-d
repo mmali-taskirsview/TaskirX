@@ -1,0 +1,647 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\user_clustering.go:1:1
+package service
+
+import (
+	"math"
+	"math/rand"
+	"sort"
+	"sync"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+)
+
+// UserClusteringService provides ML-based user segmentation and clustering
+type UserClusteringService struct {
+	cacheClient cache.Cache
+	mu          sync.RWMutex
+
+	// User data for clustering
+	users map[string]*clusterUser
+
+	// Cluster definitions
+	clusters map[string]*userCluster
+
+	// Configuration
+	config *ClusteringConfig
+
+	// K-means state
+	centroids [][]float64
+}
+
+// ClusteringConfig holds configuration for user clustering
+type ClusteringConfig struct {
+	Enabled            bool
+	NumClusters        int
+	MinClusterSize     int
+	MaxIterations      int
+	ConvergenceThresh  float64
+	FeatureDimensions  int
+	RefreshIntervalHrs int
+}
+
+type clusterUser struct {
+	UserID          string
+	FeatureVector   []float64
+	ClusterID       string
+	ClusterDistance float64
+	LastUpdated     time.Time
+}
+
+type userCluster struct {
+	ID          string
+	Name        string
+	Centroid    []float64
+	UserCount   int
+	AvgDistance float64
+	Cohesion    float64 // Intra-cluster similarity
+	Features    clusterFeatures
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type clusterFeatures struct {
+	TopInterests    []string
+	TopDevices      []string
+	TopGeos         []string
+	AvgEngagement   float64
+	AvgRecency      float64
+	BehaviorProfile string
+	ValueSegment    string
+}
+
+// NewUserClusteringService creates a new user clustering service
+func NewUserClusteringService(c cache.Cache) *UserClusteringService {goCover_65b09fc02769__556[0] = 1 ; goCover_65b09fc02769__556[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__556[2] = 556 ; goCover_65b09fc02769__556[3] = 1;
+	return &UserClusteringService{
+		cacheClient: c,
+		users:       make(map[string]*clusterUser),
+		clusters:    make(map[string]*userCluster),
+		config: &ClusteringConfig{
+			Enabled:            true,
+			NumClusters:        10,
+			MinClusterSize:     50,
+			MaxIterations:      100,
+			ConvergenceThresh:  0.001,
+			FeatureDimensions:  30,
+			RefreshIntervalHrs: 24,
+		},
+	}
+}
+
+// ClusteringResult represents the result of clustering operation
+type ClusteringResult struct {
+	NumClusters     int              `json:"num_clusters"`
+	TotalUsers      int              `json:"total_users"`
+	Iterations      int              `json:"iterations"`
+	Converged       bool             `json:"converged"`
+	SilhouetteScore float64          `json:"silhouette_score"`
+	Clusters        []ClusterSummary `json:"clusters"`
+	Status          string           `json:"status"`
+}
+
+// ClusterSummary provides summary info about a cluster
+type ClusterSummary struct {
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	UserCount       int      `json:"user_count"`
+	Cohesion        float64  `json:"cohesion"`
+	TopInterests    []string `json:"top_interests"`
+	BehaviorProfile string   `json:"behavior_profile"`
+	ValueSegment    string   `json:"value_segment"`
+}
+
+// RunClustering performs K-means clustering on all users
+func (s *UserClusteringService) RunClustering() *ClusteringResult {goCover_65b09fc02769__557[0] = 19 ; goCover_65b09fc02769__557[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__557[2] = 557 ; goCover_65b09fc02769__557[3] = 1;
+	if !s.config.Enabled {goCover_65b09fc02769__557[10] = 1;
+		return &ClusteringResult{Status: "disabled"}
+	}
+
+	goCover_65b09fc02769__557[4] = 1;s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(s.users) < s.config.MinClusterSize*s.config.NumClusters {goCover_65b09fc02769__557[11] = 1;
+		return &ClusteringResult{
+			Status:     "insufficient_data",
+			TotalUsers: len(s.users),
+		}
+	}
+
+	// Extract feature vectors
+	goCover_65b09fc02769__557[5] = 1;userIDs := make([]string, 0, len(s.users))
+	featureVectors := make([][]float64, 0, len(s.users))
+
+	for id, user := range s.users {goCover_65b09fc02769__557[12] = 1;
+		if len(user.FeatureVector) == s.config.FeatureDimensions {goCover_65b09fc02769__557[13] = 1;
+			userIDs = append(userIDs, id)
+			featureVectors = append(featureVectors, user.FeatureVector)
+		}
+	}
+
+	goCover_65b09fc02769__557[6] = 1;if len(featureVectors) < s.config.MinClusterSize*s.config.NumClusters {goCover_65b09fc02769__557[14] = 1;
+		return &ClusteringResult{
+			Status:     "insufficient_valid_users",
+			TotalUsers: len(featureVectors),
+		}
+	}
+
+	// Run K-means
+	goCover_65b09fc02769__557[7] = 1;centroids, assignments, iterations, converged := s.kMeans(featureVectors, s.config.NumClusters)
+	s.centroids = centroids
+
+	// Build clusters
+	clusterUsers := make(map[int][]string)
+	for i, clusterIdx := range assignments {goCover_65b09fc02769__557[15] = 1;
+		clusterUsers[clusterIdx] = append(clusterUsers[clusterIdx], userIDs[i])
+	}
+
+	// Create cluster objects
+	goCover_65b09fc02769__557[8] = 1;s.clusters = make(map[string]*userCluster)
+	summaries := make([]ClusterSummary, 0)
+
+	for clusterIdx, centroid := range centroids {goCover_65b09fc02769__557[16] = 1;
+		users := clusterUsers[clusterIdx]
+		if len(users) < s.config.MinClusterSize {goCover_65b09fc02769__557[19] = 1;
+			continue
+		}
+
+		goCover_65b09fc02769__557[17] = 1;clusterID := generateClusterID(clusterIdx)
+		features := s.extractClusterFeatures(users, centroid)
+		cohesion := s.calculateCohesion(users, centroid)
+
+		cluster := &userCluster{
+			ID:        clusterID,
+			Name:      s.generateClusterName(features),
+			Centroid:  centroid,
+			UserCount: len(users),
+			Cohesion:  cohesion,
+			Features:  features,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		s.clusters[clusterID] = cluster
+
+		// Update user assignments
+		for _, userID := range users {goCover_65b09fc02769__557[20] = 1;
+			if user, exists := s.users[userID]; exists {goCover_65b09fc02769__557[21] = 1;
+				user.ClusterID = clusterID
+				user.ClusterDistance = s.euclideanDistance(user.FeatureVector, centroid)
+			}
+		}
+
+		goCover_65b09fc02769__557[18] = 1;summaries = append(summaries, ClusterSummary{
+			ID:              clusterID,
+			Name:            cluster.Name,
+			UserCount:       cluster.UserCount,
+			Cohesion:        cohesion,
+			TopInterests:    features.TopInterests,
+			BehaviorProfile: features.BehaviorProfile,
+			ValueSegment:    features.ValueSegment,
+		})
+	}
+
+	// Calculate silhouette score
+	goCover_65b09fc02769__557[9] = 1;silhouette := s.calculateSilhouetteScore(featureVectors, assignments)
+
+	return &ClusteringResult{
+		NumClusters:     len(s.clusters),
+		TotalUsers:      len(featureVectors),
+		Iterations:      iterations,
+		Converged:       converged,
+		SilhouetteScore: silhouette,
+		Clusters:        summaries,
+		Status:          "completed",
+	}
+}
+
+// kMeans implements K-means clustering algorithm
+func (s *UserClusteringService) kMeans(data [][]float64, k int) ([][]float64, []int, int, bool) {goCover_65b09fc02769__558[0] = 21 ; goCover_65b09fc02769__558[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__558[2] = 558 ; goCover_65b09fc02769__558[3] = 1;
+	n := len(data)
+	dim := len(data[0])
+
+	// Initialize centroids using K-means++ initialization
+	centroids := s.kMeansPlusPlusInit(data, k)
+
+	assignments := make([]int, n)
+	iterations := 0
+	converged := false
+
+	for iter := 0; iter < s.config.MaxIterations; iter++ {goCover_65b09fc02769__558[5] = 1;
+		iterations++
+
+		// Assignment step: assign each point to nearest centroid
+		for i, point := range data {goCover_65b09fc02769__558[11] = 1;
+			minDist := math.MaxFloat64
+			minIdx := 0
+			for j, centroid := range centroids {goCover_65b09fc02769__558[13] = 1;
+				dist := s.euclideanDistance(point, centroid)
+				if dist < minDist {goCover_65b09fc02769__558[14] = 1;
+					minDist = dist
+					minIdx = j
+				}
+			}
+			goCover_65b09fc02769__558[12] = 1;assignments[i] = minIdx
+		}
+
+		// Update step: recalculate centroids
+		goCover_65b09fc02769__558[6] = 1;newCentroids := make([][]float64, k)
+		counts := make([]int, k)
+
+		for j := 0; j < k; j++ {goCover_65b09fc02769__558[15] = 1;
+			newCentroids[j] = make([]float64, dim)
+		}
+
+		goCover_65b09fc02769__558[7] = 1;for i, point := range data {goCover_65b09fc02769__558[16] = 1;
+			cluster := assignments[i]
+			counts[cluster]++
+			for d := 0; d < dim; d++ {goCover_65b09fc02769__558[17] = 1;
+				newCentroids[cluster][d] += point[d]
+			}
+		}
+
+		// Normalize centroids
+		goCover_65b09fc02769__558[8] = 1;for j := 0; j < k; j++ {goCover_65b09fc02769__558[18] = 1;
+			if counts[j] > 0 {goCover_65b09fc02769__558[19] = 1;
+				for d := 0; d < dim; d++ {goCover_65b09fc02769__558[20] = 1;
+					newCentroids[j][d] /= float64(counts[j])
+				}
+			}
+		}
+
+		// Check convergence
+		goCover_65b09fc02769__558[9] = 1;maxShift := 0.0
+		for j := 0; j < k; j++ {goCover_65b09fc02769__558[21] = 1;
+			shift := s.euclideanDistance(centroids[j], newCentroids[j])
+			if shift > maxShift {goCover_65b09fc02769__558[22] = 1;
+				maxShift = shift
+			}
+		}
+
+		goCover_65b09fc02769__558[10] = 1;centroids = newCentroids
+
+		if maxShift < s.config.ConvergenceThresh {goCover_65b09fc02769__558[23] = 1;
+			converged = true
+			break
+		}
+	}
+
+	goCover_65b09fc02769__558[4] = 1;return centroids, assignments, iterations, converged
+}
+
+// kMeansPlusPlusInit implements K-means++ initialization
+func (s *UserClusteringService) kMeansPlusPlusInit(data [][]float64, k int) [][]float64 {goCover_65b09fc02769__559[0] = 11 ; goCover_65b09fc02769__559[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__559[2] = 559 ; goCover_65b09fc02769__559[3] = 1;
+	n := len(data)
+	dim := len(data[0])
+
+	centroids := make([][]float64, k)
+
+	// Choose first centroid randomly
+	firstIdx := rand.Intn(n)
+	centroids[0] = make([]float64, dim)
+	copy(centroids[0], data[firstIdx])
+
+	// Choose remaining centroids
+	for i := 1; i < k; i++ {goCover_65b09fc02769__559[5] = 1;
+		// Calculate distances to nearest centroid
+		distances := make([]float64, n)
+		totalDist := 0.0
+
+		for j, point := range data {goCover_65b09fc02769__559[8] = 1;
+			minDist := math.MaxFloat64
+			for c := 0; c < i; c++ {goCover_65b09fc02769__559[10] = 1;
+				dist := s.euclideanDistance(point, centroids[c])
+				if dist < minDist {goCover_65b09fc02769__559[11] = 1;
+					minDist = dist
+				}
+			}
+			goCover_65b09fc02769__559[9] = 1;distances[j] = minDist * minDist // Square distance for probability
+			totalDist += distances[j]
+		}
+
+		// Choose next centroid with probability proportional to distance^2
+		goCover_65b09fc02769__559[6] = 1;target := rand.Float64() * totalDist
+		cumDist := 0.0
+		chosenIdx := 0
+		for j, dist := range distances {goCover_65b09fc02769__559[12] = 1;
+			cumDist += dist
+			if cumDist >= target {goCover_65b09fc02769__559[13] = 1;
+				chosenIdx = j
+				break
+			}
+		}
+
+		goCover_65b09fc02769__559[7] = 1;centroids[i] = make([]float64, dim)
+		copy(centroids[i], data[chosenIdx])
+	}
+
+	goCover_65b09fc02769__559[4] = 1;return centroids
+}
+
+func (s *UserClusteringService) euclideanDistance(a, b []float64) float64 {goCover_65b09fc02769__560[0] = 5 ; goCover_65b09fc02769__560[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__560[2] = 560 ; goCover_65b09fc02769__560[3] = 1;
+	if len(a) != len(b) {goCover_65b09fc02769__560[6] = 1;
+		return math.MaxFloat64
+	}
+
+	goCover_65b09fc02769__560[4] = 1;sum := 0.0
+	for i := range a {goCover_65b09fc02769__560[7] = 1;
+		diff := a[i] - b[i]
+		sum += diff * diff
+	}
+	goCover_65b09fc02769__560[5] = 1;return math.Sqrt(sum)
+}
+
+func (s *UserClusteringService) extractClusterFeatures(userIDs []string, centroid []float64) clusterFeatures {goCover_65b09fc02769__561[0] = 21 ; goCover_65b09fc02769__561[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__561[2] = 561 ; goCover_65b09fc02769__561[3] = 1;
+	features := clusterFeatures{}
+
+	interestCounts := make(map[string]int)
+	deviceCounts := make(map[string]int)
+	geoCounts := make(map[string]int)
+	totalEngagement := 0.0
+	totalRecency := 0.0
+
+	// Interest feature indices (0-9)
+	interestNames := []string{"sports", "tech", "finance", "travel", "food",
+		"fashion", "auto", "health", "entertainment", "gaming"}
+
+	// Determine top interests from centroid
+	for i, val := range centroid[:10] {goCover_65b09fc02769__561[10] = 1;
+		if val > 0.3 {goCover_65b09fc02769__561[11] = 1;
+			interestCounts[interestNames[i]] = int(val * 100)
+		}
+	}
+
+	// Determine behavior profile from centroid
+	goCover_65b09fc02769__561[4] = 1;engagementIdx := 15 // Index for engagement score in centroid
+	recencyIdx := 16    // Index for recency score in centroid
+
+	if engagementIdx < len(centroid) {goCover_65b09fc02769__561[12] = 1;
+		totalEngagement = centroid[engagementIdx]
+	}
+	goCover_65b09fc02769__561[5] = 1;if recencyIdx < len(centroid) {goCover_65b09fc02769__561[13] = 1;
+		totalRecency = centroid[recencyIdx]
+	}
+
+	// Device profile from centroid (indices 20-24)
+	goCover_65b09fc02769__561[6] = 1;deviceNames := []string{"mobile", "desktop", "tablet", "ctv", "other"}
+	for i := 0; i < 5 && 20+i < len(centroid); i++ {goCover_65b09fc02769__561[14] = 1;
+		if centroid[20+i] > 0.2 {goCover_65b09fc02769__561[15] = 1;
+			deviceCounts[deviceNames[i]] = int(centroid[20+i] * 100)
+		}
+	}
+
+	goCover_65b09fc02769__561[7] = 1;features.TopInterests = topNStrings(interestCounts, 5)
+	features.TopDevices = topNStrings(deviceCounts, 3)
+	features.TopGeos = topNStrings(geoCounts, 3)
+	features.AvgEngagement = totalEngagement
+	features.AvgRecency = totalRecency
+
+	// Determine behavior profile
+	if totalEngagement > 0.7 {goCover_65b09fc02769__561[16] = 1;
+		features.BehaviorProfile = "high_engagement"
+	} else{ goCover_65b09fc02769__561[17] = 1;if totalEngagement > 0.4 {goCover_65b09fc02769__561[18] = 1;
+		features.BehaviorProfile = "moderate_engagement"
+	} else{ goCover_65b09fc02769__561[19] = 1;{
+		features.BehaviorProfile = "low_engagement"
+	}}}
+
+	// Determine value segment
+	goCover_65b09fc02769__561[8] = 1;if totalEngagement > 0.6 && totalRecency > 0.7 {goCover_65b09fc02769__561[20] = 1;
+		features.ValueSegment = "high_value"
+	} else{ goCover_65b09fc02769__561[21] = 1;if totalEngagement > 0.3 || totalRecency > 0.5 {goCover_65b09fc02769__561[22] = 1;
+		features.ValueSegment = "medium_value"
+	} else{ goCover_65b09fc02769__561[23] = 1;{
+		features.ValueSegment = "low_value"
+	}}}
+
+	goCover_65b09fc02769__561[9] = 1;return features
+}
+
+func (s *UserClusteringService) calculateCohesion(userIDs []string, centroid []float64) float64 {goCover_65b09fc02769__562[0] = 8 ; goCover_65b09fc02769__562[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__562[2] = 562 ; goCover_65b09fc02769__562[3] = 1;
+	if len(userIDs) == 0 {goCover_65b09fc02769__562[7] = 1;
+		return 0.0
+	}
+
+	goCover_65b09fc02769__562[4] = 1;totalDist := 0.0
+	count := 0
+
+	for _, userID := range userIDs {goCover_65b09fc02769__562[8] = 1;
+		if user, exists := s.users[userID]; exists {goCover_65b09fc02769__562[9] = 1;
+			totalDist += s.euclideanDistance(user.FeatureVector, centroid)
+			count++
+		}
+	}
+
+	goCover_65b09fc02769__562[5] = 1;if count == 0 {goCover_65b09fc02769__562[10] = 1;
+		return 0.0
+	}
+
+	goCover_65b09fc02769__562[6] = 1;avgDist := totalDist / float64(count)
+	// Convert distance to cohesion (lower distance = higher cohesion)
+	return 1.0 / (1.0 + avgDist)
+}
+
+func (s *UserClusteringService) calculateSilhouetteScore(data [][]float64, assignments []int) float64 {goCover_65b09fc02769__563[0] = 22 ; goCover_65b09fc02769__563[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__563[2] = 563 ; goCover_65b09fc02769__563[3] = 1;
+	n := len(data)
+	if n < 2 {goCover_65b09fc02769__563[6] = 1;
+		return 0.0
+	}
+
+	goCover_65b09fc02769__563[4] = 1;silhouetteSum := 0.0
+
+	for i := 0; i < n; i++ {goCover_65b09fc02769__563[7] = 1;
+		// Calculate a(i) - average distance to same cluster
+		sameCluster := 0.0
+		sameCount := 0
+		for j := 0; j < n; j++ {goCover_65b09fc02769__563[14] = 1;
+			if i != j && assignments[i] == assignments[j] {goCover_65b09fc02769__563[15] = 1;
+				sameCluster += s.euclideanDistance(data[i], data[j])
+				sameCount++
+			}
+		}
+		goCover_65b09fc02769__563[8] = 1;a := 0.0
+		if sameCount > 0 {goCover_65b09fc02769__563[16] = 1;
+			a = sameCluster / float64(sameCount)
+		}
+
+		// Calculate b(i) - minimum average distance to other clusters
+		goCover_65b09fc02769__563[9] = 1;b := math.MaxFloat64
+		clusterDists := make(map[int][]float64)
+		for j := 0; j < n; j++ {goCover_65b09fc02769__563[17] = 1;
+			if assignments[i] != assignments[j] {goCover_65b09fc02769__563[18] = 1;
+				clusterDists[assignments[j]] = append(clusterDists[assignments[j]], s.euclideanDistance(data[i], data[j]))
+			}
+		}
+		goCover_65b09fc02769__563[10] = 1;for _, dists := range clusterDists {goCover_65b09fc02769__563[19] = 1;
+			avgDist := 0.0
+			for _, d := range dists {goCover_65b09fc02769__563[21] = 1;
+				avgDist += d
+			}
+			goCover_65b09fc02769__563[20] = 1;avgDist /= float64(len(dists))
+			if avgDist < b {goCover_65b09fc02769__563[22] = 1;
+				b = avgDist
+			}
+		}
+
+		// Calculate silhouette for this point
+		goCover_65b09fc02769__563[11] = 1;if b == math.MaxFloat64 {goCover_65b09fc02769__563[23] = 1;
+			b = 0
+		}
+		goCover_65b09fc02769__563[12] = 1;silhouette := 0.0
+		if math.Max(a, b) > 0 {goCover_65b09fc02769__563[24] = 1;
+			silhouette = (b - a) / math.Max(a, b)
+		}
+		goCover_65b09fc02769__563[13] = 1;silhouetteSum += silhouette
+	}
+
+	goCover_65b09fc02769__563[5] = 1;return silhouetteSum / float64(n)
+}
+
+func (s *UserClusteringService) generateClusterName(features clusterFeatures) string {goCover_65b09fc02769__564[0] = 3 ; goCover_65b09fc02769__564[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__564[2] = 564 ; goCover_65b09fc02769__564[3] = 1;
+	name := features.ValueSegment + "_"
+	if len(features.TopInterests) > 0 {goCover_65b09fc02769__564[5] = 1;
+		name += features.TopInterests[0] + "_"
+	}
+	goCover_65b09fc02769__564[4] = 1;name += features.BehaviorProfile
+	return name
+}
+
+// RegisterUser registers a user with their feature vector
+func (s *UserClusteringService) RegisterUser(userID string, featureVector []float64) {goCover_65b09fc02769__565[0] = 1 ; goCover_65b09fc02769__565[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__565[2] = 565 ; goCover_65b09fc02769__565[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.users[userID] = &clusterUser{
+		UserID:        userID,
+		FeatureVector: featureVector,
+		LastUpdated:   time.Now(),
+	}
+}
+
+// BuildUserFeatures builds a feature vector from user attributes
+func (s *UserClusteringService) BuildUserFeatures(
+	interests []string,
+	deviceType string,
+	geo string,
+	impressions, clicks, conversions int64,
+	engagement, recency float64,
+) []float64 {goCover_65b09fc02769__566[0] = 10 ; goCover_65b09fc02769__566[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__566[2] = 566 ; goCover_65b09fc02769__566[3] = 1;
+	vector := make([]float64, s.config.FeatureDimensions)
+
+	// Interest features (0-9)
+	interestMap := map[string]int{
+		"sports": 0, "tech": 1, "finance": 2, "travel": 3, "food": 4,
+		"fashion": 5, "auto": 6, "health": 7, "entertainment": 8, "gaming": 9,
+	}
+	for _, interest := range interests {goCover_65b09fc02769__566[8] = 1;
+		if idx, ok := interestMap[interest]; ok {goCover_65b09fc02769__566[9] = 1;
+			vector[idx] = 1.0
+		}
+	}
+
+	// Behavior features (10-14)
+	goCover_65b09fc02769__566[4] = 1;vector[10] = math.Min(math.Log1p(float64(impressions))/10.0, 1.0)
+	vector[11] = math.Min(math.Log1p(float64(clicks))/5.0, 1.0)
+	vector[12] = math.Min(math.Log1p(float64(conversions))/3.0, 1.0)
+
+	// CTR/CVR
+	if impressions > 0 {goCover_65b09fc02769__566[10] = 1;
+		vector[13] = math.Min(float64(clicks)/float64(impressions)*20.0, 1.0)
+	}
+	goCover_65b09fc02769__566[5] = 1;if clicks > 0 {goCover_65b09fc02769__566[11] = 1;
+		vector[14] = math.Min(float64(conversions)/float64(clicks)*10.0, 1.0)
+	}
+
+	// Engagement and recency (15-16)
+	goCover_65b09fc02769__566[6] = 1;vector[15] = engagement
+	vector[16] = recency
+
+	// Device features (20-24)
+	deviceMap := map[string]int{"mobile": 20, "desktop": 21, "tablet": 22, "ctv": 23, "other": 24}
+	if idx, ok := deviceMap[deviceType]; ok {goCover_65b09fc02769__566[12] = 1;
+		vector[idx] = 1.0
+	}
+
+	goCover_65b09fc02769__566[7] = 1;return vector
+}
+
+// GetUserCluster returns the cluster assignment for a user
+func (s *UserClusteringService) GetUserCluster(userID string) (*userCluster, float64) {goCover_65b09fc02769__567[0] = 4 ; goCover_65b09fc02769__567[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__567[2] = 567 ; goCover_65b09fc02769__567[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if user, exists := s.users[userID]; exists {goCover_65b09fc02769__567[5] = 1;
+		if cluster, cExists := s.clusters[user.ClusterID]; cExists {goCover_65b09fc02769__567[6] = 1;
+			return cluster, user.ClusterDistance
+		}
+	}
+	goCover_65b09fc02769__567[4] = 1;return nil, 0.0
+}
+
+// GetClusterUsers returns users in a specific cluster
+func (s *UserClusteringService) GetClusterUsers(clusterID string) []string {goCover_65b09fc02769__568[0] = 4 ; goCover_65b09fc02769__568[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__568[2] = 568 ; goCover_65b09fc02769__568[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	users := make([]string, 0)
+	for userID, user := range s.users {goCover_65b09fc02769__568[5] = 1;
+		if user.ClusterID == clusterID {goCover_65b09fc02769__568[6] = 1;
+			users = append(users, userID)
+		}
+	}
+	goCover_65b09fc02769__568[4] = 1;return users
+}
+
+// GetClusteringStats returns statistics about clustering
+func (s *UserClusteringService) GetClusteringStats() map[string]interface{} {goCover_65b09fc02769__569[0] = 5 ; goCover_65b09fc02769__569[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__569[2] = 569 ; goCover_65b09fc02769__569[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	clusterSizes := make(map[string]int)
+	totalCohesion := 0.0
+
+	for id, cluster := range s.clusters {goCover_65b09fc02769__569[6] = 1;
+		clusterSizes[id] = cluster.UserCount
+		totalCohesion += cluster.Cohesion
+	}
+
+	goCover_65b09fc02769__569[4] = 1;avgCohesion := 0.0
+	if len(s.clusters) > 0 {goCover_65b09fc02769__569[7] = 1;
+		avgCohesion = totalCohesion / float64(len(s.clusters))
+	}
+
+	goCover_65b09fc02769__569[5] = 1;return map[string]interface{}{
+		"total_users":   len(s.users),
+		"num_clusters":  len(s.clusters),
+		"cluster_sizes": clusterSizes,
+		"avg_cohesion":  avgCohesion,
+		"config":        s.config,
+	}
+}
+
+// Helper functions
+
+func topNStrings(counts map[string]int, n int) []string {goCover_65b09fc02769__570[0] = 7 ; goCover_65b09fc02769__570[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__570[2] = 570 ; goCover_65b09fc02769__570[3] = 1;
+	type kv struct {
+		Key   string
+		Value int
+	}
+
+	pairs := make([]kv, 0, len(counts))
+	for k, v := range counts {goCover_65b09fc02769__570[7] = 1;
+		pairs = append(pairs, kv{k, v})
+	}
+
+	goCover_65b09fc02769__570[4] = 1;sort.Slice(pairs, func(i, j int) bool {goCover_65b09fc02769__570[8] = 1;
+		return pairs[i].Value > pairs[j].Value
+	})
+
+	goCover_65b09fc02769__570[5] = 1;result := make([]string, 0, n)
+	for i := 0; i < n && i < len(pairs); i++ {goCover_65b09fc02769__570[9] = 1;
+		result = append(result, pairs[i].Key)
+	}
+	goCover_65b09fc02769__570[6] = 1;return result
+}
+
+func generateClusterID(idx int) string {goCover_65b09fc02769__571[0] = 1 ; goCover_65b09fc02769__571[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__571[2] = 571 ; goCover_65b09fc02769__571[3] = 1;
+	return "cluster_" + time.Now().Format("20060102") + "_" + string(rune('A'+idx))
+}

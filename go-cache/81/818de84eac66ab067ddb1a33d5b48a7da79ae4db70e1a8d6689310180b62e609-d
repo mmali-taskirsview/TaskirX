@@ -1,0 +1,458 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\creative_optimization.go:1:1
+package service
+
+import (
+	"math"
+	"math/rand"
+	"sort"
+	"sync"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// CreativeOptimizationService handles automatic creative selection and optimization
+type CreativeOptimizationService struct {
+	cache           cache.Cache
+	mu              sync.RWMutex
+	creativePerf    map[string]*creativePerformance            // key: creativeID
+	placementPerf   map[string]map[string]*creativePerformance // key: placement -> creativeID -> perf
+	explorationSeed *rand.Rand
+}
+
+type creativePerformance struct {
+	impressions int64
+	clicks      int64
+	conversions int64
+	viewTime    float64
+	engagements int64
+	lastUpdated time.Time
+	score       float64
+	isExploring bool
+}
+
+// NewCreativeOptimizationService creates a new creative optimization service
+func NewCreativeOptimizationService(c cache.Cache) *CreativeOptimizationService {goCover_65b09fc02769__315[0] = 1 ; goCover_65b09fc02769__315[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__315[2] = 315 ; goCover_65b09fc02769__315[3] = 1;
+	return &CreativeOptimizationService{
+		cache:           c,
+		creativePerf:    make(map[string]*creativePerformance),
+		placementPerf:   make(map[string]map[string]*creativePerformance),
+		explorationSeed: rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
+}
+
+// SelectCreative selects the optimal creative for the request
+func (s *CreativeOptimizationService) SelectCreative(campaign *model.Campaign, req *model.BidRequest) *model.CreativeOptimizationResult {goCover_65b09fc02769__316[0] = 11 ; goCover_65b09fc02769__316[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__316[2] = 316 ; goCover_65b09fc02769__316[3] = 1;
+	config := campaign.Targeting.CreativeOptimization
+	if config == nil || !config.Enabled || len(config.CreativePool) == 0 {goCover_65b09fc02769__316[9] = 1;
+		// Use campaign ID + creative type as identifier since Creative doesn't have ID
+		defaultCreativeID := campaign.ID + "_" + campaign.Creative.Type
+		return &model.CreativeOptimizationResult{
+			SelectedCreativeID: defaultCreativeID,
+			SelectionMethod:    "default",
+			Confidence:         1.0,
+			Reason:             "creative_optimization_disabled",
+		}
+	}
+
+	// Filter active creatives
+	goCover_65b09fc02769__316[4] = 1;activeCreatives := s.filterActiveCreatives(config.CreativePool)
+	if len(activeCreatives) == 0 {goCover_65b09fc02769__316[10] = 1;
+		defaultCreativeID := campaign.ID + "_" + campaign.Creative.Type
+		return &model.CreativeOptimizationResult{
+			SelectedCreativeID: defaultCreativeID,
+			SelectionMethod:    "default",
+			Confidence:         1.0,
+			Reason:             "no_active_creatives",
+		}
+	}
+
+	// Check placement-specific rules first
+	goCover_65b09fc02769__316[5] = 1;if ruleResult := s.checkPlacementRules(config.PlacementRules, req, activeCreatives); ruleResult != nil {goCover_65b09fc02769__316[11] = 1;
+		return ruleResult
+	}
+
+	// Determine if we should explore or exploit
+	goCover_65b09fc02769__316[6] = 1;explorationRate := config.ExplorationRate
+	if explorationRate <= 0 {goCover_65b09fc02769__316[12] = 1;
+		explorationRate = 0.1 // Default 10% exploration
+	}
+
+	goCover_65b09fc02769__316[7] = 1;if s.explorationSeed.Float64() < explorationRate {goCover_65b09fc02769__316[13] = 1;
+		return s.exploreCreative(activeCreatives, config)
+	}
+
+	// Exploit: select best performing creative
+	goCover_65b09fc02769__316[8] = 1;return s.exploitBestCreative(activeCreatives, config, req)
+}
+
+func (s *CreativeOptimizationService) filterActiveCreatives(pool []model.CreativeVariant) []model.CreativeVariant {goCover_65b09fc02769__317[0] = 4 ; goCover_65b09fc02769__317[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__317[2] = 317 ; goCover_65b09fc02769__317[3] = 1;
+	var active []model.CreativeVariant
+	for _, cv := range pool {goCover_65b09fc02769__317[5] = 1;
+		if cv.Status == "" || cv.Status == "active" || cv.Status == "testing" {goCover_65b09fc02769__317[6] = 1;
+			active = append(active, cv)
+		}
+	}
+	goCover_65b09fc02769__317[4] = 1;return active
+}
+
+func (s *CreativeOptimizationService) checkPlacementRules(rules []model.PlacementCreativeRule, req *model.BidRequest, creatives []model.CreativeVariant) *model.CreativeOptimizationResult {goCover_65b09fc02769__318[0] = 9 ; goCover_65b09fc02769__318[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__318[2] = 318 ; goCover_65b09fc02769__318[3] = 1;
+	if len(rules) == 0 {goCover_65b09fc02769__318[6] = 1;
+		return nil
+	}
+
+	goCover_65b09fc02769__318[4] = 1;placementType := s.detectPlacementType(req)
+
+	for _, rule := range rules {goCover_65b09fc02769__318[7] = 1;
+		if rule.PlacementType == placementType {goCover_65b09fc02769__318[8] = 1;
+			// Find first matching creative from rule
+			for _, creativeID := range rule.CreativeIDs {goCover_65b09fc02769__318[9] = 1;
+				for _, cv := range creatives {goCover_65b09fc02769__318[10] = 1;
+					if cv.ID == creativeID {goCover_65b09fc02769__318[11] = 1;
+						return &model.CreativeOptimizationResult{
+							SelectedCreativeID: cv.ID,
+							SelectionMethod:    "rule_based",
+							Confidence:         0.9,
+							Reason:             "placement_rule_match",
+						}
+					}
+				}
+			}
+		}
+	}
+
+	goCover_65b09fc02769__318[5] = 1;return nil
+}
+
+func (s *CreativeOptimizationService) detectPlacementType(req *model.BidRequest) string {goCover_65b09fc02769__319[0] = 9 ; goCover_65b09fc02769__319[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__319[2] = 319 ; goCover_65b09fc02769__319[3] = 1;
+	// Infer from AdSlot formats
+	if len(req.AdSlot.Formats) > 0 {goCover_65b09fc02769__319[6] = 1;
+		return req.AdSlot.Formats[0] // Return primary format
+	}
+	// Infer from dimensions if available
+	goCover_65b09fc02769__319[4] = 1;if len(req.AdSlot.Dimensions) >= 2 {goCover_65b09fc02769__319[7] = 1;
+		width := req.AdSlot.Dimensions[0]
+		height := req.AdSlot.Dimensions[1]
+		if width > 0 && height > 0 {goCover_65b09fc02769__319[8] = 1;
+			ratio := float64(width) / float64(height)
+			if ratio > 2.5 {goCover_65b09fc02769__319[9] = 1;
+				return "banner"
+			} else{ goCover_65b09fc02769__319[10] = 1;if ratio < 0.7 {goCover_65b09fc02769__319[11] = 1;
+				return "interstitial"
+			}}
+		}
+	}
+	goCover_65b09fc02769__319[5] = 1;return "banner"
+}
+
+func (s *CreativeOptimizationService) exploreCreative(creatives []model.CreativeVariant, config *model.CreativeOptimization) *model.CreativeOptimizationResult {goCover_65b09fc02769__320[0] = 10 ; goCover_65b09fc02769__320[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__320[2] = 320 ; goCover_65b09fc02769__320[3] = 1;
+	// Weight-based random selection for exploration
+	var totalWeight float64
+	for _, cv := range creatives {goCover_65b09fc02769__320[6] = 1;
+		weight := cv.Weight
+		if weight <= 0 {goCover_65b09fc02769__320[8] = 1;
+			weight = 1.0
+		}
+		goCover_65b09fc02769__320[7] = 1;totalWeight += weight
+	}
+
+	goCover_65b09fc02769__320[4] = 1;r := s.explorationSeed.Float64() * totalWeight
+	var cumWeight float64
+	for _, cv := range creatives {goCover_65b09fc02769__320[9] = 1;
+		weight := cv.Weight
+		if weight <= 0 {goCover_65b09fc02769__320[11] = 1;
+			weight = 1.0
+		}
+		goCover_65b09fc02769__320[10] = 1;cumWeight += weight
+		if r <= cumWeight {goCover_65b09fc02769__320[12] = 1;
+			return &model.CreativeOptimizationResult{
+				SelectedCreativeID: cv.ID,
+				SelectionMethod:    "exploration",
+				Confidence:         0.5,
+				Reason:             "exploration_test",
+			}
+		}
+	}
+
+	// Fallback
+	goCover_65b09fc02769__320[5] = 1;return &model.CreativeOptimizationResult{
+		SelectedCreativeID: creatives[0].ID,
+		SelectionMethod:    "exploration",
+		Confidence:         0.5,
+		Reason:             "exploration_fallback",
+	}
+}
+
+func (s *CreativeOptimizationService) exploitBestCreative(creatives []model.CreativeVariant, config *model.CreativeOptimization, req *model.BidRequest) *model.CreativeOptimizationResult {goCover_65b09fc02769__321[0] = 15 ; goCover_65b09fc02769__321[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__321[2] = 321 ; goCover_65b09fc02769__321[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	type scoredCreative struct {
+		id         string
+		score      float64
+		confidence float64
+		ctr        float64
+		cvr        float64
+	}
+
+	var scored []scoredCreative
+	minImpressions := config.MinImpressions
+	if minImpressions <= 0 {goCover_65b09fc02769__321[9] = 1;
+		minImpressions = 100
+	}
+
+	goCover_65b09fc02769__321[4] = 1;for _, cv := range creatives {goCover_65b09fc02769__321[10] = 1;
+		perf, exists := s.creativePerf[cv.ID]
+
+		if !exists || perf.impressions < int64(minImpressions) {goCover_65b09fc02769__321[13] = 1;
+			// Not enough data, use exploration score
+			scored = append(scored, scoredCreative{
+				id:         cv.ID,
+				score:      0.5, // Neutral score
+				confidence: 0.3,
+			})
+			continue
+		}
+
+		// Calculate score based on optimization goal
+		goCover_65b09fc02769__321[11] = 1;score := s.calculateCreativeScore(perf, config.OptimizationGoal)
+		ctr := float64(perf.clicks) / float64(perf.impressions)
+		cvr := 0.0
+		if perf.clicks > 0 {goCover_65b09fc02769__321[14] = 1;
+			cvr = float64(perf.conversions) / float64(perf.clicks)
+		}
+
+		// Confidence based on sample size
+		goCover_65b09fc02769__321[12] = 1;confidence := math.Min(float64(perf.impressions)/float64(minImpressions*10), 1.0)
+
+		scored = append(scored, scoredCreative{
+			id:         cv.ID,
+			score:      score,
+			confidence: confidence,
+			ctr:        ctr,
+			cvr:        cvr,
+		})
+	}
+
+	goCover_65b09fc02769__321[5] = 1;if len(scored) == 0 {goCover_65b09fc02769__321[15] = 1;
+		return &model.CreativeOptimizationResult{
+			SelectedCreativeID: creatives[0].ID,
+			SelectionMethod:    "default",
+			Confidence:         0.5,
+			Reason:             "no_scored_creatives",
+		}
+	}
+
+	// Sort by score descending
+	goCover_65b09fc02769__321[6] = 1;sort.Slice(scored, func(i, j int) bool {goCover_65b09fc02769__321[16] = 1;
+		return scored[i].score > scored[j].score
+	})
+
+	goCover_65b09fc02769__321[7] = 1;best := scored[0]
+
+	// Get alternatives
+	var alternatives []string
+	for i := 1; i < len(scored) && i < 4; i++ {goCover_65b09fc02769__321[17] = 1;
+		alternatives = append(alternatives, scored[i].id)
+	}
+
+	goCover_65b09fc02769__321[8] = 1;return &model.CreativeOptimizationResult{
+		SelectedCreativeID: best.id,
+		SelectionMethod:    "optimized",
+		PredictedCTR:       best.ctr,
+		PredictedCVR:       best.cvr,
+		Confidence:         best.confidence,
+		AlternativeIDs:     alternatives,
+		Reason:             "best_performer",
+	}
+}
+
+func (s *CreativeOptimizationService) calculateCreativeScore(perf *creativePerformance, goal string) float64 {goCover_65b09fc02769__322[0] = 10 ; goCover_65b09fc02769__322[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__322[2] = 322 ; goCover_65b09fc02769__322[3] = 1;
+	if perf.impressions == 0 {goCover_65b09fc02769__322[6] = 1;
+		return 0
+	}
+
+	goCover_65b09fc02769__322[4] = 1;ctr := float64(perf.clicks) / float64(perf.impressions)
+	cvr := 0.0
+	if perf.clicks > 0 {goCover_65b09fc02769__322[7] = 1;
+		cvr = float64(perf.conversions) / float64(perf.clicks)
+	}
+	goCover_65b09fc02769__322[5] = 1;engagementRate := float64(perf.engagements) / float64(perf.impressions)
+	avgViewTime := perf.viewTime / float64(perf.impressions)
+
+	switch goal {
+	case "ctr":goCover_65b09fc02769__322[8] = 1;
+		return ctr
+	case "cvr":goCover_65b09fc02769__322[9] = 1;
+		return cvr
+	case "engagement":goCover_65b09fc02769__322[10] = 1;
+		return engagementRate
+	case "viewability":goCover_65b09fc02769__322[11] = 1;
+		return avgViewTime / 30.0 // Normalize to 30 second view
+	default:goCover_65b09fc02769__322[12] = 1;
+		// Composite score
+		return ctr*0.4 + cvr*0.3 + engagementRate*0.2 + (avgViewTime/30.0)*0.1
+	}
+}
+
+// RecordImpression records a creative impression
+func (s *CreativeOptimizationService) RecordImpression(creativeID string, placement string) {goCover_65b09fc02769__323[0] = 7 ; goCover_65b09fc02769__323[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__323[2] = 323 ; goCover_65b09fc02769__323[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.creativePerf[creativeID]; !exists {goCover_65b09fc02769__323[7] = 1;
+		s.creativePerf[creativeID] = &creativePerformance{}
+	}
+	goCover_65b09fc02769__323[4] = 1;s.creativePerf[creativeID].impressions++
+	s.creativePerf[creativeID].lastUpdated = time.Now()
+
+	// Also track placement-specific
+	if _, exists := s.placementPerf[placement]; !exists {goCover_65b09fc02769__323[8] = 1;
+		s.placementPerf[placement] = make(map[string]*creativePerformance)
+	}
+	goCover_65b09fc02769__323[5] = 1;if _, exists := s.placementPerf[placement][creativeID]; !exists {goCover_65b09fc02769__323[9] = 1;
+		s.placementPerf[placement][creativeID] = &creativePerformance{}
+	}
+	goCover_65b09fc02769__323[6] = 1;s.placementPerf[placement][creativeID].impressions++
+}
+
+// RecordClick records a creative click
+func (s *CreativeOptimizationService) RecordClick(creativeID string, placement string) {goCover_65b09fc02769__324[0] = 6 ; goCover_65b09fc02769__324[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__324[2] = 324 ; goCover_65b09fc02769__324[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.creativePerf[creativeID]; !exists {goCover_65b09fc02769__324[5] = 1;
+		s.creativePerf[creativeID] = &creativePerformance{}
+	}
+	goCover_65b09fc02769__324[4] = 1;s.creativePerf[creativeID].clicks++
+	s.creativePerf[creativeID].lastUpdated = time.Now()
+
+	if _, exists := s.placementPerf[placement]; exists {goCover_65b09fc02769__324[6] = 1;
+		if _, exists := s.placementPerf[placement][creativeID]; !exists {goCover_65b09fc02769__324[8] = 1;
+			s.placementPerf[placement][creativeID] = &creativePerformance{}
+		}
+		goCover_65b09fc02769__324[7] = 1;s.placementPerf[placement][creativeID].clicks++
+	}
+}
+
+// RecordConversion records a creative conversion
+func (s *CreativeOptimizationService) RecordConversion(creativeID string, placement string) {goCover_65b09fc02769__325[0] = 6 ; goCover_65b09fc02769__325[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__325[2] = 325 ; goCover_65b09fc02769__325[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.creativePerf[creativeID]; !exists {goCover_65b09fc02769__325[5] = 1;
+		s.creativePerf[creativeID] = &creativePerformance{}
+	}
+	goCover_65b09fc02769__325[4] = 1;s.creativePerf[creativeID].conversions++
+	s.creativePerf[creativeID].lastUpdated = time.Now()
+
+	if _, exists := s.placementPerf[placement]; exists {goCover_65b09fc02769__325[6] = 1;
+		if _, exists := s.placementPerf[placement][creativeID]; !exists {goCover_65b09fc02769__325[8] = 1;
+			s.placementPerf[placement][creativeID] = &creativePerformance{}
+		}
+		goCover_65b09fc02769__325[7] = 1;s.placementPerf[placement][creativeID].conversions++
+	}
+}
+
+// RecordEngagement records creative engagement
+func (s *CreativeOptimizationService) RecordEngagement(creativeID string, placement string, viewTime float64) {goCover_65b09fc02769__326[0] = 6 ; goCover_65b09fc02769__326[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__326[2] = 326 ; goCover_65b09fc02769__326[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.creativePerf[creativeID]; !exists {goCover_65b09fc02769__326[5] = 1;
+		s.creativePerf[creativeID] = &creativePerformance{}
+	}
+	goCover_65b09fc02769__326[4] = 1;s.creativePerf[creativeID].engagements++
+	s.creativePerf[creativeID].viewTime += viewTime
+	s.creativePerf[creativeID].lastUpdated = time.Now()
+
+	if _, exists := s.placementPerf[placement]; exists {goCover_65b09fc02769__326[6] = 1;
+		if _, exists := s.placementPerf[placement][creativeID]; !exists {goCover_65b09fc02769__326[8] = 1;
+			s.placementPerf[placement][creativeID] = &creativePerformance{}
+		}
+		goCover_65b09fc02769__326[7] = 1;s.placementPerf[placement][creativeID].engagements++
+		s.placementPerf[placement][creativeID].viewTime += viewTime
+	}
+}
+
+// CheckAutoPause checks if a creative should be paused based on performance
+func (s *CreativeOptimizationService) CheckAutoPause(config *model.CreativeOptimization) []string {goCover_65b09fc02769__327[0] = 14 ; goCover_65b09fc02769__327[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__327[2] = 327 ; goCover_65b09fc02769__327[3] = 1;
+	if config == nil || !config.AutoPause {goCover_65b09fc02769__327[9] = 1;
+		return nil
+	}
+
+	goCover_65b09fc02769__327[4] = 1;threshold := config.PauseThreshold
+	if threshold <= 0 {goCover_65b09fc02769__327[10] = 1;
+		threshold = 0.3 // Default: pause if below 30% of average
+	}
+
+	goCover_65b09fc02769__327[5] = 1;s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	// Calculate average score
+	var totalScore float64
+	var count int
+	for _, perf := range s.creativePerf {goCover_65b09fc02769__327[11] = 1;
+		if perf.impressions >= 100 {goCover_65b09fc02769__327[12] = 1;
+			score := s.calculateCreativeScore(perf, config.OptimizationGoal)
+			totalScore += score
+			count++
+		}
+	}
+
+	goCover_65b09fc02769__327[6] = 1;if count == 0 {goCover_65b09fc02769__327[13] = 1;
+		return nil
+	}
+
+	goCover_65b09fc02769__327[7] = 1;avgScore := totalScore / float64(count)
+	pauseThreshold := avgScore * threshold
+
+	var toPause []string
+	for creativeID, perf := range s.creativePerf {goCover_65b09fc02769__327[14] = 1;
+		if perf.impressions >= 100 {goCover_65b09fc02769__327[15] = 1;
+			score := s.calculateCreativeScore(perf, config.OptimizationGoal)
+			if score < pauseThreshold {goCover_65b09fc02769__327[16] = 1;
+				toPause = append(toPause, creativeID)
+			}
+		}
+	}
+
+	goCover_65b09fc02769__327[8] = 1;return toPause
+}
+
+// GetCreativePerformance returns performance data for a creative
+func (s *CreativeOptimizationService) GetCreativePerformance(creativeID string) *model.CreativePerf {goCover_65b09fc02769__328[0] = 7 ; goCover_65b09fc02769__328[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__328[2] = 328 ; goCover_65b09fc02769__328[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	perf, exists := s.creativePerf[creativeID]
+	if !exists {goCover_65b09fc02769__328[7] = 1;
+		return nil
+	}
+
+	goCover_65b09fc02769__328[4] = 1;ctr := 0.0
+	cvr := 0.0
+	engRate := 0.0
+	avgView := 0.0
+
+	if perf.impressions > 0 {goCover_65b09fc02769__328[8] = 1;
+		ctr = float64(perf.clicks) / float64(perf.impressions)
+		engRate = float64(perf.engagements) / float64(perf.impressions)
+		avgView = perf.viewTime / float64(perf.impressions)
+	}
+	goCover_65b09fc02769__328[5] = 1;if perf.clicks > 0 {goCover_65b09fc02769__328[9] = 1;
+		cvr = float64(perf.conversions) / float64(perf.clicks)
+	}
+
+	goCover_65b09fc02769__328[6] = 1;return &model.CreativePerf{
+		Impressions:    perf.impressions,
+		Clicks:         perf.clicks,
+		Conversions:    perf.conversions,
+		CTR:            ctr,
+		CVR:            cvr,
+		EngagementRate: engRate,
+		AvgTimeViewed:  avgView,
+		Score:          perf.score,
+	}
+}

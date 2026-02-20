@@ -1,0 +1,858 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\dynamic_creative.go:1:1
+package service
+
+import (
+	"fmt"
+	"math"
+	"math/rand"
+	"sort"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+)
+
+// DynamicCreativeService provides dynamic creative optimization (DCO)
+// for personalized ad content generation
+type DynamicCreativeService struct {
+	cache           cache.Cache
+	templates       sync.Map // templateID -> *CreativeTemplate
+	elements        sync.Map // elementID -> *CreativeElement
+	combinations    sync.Map // combinationKey -> *CreativeCombination
+	userPreferences sync.Map // userID -> *UserCreativePreference
+	performance     sync.Map // combinationID -> *CombinationPerformance
+	mu              sync.RWMutex
+	config          DCOConfig
+}
+
+// DCOConfig holds configuration for dynamic creative optimization
+type DCOConfig struct {
+	MaxElementsPerSlot     int     `json:"max_elements_per_slot"`
+	ExplorationRate        float64 `json:"exploration_rate"`
+	MinImpressionsForStats int64   `json:"min_impressions_for_stats"`
+	PersonalizationWeight  float64 `json:"personalization_weight"`
+	ContextWeight          float64 `json:"context_weight"`
+	PerformanceWeight      float64 `json:"performance_weight"`
+	EnableAutoOptimization bool    `json:"enable_auto_optimization"`
+}
+
+// CreativeTemplate represents a creative template with slots for dynamic elements
+type CreativeTemplate struct {
+	ID          string                   `json:"id"`
+	Name        string                   `json:"name"`
+	Description string                   `json:"description"`
+	Format      string                   `json:"format"` // banner, video, native
+	Dimensions  Dimensions               `json:"dimensions"`
+	Slots       map[string]*TemplateSlot `json:"slots"`
+	BaseHTML    string                   `json:"base_html"`
+	BaseCSS     string                   `json:"base_css"`
+	Rules       []PersonalizationRule    `json:"rules"`
+	CreatedAt   time.Time                `json:"created_at"`
+	UpdatedAt   time.Time                `json:"updated_at"`
+}
+
+// Dimensions represents creative dimensions
+type Dimensions struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+// TemplateSlot represents a slot in the template for dynamic content
+type TemplateSlot struct {
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Type         string   `json:"type"` // headline, image, cta, description, logo
+	Required     bool     `json:"required"`
+	MaxLength    int      `json:"max_length"`
+	AllowedTypes []string `json:"allowed_types"`
+	DefaultValue string   `json:"default_value"`
+	Position     Position `json:"position"`
+}
+
+// Position represents element position in the creative
+type Position struct {
+	X      int    `json:"x"`
+	Y      int    `json:"y"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	Anchor string `json:"anchor"` // top-left, center, etc.
+}
+
+// PersonalizationRule defines rules for dynamic content selection
+type PersonalizationRule struct {
+	ID         string          `json:"id"`
+	Name       string          `json:"name"`
+	Priority   int             `json:"priority"`
+	Conditions []RuleCondition `json:"conditions"`
+	Actions    []RuleAction    `json:"actions"`
+	Enabled    bool            `json:"enabled"`
+}
+
+// RuleCondition defines a condition for rule evaluation
+type RuleCondition struct {
+	Field    string `json:"field"`    // user.segment, context.category, device.type
+	Operator string `json:"operator"` // equals, contains, in, gt, lt
+	Value    any    `json:"value"`
+}
+
+// RuleAction defines an action when rule conditions are met
+type RuleAction struct {
+	Type   string `json:"type"` // select_element, set_property, apply_style
+	SlotID string `json:"slot_id"`
+	Value  any    `json:"value"`
+}
+
+// CreativeElement represents a dynamic element that can fill a slot
+type CreativeElement struct {
+	ID          string              `json:"id"`
+	Type        string              `json:"type"` // headline, image, cta, etc.
+	Content     string              `json:"content"`
+	ImageURL    string              `json:"image_url,omitempty"`
+	CTAText     string              `json:"cta_text,omitempty"`
+	CTAColor    string              `json:"cta_color,omitempty"`
+	Attributes  map[string]string   `json:"attributes"`
+	Tags        []string            `json:"tags"`
+	Segments    []string            `json:"segments"` // Target segments
+	Performance *ElementPerformance `json:"performance"`
+	CreatedAt   time.Time           `json:"created_at"`
+}
+
+// ElementPerformance tracks element performance
+type ElementPerformance struct {
+	Impressions    int64   `json:"impressions"`
+	Clicks         int64   `json:"clicks"`
+	Conversions    int64   `json:"conversions"`
+	CTR            float64 `json:"ctr"`
+	ConversionRate float64 `json:"conversion_rate"`
+	Revenue        float64 `json:"revenue"`
+	Score          float64 `json:"score"`
+	mu             sync.Mutex
+}
+
+// CreativeCombination represents a specific combination of elements
+type CreativeCombination struct {
+	ID          string                  `json:"id"`
+	TemplateID  string                  `json:"template_id"`
+	Elements    map[string]string       `json:"elements"` // slotID -> elementID
+	Hash        string                  `json:"hash"`
+	Performance *CombinationPerformance `json:"performance"`
+	CreatedAt   time.Time               `json:"created_at"`
+}
+
+// CombinationPerformance tracks combination performance
+type CombinationPerformance struct {
+	Impressions    int64   `json:"impressions"`
+	Clicks         int64   `json:"clicks"`
+	Conversions    int64   `json:"conversions"`
+	CTR            float64 `json:"ctr"`
+	ConversionRate float64 `json:"conversion_rate"`
+	Revenue        float64 `json:"revenue"`
+	UCBScore       float64 `json:"ucb_score"`
+	mu             sync.Mutex
+}
+
+// UserCreativePreference stores user preferences for creative elements
+type UserCreativePreference struct {
+	UserID             string             `json:"user_id"`
+	PreferredColors    []string           `json:"preferred_colors"`
+	PreferredCTAs      []string           `json:"preferred_ctas"`
+	EngagedElements    map[string]int     `json:"engaged_elements"` // elementID -> engagement count
+	ConvertedElements  map[string]int     `json:"converted_elements"`
+	ClickedHeadlines   []string           `json:"clicked_headlines"`
+	ContextPreferences map[string]float64 `json:"context_preferences"`
+	LastUpdated        time.Time          `json:"last_updated"`
+}
+
+// DCORequest represents a request to generate optimized creative
+type DCORequest struct {
+	TemplateID  string         `json:"template_id"`
+	UserID      string         `json:"user_id"`
+	Context     DCOContext     `json:"context"`
+	Constraints DCOConstraints `json:"constraints"`
+}
+
+// DCOContext provides context for creative optimization
+type DCOContext struct {
+	PageCategory    string            `json:"page_category"`
+	ContentKeywords []string          `json:"content_keywords"`
+	UserSegments    []string          `json:"user_segments"`
+	DeviceType      string            `json:"device_type"`
+	TimeOfDay       string            `json:"time_of_day"`
+	DayOfWeek       string            `json:"day_of_week"`
+	GeoLocation     string            `json:"geo_location"`
+	Weather         string            `json:"weather"`
+	CustomData      map[string]string `json:"custom_data"`
+}
+
+// DCOConstraints defines constraints for creative generation
+type DCOConstraints struct {
+	RequiredElements  []string `json:"required_elements"`
+	ExcludedElements  []string `json:"excluded_elements"`
+	MaxCombinations   int      `json:"max_combinations"`
+	PreferExploration bool     `json:"prefer_exploration"`
+}
+
+// DCOResponse represents the optimized creative response
+type DCOResponse struct {
+	CombinationID        string                      `json:"combination_id"`
+	TemplateID           string                      `json:"template_id"`
+	Elements             map[string]*CreativeElement `json:"elements"`
+	RenderedHTML         string                      `json:"rendered_html"`
+	PersonalizationScore float64                     `json:"personalization_score"`
+	PredictedCTR         float64                     `json:"predicted_ctr"`
+	SelectionMethod      string                      `json:"selection_method"`
+	RulesApplied         []string                    `json:"rules_applied"`
+}
+
+// NewDynamicCreativeService creates a new DCO service
+func NewDynamicCreativeService(c cache.Cache) *DynamicCreativeService {goCover_65b09fc02769__379[0] = 1 ; goCover_65b09fc02769__379[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__379[2] = 379 ; goCover_65b09fc02769__379[3] = 1;
+	return &DynamicCreativeService{
+		cache: c,
+		config: DCOConfig{
+			MaxElementsPerSlot:     10,
+			ExplorationRate:        0.1,
+			MinImpressionsForStats: 100,
+			PersonalizationWeight:  0.3,
+			ContextWeight:          0.3,
+			PerformanceWeight:      0.4,
+			EnableAutoOptimization: true,
+		},
+	}
+}
+
+// CreateTemplate creates a new creative template
+func (s *DynamicCreativeService) CreateTemplate(template *CreativeTemplate) (*CreativeTemplate, error) {goCover_65b09fc02769__380[0] = 5 ; goCover_65b09fc02769__380[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__380[2] = 380 ; goCover_65b09fc02769__380[3] = 1;
+	if template.Name == "" {goCover_65b09fc02769__380[6] = 1;
+		return nil, fmt.Errorf("template name is required")
+	}
+
+	goCover_65b09fc02769__380[4] = 1;if len(template.Slots) == 0 {goCover_65b09fc02769__380[7] = 1;
+		return nil, fmt.Errorf("template must have at least one slot")
+	}
+
+	goCover_65b09fc02769__380[5] = 1;now := time.Now()
+	template.ID = uuid.New().String()
+	template.CreatedAt = now
+	template.UpdatedAt = now
+
+	s.templates.Store(template.ID, template)
+	return template, nil
+}
+
+// GetTemplate retrieves a template by ID
+func (s *DynamicCreativeService) GetTemplate(templateID string) (*CreativeTemplate, error) {goCover_65b09fc02769__381[0] = 3 ; goCover_65b09fc02769__381[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__381[2] = 381 ; goCover_65b09fc02769__381[3] = 1;
+	val, ok := s.templates.Load(templateID)
+	if !ok {goCover_65b09fc02769__381[5] = 1;
+		return nil, fmt.Errorf("template not found: %s", templateID)
+	}
+	goCover_65b09fc02769__381[4] = 1;return val.(*CreativeTemplate), nil
+}
+
+// CreateElement creates a new creative element
+func (s *DynamicCreativeService) CreateElement(element *CreativeElement) (*CreativeElement, error) {goCover_65b09fc02769__382[0] = 3 ; goCover_65b09fc02769__382[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__382[2] = 382 ; goCover_65b09fc02769__382[3] = 1;
+	if element.Type == "" {goCover_65b09fc02769__382[5] = 1;
+		return nil, fmt.Errorf("element type is required")
+	}
+
+	goCover_65b09fc02769__382[4] = 1;element.ID = uuid.New().String()
+	element.CreatedAt = time.Now()
+	element.Performance = &ElementPerformance{}
+
+	s.elements.Store(element.ID, element)
+	return element, nil
+}
+
+// GetElement retrieves an element by ID
+func (s *DynamicCreativeService) GetElement(elementID string) (*CreativeElement, error) {goCover_65b09fc02769__383[0] = 3 ; goCover_65b09fc02769__383[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__383[2] = 383 ; goCover_65b09fc02769__383[3] = 1;
+	val, ok := s.elements.Load(elementID)
+	if !ok {goCover_65b09fc02769__383[5] = 1;
+		return nil, fmt.Errorf("element not found: %s", elementID)
+	}
+	goCover_65b09fc02769__383[4] = 1;return val.(*CreativeElement), nil
+}
+
+// GetElementsByType returns all elements of a specific type
+func (s *DynamicCreativeService) GetElementsByType(elementType string) []*CreativeElement {goCover_65b09fc02769__384[0] = 5 ; goCover_65b09fc02769__384[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__384[2] = 384 ; goCover_65b09fc02769__384[3] = 1;
+	var elements []*CreativeElement
+	s.elements.Range(func(key, value any) bool {goCover_65b09fc02769__384[5] = 1;
+		elem := value.(*CreativeElement)
+		if elem.Type == elementType {goCover_65b09fc02769__384[7] = 1;
+			elements = append(elements, elem)
+		}
+		goCover_65b09fc02769__384[6] = 1;return true
+	})
+	goCover_65b09fc02769__384[4] = 1;return elements
+}
+
+// GenerateOptimizedCreative generates an optimized creative for the given context
+func (s *DynamicCreativeService) GenerateOptimizedCreative(req DCORequest) (*DCOResponse, error) {goCover_65b09fc02769__385[0] = 12 ; goCover_65b09fc02769__385[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__385[2] = 385 ; goCover_65b09fc02769__385[3] = 1;
+	template, err := s.GetTemplate(req.TemplateID)
+	if err != nil {goCover_65b09fc02769__385[6] = 1;
+		return nil, err
+	}
+
+	// Get user preferences
+	goCover_65b09fc02769__385[4] = 1;userPref := s.getUserPreference(req.UserID)
+
+	// Select elements for each slot
+	selectedElements := make(map[string]*CreativeElement)
+	var rulesApplied []string
+
+	for slotID, slot := range template.Slots {goCover_65b09fc02769__385[7] = 1;
+		// Get candidate elements for this slot
+		candidates := s.getCandidateElements(slot.Type, req.Context, req.Constraints)
+
+		if len(candidates) == 0 {goCover_65b09fc02769__385[9] = 1;
+			// Use default if available
+			if slot.DefaultValue != "" {goCover_65b09fc02769__385[12] = 1;
+				continue
+			}
+			goCover_65b09fc02769__385[10] = 1;if slot.Required {goCover_65b09fc02769__385[13] = 1;
+				return nil, fmt.Errorf("no elements available for required slot: %s", slotID)
+			}
+			goCover_65b09fc02769__385[11] = 1;continue
+		}
+
+		// Score and select element
+		goCover_65b09fc02769__385[8] = 1;selectedElement, method := s.selectElement(candidates, userPref, req.Context, template.Rules)
+		selectedElements[slotID] = selectedElement
+
+		if method != "performance" {goCover_65b09fc02769__385[14] = 1;
+			rulesApplied = append(rulesApplied, method)
+		}
+	}
+
+	// Create or get combination
+	goCover_65b09fc02769__385[5] = 1;combination := s.getOrCreateCombination(template.ID, selectedElements)
+
+	// Calculate scores
+	personalScore := s.calculatePersonalizationScore(selectedElements, userPref)
+	predictedCTR := s.predictCTR(combination, req.Context)
+
+	// Render HTML
+	renderedHTML := s.renderCreative(template, selectedElements)
+
+	return &DCOResponse{
+		CombinationID:        combination.ID,
+		TemplateID:           template.ID,
+		Elements:             selectedElements,
+		RenderedHTML:         renderedHTML,
+		PersonalizationScore: personalScore,
+		PredictedCTR:         predictedCTR,
+		SelectionMethod:      s.determineSelectionMethod(rulesApplied),
+		RulesApplied:         rulesApplied,
+	}, nil
+}
+
+// RecordImpression records an impression for a combination
+func (s *DynamicCreativeService) RecordImpression(combinationID string) error {goCover_65b09fc02769__386[0] = 6 ; goCover_65b09fc02769__386[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__386[2] = 386 ; goCover_65b09fc02769__386[3] = 1;
+	val, ok := s.combinations.Load(combinationID)
+	if !ok {goCover_65b09fc02769__386[6] = 1;
+		return fmt.Errorf("combination not found: %s", combinationID)
+	}
+
+	goCover_65b09fc02769__386[4] = 1;combo := val.(*CreativeCombination)
+	combo.Performance.mu.Lock()
+	combo.Performance.Impressions++
+	combo.Performance.mu.Unlock()
+
+	// Update element performances
+	for _, elemID := range combo.Elements {goCover_65b09fc02769__386[7] = 1;
+		if elemVal, exists := s.elements.Load(elemID); exists {goCover_65b09fc02769__386[8] = 1;
+			elem := elemVal.(*CreativeElement)
+			elem.Performance.mu.Lock()
+			elem.Performance.Impressions++
+			elem.Performance.mu.Unlock()
+		}
+	}
+
+	goCover_65b09fc02769__386[5] = 1;return nil
+}
+
+// RecordClick records a click for a combination
+func (s *DynamicCreativeService) RecordClick(combinationID, userID string) error {goCover_65b09fc02769__387[0] = 10 ; goCover_65b09fc02769__387[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__387[2] = 387 ; goCover_65b09fc02769__387[3] = 1;
+	val, ok := s.combinations.Load(combinationID)
+	if !ok {goCover_65b09fc02769__387[7] = 1;
+		return fmt.Errorf("combination not found: %s", combinationID)
+	}
+
+	goCover_65b09fc02769__387[4] = 1;combo := val.(*CreativeCombination)
+	combo.Performance.mu.Lock()
+	combo.Performance.Clicks++
+	if combo.Performance.Impressions > 0 {goCover_65b09fc02769__387[8] = 1;
+		combo.Performance.CTR = float64(combo.Performance.Clicks) / float64(combo.Performance.Impressions)
+	}
+	goCover_65b09fc02769__387[5] = 1;combo.Performance.mu.Unlock()
+
+	// Update element performances
+	for _, elemID := range combo.Elements {goCover_65b09fc02769__387[9] = 1;
+		if elemVal, exists := s.elements.Load(elemID); exists {goCover_65b09fc02769__387[10] = 1;
+			elem := elemVal.(*CreativeElement)
+			elem.Performance.mu.Lock()
+			elem.Performance.Clicks++
+			if elem.Performance.Impressions > 0 {goCover_65b09fc02769__387[12] = 1;
+				elem.Performance.CTR = float64(elem.Performance.Clicks) / float64(elem.Performance.Impressions)
+			}
+			goCover_65b09fc02769__387[11] = 1;elem.Performance.mu.Unlock()
+		}
+	}
+
+	// Update user preferences
+	goCover_65b09fc02769__387[6] = 1;s.updateUserPreferenceOnClick(userID, combo)
+
+	return nil
+}
+
+// RecordConversion records a conversion for a combination
+func (s *DynamicCreativeService) RecordConversion(combinationID string, revenue float64) error {goCover_65b09fc02769__388[0] = 10 ; goCover_65b09fc02769__388[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__388[2] = 388 ; goCover_65b09fc02769__388[3] = 1;
+	val, ok := s.combinations.Load(combinationID)
+	if !ok {goCover_65b09fc02769__388[7] = 1;
+		return fmt.Errorf("combination not found: %s", combinationID)
+	}
+
+	goCover_65b09fc02769__388[4] = 1;combo := val.(*CreativeCombination)
+	combo.Performance.mu.Lock()
+	combo.Performance.Conversions++
+	combo.Performance.Revenue += revenue
+	if combo.Performance.Impressions > 0 {goCover_65b09fc02769__388[8] = 1;
+		combo.Performance.ConversionRate = float64(combo.Performance.Conversions) / float64(combo.Performance.Impressions)
+	}
+	goCover_65b09fc02769__388[5] = 1;combo.Performance.mu.Unlock()
+
+	// Update element performances
+	for _, elemID := range combo.Elements {goCover_65b09fc02769__388[9] = 1;
+		if elemVal, exists := s.elements.Load(elemID); exists {goCover_65b09fc02769__388[10] = 1;
+			elem := elemVal.(*CreativeElement)
+			elem.Performance.mu.Lock()
+			elem.Performance.Conversions++
+			elem.Performance.Revenue += revenue / float64(len(combo.Elements))
+			if elem.Performance.Impressions > 0 {goCover_65b09fc02769__388[12] = 1;
+				elem.Performance.ConversionRate = float64(elem.Performance.Conversions) / float64(elem.Performance.Impressions)
+			}
+			goCover_65b09fc02769__388[11] = 1;elem.Performance.mu.Unlock()
+		}
+	}
+
+	goCover_65b09fc02769__388[6] = 1;return nil
+}
+
+// GetTopCombinations returns the top performing combinations
+func (s *DynamicCreativeService) GetTopCombinations(templateID string, limit int) []*CreativeCombination {goCover_65b09fc02769__389[0] = 9 ; goCover_65b09fc02769__389[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__389[2] = 389 ; goCover_65b09fc02769__389[3] = 1;
+	var combinations []*CreativeCombination
+
+	s.combinations.Range(func(key, value any) bool {goCover_65b09fc02769__389[7] = 1;
+		combo := value.(*CreativeCombination)
+		if combo.TemplateID == templateID {goCover_65b09fc02769__389[9] = 1;
+			combinations = append(combinations, combo)
+		}
+		goCover_65b09fc02769__389[8] = 1;return true
+	})
+
+	// Sort by CTR
+	goCover_65b09fc02769__389[4] = 1;sort.Slice(combinations, func(i, j int) bool {goCover_65b09fc02769__389[10] = 1;
+		return combinations[i].Performance.CTR > combinations[j].Performance.CTR
+	})
+
+	goCover_65b09fc02769__389[5] = 1;if len(combinations) > limit {goCover_65b09fc02769__389[11] = 1;
+		combinations = combinations[:limit]
+	}
+
+	goCover_65b09fc02769__389[6] = 1;return combinations
+}
+
+// GetDCOStats returns DCO statistics
+func (s *DynamicCreativeService) GetDCOStats() map[string]any {goCover_65b09fc02769__390[0] = 9 ; goCover_65b09fc02769__390[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__390[2] = 390 ; goCover_65b09fc02769__390[3] = 1;
+	stats := map[string]any{
+		"total_templates":    0,
+		"total_elements":     0,
+		"total_combinations": 0,
+		"total_impressions":  int64(0),
+		"total_clicks":       int64(0),
+		"total_conversions":  int64(0),
+		"avg_ctr":            0.0,
+		"elements_by_type":   make(map[string]int),
+	}
+
+	s.templates.Range(func(key, value any) bool {goCover_65b09fc02769__390[8] = 1;
+		stats["total_templates"] = stats["total_templates"].(int) + 1
+		return true
+	})
+
+	goCover_65b09fc02769__390[4] = 1;elementsByType := make(map[string]int)
+	s.elements.Range(func(key, value any) bool {goCover_65b09fc02769__390[9] = 1;
+		elem := value.(*CreativeElement)
+		stats["total_elements"] = stats["total_elements"].(int) + 1
+		elementsByType[elem.Type]++
+		return true
+	})
+	goCover_65b09fc02769__390[5] = 1;stats["elements_by_type"] = elementsByType
+
+	var totalImpressions, totalClicks, totalConversions int64
+	s.combinations.Range(func(key, value any) bool {goCover_65b09fc02769__390[10] = 1;
+		combo := value.(*CreativeCombination)
+		stats["total_combinations"] = stats["total_combinations"].(int) + 1
+		totalImpressions += combo.Performance.Impressions
+		totalClicks += combo.Performance.Clicks
+		totalConversions += combo.Performance.Conversions
+		return true
+	})
+
+	goCover_65b09fc02769__390[6] = 1;stats["total_impressions"] = totalImpressions
+	stats["total_clicks"] = totalClicks
+	stats["total_conversions"] = totalConversions
+
+	if totalImpressions > 0 {goCover_65b09fc02769__390[11] = 1;
+		stats["avg_ctr"] = float64(totalClicks) / float64(totalImpressions)
+	}
+
+	goCover_65b09fc02769__390[7] = 1;return stats
+}
+
+// UpdateConfig updates DCO configuration
+func (s *DynamicCreativeService) UpdateConfig(config DCOConfig) {goCover_65b09fc02769__391[0] = 1 ; goCover_65b09fc02769__391[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__391[2] = 391 ; goCover_65b09fc02769__391[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.config = config
+}
+
+// GetConfig returns current DCO configuration
+func (s *DynamicCreativeService) GetConfig() DCOConfig {goCover_65b09fc02769__392[0] = 1 ; goCover_65b09fc02769__392[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__392[2] = 392 ; goCover_65b09fc02769__392[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.config
+}
+
+// Helper functions
+
+func (s *DynamicCreativeService) getUserPreference(userID string) *UserCreativePreference {goCover_65b09fc02769__393[0] = 3 ; goCover_65b09fc02769__393[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__393[2] = 393 ; goCover_65b09fc02769__393[3] = 1;
+	if val, ok := s.userPreferences.Load(userID); ok {goCover_65b09fc02769__393[5] = 1;
+		return val.(*UserCreativePreference)
+	}
+
+	// Create new preference record
+	goCover_65b09fc02769__393[4] = 1;pref := &UserCreativePreference{
+		UserID:             userID,
+		EngagedElements:    make(map[string]int),
+		ConvertedElements:  make(map[string]int),
+		ContextPreferences: make(map[string]float64),
+		LastUpdated:        time.Now(),
+	}
+	s.userPreferences.Store(userID, pref)
+	return pref
+}
+
+func (s *DynamicCreativeService) getCandidateElements(elementType string, context DCOContext, constraints DCOConstraints) []*CreativeElement {goCover_65b09fc02769__394[0] = 18 ; goCover_65b09fc02769__394[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__394[2] = 394 ; goCover_65b09fc02769__394[3] = 1;
+	var candidates []*CreativeElement
+
+	excludeSet := make(map[string]bool)
+	for _, id := range constraints.ExcludedElements {goCover_65b09fc02769__394[6] = 1;
+		excludeSet[id] = true
+	}
+
+	goCover_65b09fc02769__394[4] = 1;s.elements.Range(func(key, value any) bool {goCover_65b09fc02769__394[7] = 1;
+		elem := value.(*CreativeElement)
+		if elem.Type != elementType {goCover_65b09fc02769__394[11] = 1;
+			return true
+		}
+		goCover_65b09fc02769__394[8] = 1;if excludeSet[elem.ID] {goCover_65b09fc02769__394[12] = 1;
+			return true
+		}
+
+		// Check segment match
+		goCover_65b09fc02769__394[9] = 1;if len(elem.Segments) > 0 && len(context.UserSegments) > 0 {goCover_65b09fc02769__394[13] = 1;
+			matched := false
+			for _, seg := range elem.Segments {goCover_65b09fc02769__394[15] = 1;
+				for _, userSeg := range context.UserSegments {goCover_65b09fc02769__394[17] = 1;
+					if seg == userSeg {goCover_65b09fc02769__394[18] = 1;
+						matched = true
+						break
+					}
+				}
+				goCover_65b09fc02769__394[16] = 1;if matched {goCover_65b09fc02769__394[19] = 1;
+					break
+				}
+			}
+			goCover_65b09fc02769__394[14] = 1;if !matched {goCover_65b09fc02769__394[20] = 1;
+				return true
+			}
+		}
+
+		goCover_65b09fc02769__394[10] = 1;candidates = append(candidates, elem)
+		return true
+	})
+
+	goCover_65b09fc02769__394[5] = 1;return candidates
+}
+
+func (s *DynamicCreativeService) selectElement(candidates []*CreativeElement, userPref *UserCreativePreference, context DCOContext, rules []PersonalizationRule) (*CreativeElement, string) {goCover_65b09fc02769__395[0] = 18 ; goCover_65b09fc02769__395[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__395[2] = 395 ; goCover_65b09fc02769__395[3] = 1;
+	if len(candidates) == 0 {goCover_65b09fc02769__395[9] = 1;
+		return nil, ""
+	}
+
+	// Check for exploration
+	goCover_65b09fc02769__395[4] = 1;if rand.Float64() < s.config.ExplorationRate {goCover_65b09fc02769__395[10] = 1;
+		return candidates[rand.Intn(len(candidates))], "exploration"
+	}
+
+	// Apply rules first
+	goCover_65b09fc02769__395[5] = 1;for _, rule := range rules {goCover_65b09fc02769__395[11] = 1;
+		if !rule.Enabled {goCover_65b09fc02769__395[13] = 1;
+			continue
+		}
+		goCover_65b09fc02769__395[12] = 1;if s.evaluateRule(rule, context) {goCover_65b09fc02769__395[14] = 1;
+			for _, action := range rule.Actions {goCover_65b09fc02769__395[15] = 1;
+				if action.Type == "select_element" {goCover_65b09fc02769__395[16] = 1;
+					elemID := action.Value.(string)
+					for _, c := range candidates {goCover_65b09fc02769__395[17] = 1;
+						if c.ID == elemID {goCover_65b09fc02769__395[18] = 1;
+							return c, rule.Name
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Score-based selection
+	goCover_65b09fc02769__395[6] = 1;type scoredElement struct {
+		element *CreativeElement
+		score   float64
+	}
+
+	scored := make([]scoredElement, len(candidates))
+	for i, elem := range candidates {goCover_65b09fc02769__395[19] = 1;
+		score := s.scoreElement(elem, userPref, context)
+		scored[i] = scoredElement{element: elem, score: score}
+	}
+
+	// Sort by score
+	goCover_65b09fc02769__395[7] = 1;sort.Slice(scored, func(i, j int) bool {goCover_65b09fc02769__395[20] = 1;
+		return scored[i].score > scored[j].score
+	})
+
+	goCover_65b09fc02769__395[8] = 1;return scored[0].element, "performance"
+}
+
+func (s *DynamicCreativeService) evaluateRule(rule PersonalizationRule, context DCOContext) bool {goCover_65b09fc02769__396[0] = 4 ; goCover_65b09fc02769__396[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__396[2] = 396 ; goCover_65b09fc02769__396[3] = 1;
+	for _, cond := range rule.Conditions {goCover_65b09fc02769__396[5] = 1;
+		if !s.evaluateCondition(cond, context) {goCover_65b09fc02769__396[6] = 1;
+			return false
+		}
+	}
+	goCover_65b09fc02769__396[4] = 1;return true
+}
+
+func (s *DynamicCreativeService) evaluateCondition(cond RuleCondition, context DCOContext) bool {goCover_65b09fc02769__397[0] = 16 ; goCover_65b09fc02769__397[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__397[2] = 397 ; goCover_65b09fc02769__397[3] = 1;
+	var fieldValue any
+
+	switch cond.Field {
+	case "context.category":goCover_65b09fc02769__397[6] = 1;
+		fieldValue = context.PageCategory
+	case "device.type":goCover_65b09fc02769__397[7] = 1;
+		fieldValue = context.DeviceType
+	case "time.day":goCover_65b09fc02769__397[8] = 1;
+		fieldValue = context.TimeOfDay
+	case "geo.location":goCover_65b09fc02769__397[9] = 1;
+		fieldValue = context.GeoLocation
+	default:goCover_65b09fc02769__397[10] = 1;
+		return false
+	}
+
+	goCover_65b09fc02769__397[4] = 1;switch cond.Operator {
+	case "equals":goCover_65b09fc02769__397[11] = 1;
+		return fieldValue == cond.Value
+	case "contains":goCover_65b09fc02769__397[12] = 1;
+		if s, ok := fieldValue.(string); ok {goCover_65b09fc02769__397[14] = 1;
+			if v, ok := cond.Value.(string); ok {goCover_65b09fc02769__397[15] = 1;
+				return s == v || len(s) > 0 && len(v) > 0
+			}
+		}
+	case "in":goCover_65b09fc02769__397[13] = 1;
+		if vals, ok := cond.Value.([]string); ok {goCover_65b09fc02769__397[16] = 1;
+			for _, v := range vals {goCover_65b09fc02769__397[17] = 1;
+				if v == fieldValue {goCover_65b09fc02769__397[18] = 1;
+					return true
+				}
+			}
+		}
+	}
+
+	goCover_65b09fc02769__397[5] = 1;return false
+}
+
+func (s *DynamicCreativeService) scoreElement(elem *CreativeElement, userPref *UserCreativePreference, context DCOContext) float64 {goCover_65b09fc02769__398[0] = 10 ; goCover_65b09fc02769__398[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__398[2] = 398 ; goCover_65b09fc02769__398[3] = 1;
+	score := 0.0
+
+	// Performance score (UCB-like)
+	if elem.Performance.Impressions >= s.config.MinImpressionsForStats {goCover_65b09fc02769__398[7] = 1;
+		performanceScore := elem.Performance.CTR
+		exploration := math.Sqrt(2 * math.Log(float64(s.getTotalImpressions())) / float64(elem.Performance.Impressions))
+		score += s.config.PerformanceWeight * (performanceScore + 0.1*exploration)
+	} else{ goCover_65b09fc02769__398[8] = 1;{
+		// Exploration bonus for new elements
+		score += s.config.PerformanceWeight * 0.5
+	}}
+
+	// Personalization score
+	goCover_65b09fc02769__398[4] = 1;if engagements, ok := userPref.EngagedElements[elem.ID]; ok {goCover_65b09fc02769__398[9] = 1;
+		score += s.config.PersonalizationWeight * math.Min(float64(engagements)/10.0, 1.0)
+	}
+
+	// Context match score
+	goCover_65b09fc02769__398[5] = 1;for _, tag := range elem.Tags {goCover_65b09fc02769__398[10] = 1;
+		for _, keyword := range context.ContentKeywords {goCover_65b09fc02769__398[11] = 1;
+			if tag == keyword {goCover_65b09fc02769__398[12] = 1;
+				score += s.config.ContextWeight * 0.2
+			}
+		}
+	}
+
+	goCover_65b09fc02769__398[6] = 1;return score
+}
+
+func (s *DynamicCreativeService) getTotalImpressions() int64 {goCover_65b09fc02769__399[0] = 5 ; goCover_65b09fc02769__399[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__399[2] = 399 ; goCover_65b09fc02769__399[3] = 1;
+	var total int64
+	s.combinations.Range(func(key, value any) bool {goCover_65b09fc02769__399[6] = 1;
+		combo := value.(*CreativeCombination)
+		total += combo.Performance.Impressions
+		return true
+	})
+	goCover_65b09fc02769__399[4] = 1;if total < 1 {goCover_65b09fc02769__399[7] = 1;
+		return 1
+	}
+	goCover_65b09fc02769__399[5] = 1;return total
+}
+
+func (s *DynamicCreativeService) getOrCreateCombination(templateID string, elements map[string]*CreativeElement) *CreativeCombination {goCover_65b09fc02769__400[0] = 5 ; goCover_65b09fc02769__400[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__400[2] = 400 ; goCover_65b09fc02769__400[3] = 1;
+	// Create element map
+	elemMap := make(map[string]string)
+	for slotID, elem := range elements {goCover_65b09fc02769__400[6] = 1;
+		elemMap[slotID] = elem.ID
+	}
+
+	// Create hash for combination
+	goCover_65b09fc02769__400[4] = 1;hash := s.hashCombination(templateID, elemMap)
+
+	// Check if exists
+	if val, ok := s.combinations.Load(hash); ok {goCover_65b09fc02769__400[7] = 1;
+		return val.(*CreativeCombination)
+	}
+
+	// Create new combination
+	goCover_65b09fc02769__400[5] = 1;combo := &CreativeCombination{
+		ID:          uuid.New().String(),
+		TemplateID:  templateID,
+		Elements:    elemMap,
+		Hash:        hash,
+		Performance: &CombinationPerformance{},
+		CreatedAt:   time.Now(),
+	}
+
+	s.combinations.Store(hash, combo)
+	s.combinations.Store(combo.ID, combo)
+
+	return combo
+}
+
+func (s *DynamicCreativeService) hashCombination(templateID string, elements map[string]string) string {goCover_65b09fc02769__401[0] = 5 ; goCover_65b09fc02769__401[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__401[2] = 401 ; goCover_65b09fc02769__401[3] = 1;
+	// Simple hash - could be improved
+	hash := templateID
+	var keys []string
+	for k := range elements {goCover_65b09fc02769__401[6] = 1;
+		keys = append(keys, k)
+	}
+	goCover_65b09fc02769__401[4] = 1;sort.Strings(keys)
+	for _, k := range keys {goCover_65b09fc02769__401[7] = 1;
+		hash += ":" + k + "=" + elements[k]
+	}
+	goCover_65b09fc02769__401[5] = 1;return hash
+}
+
+func (s *DynamicCreativeService) calculatePersonalizationScore(elements map[string]*CreativeElement, userPref *UserCreativePreference) float64 {goCover_65b09fc02769__402[0] = 8 ; goCover_65b09fc02769__402[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__402[2] = 402 ; goCover_65b09fc02769__402[3] = 1;
+	if len(elements) == 0 {goCover_65b09fc02769__402[6] = 1;
+		return 0
+	}
+
+	goCover_65b09fc02769__402[4] = 1;score := 0.0
+	for _, elem := range elements {goCover_65b09fc02769__402[7] = 1;
+		if engagements, ok := userPref.EngagedElements[elem.ID]; ok {goCover_65b09fc02769__402[9] = 1;
+			score += math.Min(float64(engagements)/5.0, 1.0)
+		}
+		goCover_65b09fc02769__402[8] = 1;if conversions, ok := userPref.ConvertedElements[elem.ID]; ok {goCover_65b09fc02769__402[10] = 1;
+			score += math.Min(float64(conversions)*2.0, 2.0)
+		}
+	}
+
+	goCover_65b09fc02769__402[5] = 1;return math.Min(score/float64(len(elements)), 1.0)
+}
+
+func (s *DynamicCreativeService) predictCTR(combo *CreativeCombination, context DCOContext) float64 {goCover_65b09fc02769__403[0] = 11 ; goCover_65b09fc02769__403[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__403[2] = 403 ; goCover_65b09fc02769__403[3] = 1;
+	// Base CTR from combination performance
+	baseCTR := 0.01
+	if combo.Performance.Impressions >= s.config.MinImpressionsForStats {goCover_65b09fc02769__403[7] = 1;
+		baseCTR = combo.Performance.CTR
+	}
+
+	// Context adjustments
+	goCover_65b09fc02769__403[4] = 1;adjustment := 1.0
+
+	// Device type adjustment
+	switch context.DeviceType {
+	case "mobile":goCover_65b09fc02769__403[8] = 1;
+		adjustment *= 1.1
+	case "desktop":goCover_65b09fc02769__403[9] = 1;
+		adjustment *= 0.95
+	case "tablet":goCover_65b09fc02769__403[10] = 1;
+		adjustment *= 1.0
+	}
+
+	// Time of day adjustment
+	goCover_65b09fc02769__403[5] = 1;switch context.TimeOfDay {
+	case "morning":goCover_65b09fc02769__403[11] = 1;
+		adjustment *= 1.05
+	case "evening":goCover_65b09fc02769__403[12] = 1;
+		adjustment *= 1.1
+	case "night":goCover_65b09fc02769__403[13] = 1;
+		adjustment *= 0.9
+	}
+
+	goCover_65b09fc02769__403[6] = 1;return math.Min(baseCTR*adjustment, 1.0)
+}
+
+func (s *DynamicCreativeService) renderCreative(template *CreativeTemplate, elements map[string]*CreativeElement) string {goCover_65b09fc02769__404[0] = 5 ; goCover_65b09fc02769__404[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__404[2] = 404 ; goCover_65b09fc02769__404[3] = 1;
+	// Simple rendering - in production this would be more sophisticated
+	html := template.BaseHTML
+	if html == "" {goCover_65b09fc02769__404[5] = 1;
+		html = "<div class='dco-creative'>"
+		for slotID, elem := range elements {goCover_65b09fc02769__404[7] = 1;
+			html += fmt.Sprintf("<div class='slot-%s'>%s</div>", slotID, elem.Content)
+		}
+		goCover_65b09fc02769__404[6] = 1;html += "</div>"
+	}
+	goCover_65b09fc02769__404[4] = 1;return html
+}
+
+func (s *DynamicCreativeService) determineSelectionMethod(rulesApplied []string) string {goCover_65b09fc02769__405[0] = 6 ; goCover_65b09fc02769__405[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__405[2] = 405 ; goCover_65b09fc02769__405[3] = 1;
+	if len(rulesApplied) > 0 {goCover_65b09fc02769__405[5] = 1;
+		for _, rule := range rulesApplied {goCover_65b09fc02769__405[7] = 1;
+			if rule == "exploration" {goCover_65b09fc02769__405[8] = 1;
+				return "exploration"
+			}
+		}
+		goCover_65b09fc02769__405[6] = 1;return "rule_based"
+	}
+	goCover_65b09fc02769__405[4] = 1;return "ml_optimized"
+}
+
+func (s *DynamicCreativeService) updateUserPreferenceOnClick(userID string, combo *CreativeCombination) {goCover_65b09fc02769__406[0] = 5 ; goCover_65b09fc02769__406[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__406[2] = 406 ; goCover_65b09fc02769__406[3] = 1;
+	pref := s.getUserPreference(userID)
+
+	for _, elemID := range combo.Elements {goCover_65b09fc02769__406[5] = 1;
+		if pref.EngagedElements == nil {goCover_65b09fc02769__406[7] = 1;
+			pref.EngagedElements = make(map[string]int)
+		}
+		goCover_65b09fc02769__406[6] = 1;pref.EngagedElements[elemID]++
+	}
+	goCover_65b09fc02769__406[4] = 1;pref.LastUpdated = time.Now()
+}

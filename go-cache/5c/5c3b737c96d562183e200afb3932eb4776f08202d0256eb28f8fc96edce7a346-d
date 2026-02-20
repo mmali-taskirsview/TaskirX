@@ -1,0 +1,409 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\incrementality.go:1:1
+package service
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"math"
+	"sync"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// IncrementalityService manages lift measurement experiments
+type IncrementalityService struct {
+	cache       cache.Cache
+	mu          sync.RWMutex
+	experiments map[string]*experiment
+}
+
+type experiment struct {
+	config       *model.IncrementalityConfig
+	controlUsers map[string]*userStats
+	testUsers    map[string]*userStats
+	startTime    time.Time
+	lastUpdated  time.Time
+}
+
+type userStats struct {
+	impressions int
+	clicks      int
+	conversions int
+	revenue     float64
+	lastSeen    time.Time
+}
+
+// NewIncrementalityService creates a new incrementality testing service
+func NewIncrementalityService(c cache.Cache) *IncrementalityService {goCover_65b09fc02769__407[0] = 1 ; goCover_65b09fc02769__407[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__407[2] = 407 ; goCover_65b09fc02769__407[3] = 1;
+	return &IncrementalityService{
+		cache:       c,
+		experiments: make(map[string]*experiment),
+	}
+}
+
+// EvaluateUser determines if user is in control/test and returns result
+func (s *IncrementalityService) EvaluateUser(campaign *model.Campaign, req *model.BidRequest) *model.IncrementalityResult {goCover_65b09fc02769__408[0] = 7 ; goCover_65b09fc02769__408[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__408[2] = 408 ; goCover_65b09fc02769__408[3] = 1;
+	config := campaign.Targeting.IncrementalityConfig
+	if config == nil || !config.Enabled {goCover_65b09fc02769__408[7] = 1;
+		return &model.IncrementalityResult{
+			Status:             "disabled",
+			UserInControlGroup: false,
+		}
+	}
+
+	goCover_65b09fc02769__408[4] = 1;experimentID := config.ExperimentID
+	if experimentID == "" {goCover_65b09fc02769__408[8] = 1;
+		experimentID = campaign.ID + "_incrementality"
+	}
+
+	// Get or create experiment
+	goCover_65b09fc02769__408[5] = 1;s.mu.Lock()
+	exp, exists := s.experiments[experimentID]
+	if !exists {goCover_65b09fc02769__408[9] = 1;
+		exp = &experiment{
+			config:       config,
+			controlUsers: make(map[string]*userStats),
+			testUsers:    make(map[string]*userStats),
+			startTime:    time.Now(),
+		}
+		s.experiments[experimentID] = exp
+	}
+	goCover_65b09fc02769__408[6] = 1;s.mu.Unlock()
+
+	// Determine user assignment
+	userID := req.User.ID
+	isControl := s.assignToGroup(userID, config, req)
+
+	return &model.IncrementalityResult{
+		ExperimentID:       experimentID,
+		Status:             "running",
+		UserInControlGroup: isControl,
+	}
+}
+
+// assignToGroup deterministically assigns user to control or test
+func (s *IncrementalityService) assignToGroup(userID string, config *model.IncrementalityConfig, req *model.BidRequest) bool {goCover_65b09fc02769__409[0] = 13 ; goCover_65b09fc02769__409[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__409[2] = 409 ; goCover_65b09fc02769__409[3] = 1;
+	controlPercent := config.ControlPercent
+	if controlPercent <= 0 {goCover_65b09fc02769__409[6] = 1;
+		controlPercent = 10.0 // Default 10% control
+	}
+	goCover_65b09fc02769__409[4] = 1;if controlPercent >= 100 {goCover_65b09fc02769__409[7] = 1;
+		controlPercent = 10.0
+	}
+
+	goCover_65b09fc02769__409[5] = 1;switch config.HoldoutType {
+	case "geo":goCover_65b09fc02769__409[8] = 1;
+		// Geo-based holdout using Device.Geo (only Country and City available)
+		for _, holdoutGeo := range config.GeoHoldouts {goCover_65b09fc02769__409[13] = 1;
+			if req.Device.Geo.Country == holdoutGeo || req.Device.Geo.City == holdoutGeo {goCover_65b09fc02769__409[14] = 1;
+				return true // In control
+			}
+		}
+		goCover_65b09fc02769__409[9] = 1;return false
+
+	case "time":goCover_65b09fc02769__409[10] = 1;
+		// Time-based holdout (e.g., certain hours are control)
+		hour := time.Now().Hour()
+		// Control hours: 2am-4am (low traffic, minimal impact)
+		if hour >= 2 && hour <= 4 {goCover_65b09fc02769__409[15] = 1;
+			return true
+		}
+		goCover_65b09fc02769__409[11] = 1;return false
+
+	default:goCover_65b09fc02769__409[12] = 1; // "user" - default user-based random assignment
+		// Deterministic hash-based assignment
+		hash := sha256.Sum256([]byte(userID + config.ExperimentID))
+		hashInt := int(hash[0])<<8 + int(hash[1])
+		bucket := float64(hashInt%1000) / 10.0 // 0-100
+
+		return bucket < controlPercent
+	}
+}
+
+// RecordImpression records an impression for incrementality tracking
+func (s *IncrementalityService) RecordImpression(experimentID, userID string, isControl bool) {goCover_65b09fc02769__410[0] = 8 ; goCover_65b09fc02769__410[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__410[2] = 410 ; goCover_65b09fc02769__410[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	exp, exists := s.experiments[experimentID]
+	if !exists {goCover_65b09fc02769__410[7] = 1;
+		return
+	}
+
+	goCover_65b09fc02769__410[4] = 1;var users map[string]*userStats
+	if isControl {goCover_65b09fc02769__410[8] = 1;
+		users = exp.controlUsers
+	} else{ goCover_65b09fc02769__410[9] = 1;{
+		users = exp.testUsers
+	}}
+
+	goCover_65b09fc02769__410[5] = 1;if _, exists := users[userID]; !exists {goCover_65b09fc02769__410[10] = 1;
+		users[userID] = &userStats{}
+	}
+
+	goCover_65b09fc02769__410[6] = 1;users[userID].impressions++
+	users[userID].lastSeen = time.Now()
+	exp.lastUpdated = time.Now()
+}
+
+// RecordConversion records a conversion for incrementality tracking
+func (s *IncrementalityService) RecordConversion(experimentID, userID string, isControl bool, revenue float64) {goCover_65b09fc02769__411[0] = 8 ; goCover_65b09fc02769__411[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__411[2] = 411 ; goCover_65b09fc02769__411[3] = 1;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	exp, exists := s.experiments[experimentID]
+	if !exists {goCover_65b09fc02769__411[7] = 1;
+		return
+	}
+
+	goCover_65b09fc02769__411[4] = 1;var users map[string]*userStats
+	if isControl {goCover_65b09fc02769__411[8] = 1;
+		users = exp.controlUsers
+	} else{ goCover_65b09fc02769__411[9] = 1;{
+		users = exp.testUsers
+	}}
+
+	goCover_65b09fc02769__411[5] = 1;if _, exists := users[userID]; !exists {goCover_65b09fc02769__411[10] = 1;
+		users[userID] = &userStats{}
+	}
+
+	goCover_65b09fc02769__411[6] = 1;users[userID].conversions++
+	users[userID].revenue += revenue
+	users[userID].lastSeen = time.Now()
+	exp.lastUpdated = time.Now()
+}
+
+// GetExperimentResults calculates and returns experiment results
+func (s *IncrementalityService) GetExperimentResults(experimentID string) *model.IncrementalityResult {goCover_65b09fc02769__412[0] = 25 ; goCover_65b09fc02769__412[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__412[2] = 412 ; goCover_65b09fc02769__412[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	exp, exists := s.experiments[experimentID]
+	if !exists {goCover_65b09fc02769__412[15] = 1;
+		return &model.IncrementalityResult{
+			ExperimentID: experimentID,
+			Status:       "not_found",
+		}
+	}
+
+	// Calculate metrics for each group
+	goCover_65b09fc02769__412[4] = 1;controlStats := s.aggregateStats(exp.controlUsers)
+	testStats := s.aggregateStats(exp.testUsers)
+
+	// Check sample size
+	minSampleSize := exp.config.MinSampleSize
+	if minSampleSize <= 0 {goCover_65b09fc02769__412[16] = 1;
+		minSampleSize = 1000
+	}
+
+	goCover_65b09fc02769__412[5] = 1;if controlStats.users < minSampleSize || testStats.users < minSampleSize {goCover_65b09fc02769__412[17] = 1;
+		return &model.IncrementalityResult{
+			ExperimentID:     experimentID,
+			Status:           "insufficient_data",
+			ControlGroupSize: controlStats.users,
+			TestGroupSize:    testStats.users,
+		}
+	}
+
+	// Calculate conversion rates
+	goCover_65b09fc02769__412[6] = 1;controlCVR := 0.0
+	testCVR := 0.0
+	if controlStats.users > 0 {goCover_65b09fc02769__412[18] = 1;
+		controlCVR = float64(controlStats.conversions) / float64(controlStats.users)
+	}
+	goCover_65b09fc02769__412[7] = 1;if testStats.users > 0 {goCover_65b09fc02769__412[19] = 1;
+		testCVR = float64(testStats.conversions) / float64(testStats.users)
+	}
+
+	// Calculate lift
+	goCover_65b09fc02769__412[8] = 1;lift := 0.0
+	if controlCVR > 0 {goCover_65b09fc02769__412[20] = 1;
+		lift = (testCVR - controlCVR) / controlCVR * 100
+	} else{ goCover_65b09fc02769__412[21] = 1;if testCVR > 0 {goCover_65b09fc02769__412[22] = 1;
+		lift = 100.0 // Infinite lift if control has 0 conversions
+	}}
+
+	// Calculate statistical significance (simplified z-test)
+	goCover_65b09fc02769__412[9] = 1;confidence := s.calculateSignificance(controlStats, testStats)
+
+	// Calculate incremental metrics
+	incrementalConv := testStats.conversions - int(float64(testStats.users)*controlCVR)
+	if incrementalConv < 0 {goCover_65b09fc02769__412[23] = 1;
+		incrementalConv = 0
+	}
+
+	goCover_65b09fc02769__412[10] = 1;incrementalRevenue := testStats.revenue - (float64(testStats.users) * controlStats.revenue / float64(controlStats.users))
+	if incrementalRevenue < 0 {goCover_65b09fc02769__412[24] = 1;
+		incrementalRevenue = 0
+	}
+
+	// Calculate iROAS (incremental ROAS)
+	// This would need spend data - using placeholder
+	goCover_65b09fc02769__412[11] = 1;iROAS := 0.0
+	if incrementalRevenue > 0 {goCover_65b09fc02769__412[25] = 1;
+		iROAS = incrementalRevenue / (incrementalRevenue * 0.3) // Assume 30% of revenue as spend
+	}
+
+	// Determine status
+	goCover_65b09fc02769__412[12] = 1;status := "running"
+	requiredConfidence := exp.config.ConfidenceLevel
+	if requiredConfidence <= 0 {goCover_65b09fc02769__412[26] = 1;
+		requiredConfidence = 0.95
+	}
+	goCover_65b09fc02769__412[13] = 1;if confidence >= requiredConfidence {goCover_65b09fc02769__412[27] = 1;
+		status = "complete"
+	}
+
+	// Generate recommendation
+	goCover_65b09fc02769__412[14] = 1;recommendation := s.generateRecommendation(lift, confidence, status)
+
+	return &model.IncrementalityResult{
+		ExperimentID:       experimentID,
+		Status:             status,
+		ControlGroupSize:   controlStats.users,
+		TestGroupSize:      testStats.users,
+		Lift:               lift,
+		LiftConfidence:     confidence,
+		IncrementalConv:    incrementalConv,
+		IncrementalRevenue: incrementalRevenue,
+		ROAS:               iROAS, // Use ROAS field (iROAS is unexported)
+		Recommendation:     recommendation,
+	}
+}
+
+type aggregatedStats struct {
+	users       int
+	impressions int
+	conversions int
+	revenue     float64
+}
+
+func (s *IncrementalityService) aggregateStats(users map[string]*userStats) aggregatedStats {goCover_65b09fc02769__413[0] = 3 ; goCover_65b09fc02769__413[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__413[2] = 413 ; goCover_65b09fc02769__413[3] = 1;
+	stats := aggregatedStats{
+		users: len(users),
+	}
+	for _, u := range users {goCover_65b09fc02769__413[5] = 1;
+		stats.impressions += u.impressions
+		stats.conversions += u.conversions
+		stats.revenue += u.revenue
+	}
+	goCover_65b09fc02769__413[4] = 1;return stats
+}
+
+func (s *IncrementalityService) calculateSignificance(control, test aggregatedStats) float64 {goCover_65b09fc02769__414[0] = 5 ; goCover_65b09fc02769__414[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__414[2] = 414 ; goCover_65b09fc02769__414[3] = 1;
+	if control.users == 0 || test.users == 0 {goCover_65b09fc02769__414[6] = 1;
+		return 0
+	}
+
+	// Calculate conversion rates
+	goCover_65b09fc02769__414[4] = 1;p1 := float64(control.conversions) / float64(control.users)
+	p2 := float64(test.conversions) / float64(test.users)
+	n1 := float64(control.users)
+	n2 := float64(test.users)
+
+	// Pooled proportion
+	pPooled := float64(control.conversions+test.conversions) / (n1 + n2)
+
+	// Standard error
+	se := math.Sqrt(pPooled * (1 - pPooled) * (1/n1 + 1/n2))
+	if se == 0 {goCover_65b09fc02769__414[7] = 1;
+		return 0
+	}
+
+	// Z-score
+	goCover_65b09fc02769__414[5] = 1;z := math.Abs(p2-p1) / se
+
+	// Convert to confidence (approximation)
+	// Using error function approximation
+	confidence := 1 - 2*normalCDF(-z)
+
+	return confidence
+}
+
+// normalCDF approximates the cumulative distribution function of standard normal
+func normalCDF(x float64) float64 {goCover_65b09fc02769__415[0] = 1 ; goCover_65b09fc02769__415[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__415[2] = 415 ; goCover_65b09fc02769__415[3] = 1;
+	// Approximation using error function
+	return 0.5 * (1 + erf(x/math.Sqrt(2)))
+}
+
+// erf approximates the error function
+func erf(x float64) float64 {goCover_65b09fc02769__416[0] = 3 ; goCover_65b09fc02769__416[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__416[2] = 416 ; goCover_65b09fc02769__416[3] = 1;
+	// Horner form approximation
+	a1 := 0.254829592
+	a2 := -0.284496736
+	a3 := 1.421413741
+	a4 := -1.453152027
+	a5 := 1.061405429
+	p := 0.3275911
+
+	sign := 1.0
+	if x < 0 {goCover_65b09fc02769__416[5] = 1;
+		sign = -1.0
+	}
+	goCover_65b09fc02769__416[4] = 1;x = math.Abs(x)
+
+	t := 1.0 / (1.0 + p*x)
+	y := 1.0 - (((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*math.Exp(-x*x)
+
+	return sign * y
+}
+
+func (s *IncrementalityService) generateRecommendation(lift, confidence float64, status string) string {goCover_65b09fc02769__417[0] = 13 ; goCover_65b09fc02769__417[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__417[2] = 417 ; goCover_65b09fc02769__417[3] = 1;
+	if status != "complete" {goCover_65b09fc02769__417[6] = 1;
+		return "Continue experiment to reach statistical significance"
+	}
+
+	goCover_65b09fc02769__417[4] = 1;if confidence < 0.9 {goCover_65b09fc02769__417[7] = 1;
+		return "Results inconclusive. Consider extending the experiment."
+	}
+
+	goCover_65b09fc02769__417[5] = 1;if lift > 20 {goCover_65b09fc02769__417[8] = 1;
+		return "Strong positive lift detected. Advertising is highly effective for this campaign."
+	} else{ goCover_65b09fc02769__417[9] = 1;if lift > 5 {goCover_65b09fc02769__417[10] = 1;
+		return "Moderate positive lift detected. Advertising provides measurable incremental value."
+	} else{ goCover_65b09fc02769__417[11] = 1;if lift > 0 {goCover_65b09fc02769__417[12] = 1;
+		return "Small positive lift detected. Consider optimizing targeting to improve efficiency."
+	} else{ goCover_65b09fc02769__417[13] = 1;if lift > -5 {goCover_65b09fc02769__417[14] = 1;
+		return "No significant lift detected. Consider reviewing campaign strategy."
+	} else{ goCover_65b09fc02769__417[15] = 1;{
+		return "Negative lift detected. Review campaign targeting and creative strategy."
+	}}}}}
+}
+
+// GetUserExperimentGroup returns the experiment group for a user (for API use)
+func (s *IncrementalityService) GetUserExperimentGroup(experimentID, userID string) (string, bool) {goCover_65b09fc02769__418[0] = 7 ; goCover_65b09fc02769__418[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__418[2] = 418 ; goCover_65b09fc02769__418[3] = 1;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	exp, exists := s.experiments[experimentID]
+	if !exists {goCover_65b09fc02769__418[7] = 1;
+		return "", false
+	}
+
+	goCover_65b09fc02769__418[4] = 1;if _, inControl := exp.controlUsers[userID]; inControl {goCover_65b09fc02769__418[8] = 1;
+		return "control", true
+	}
+	goCover_65b09fc02769__418[5] = 1;if _, inTest := exp.testUsers[userID]; inTest {goCover_65b09fc02769__418[9] = 1;
+		return "test", true
+	}
+
+	goCover_65b09fc02769__418[6] = 1;return "", false
+}
+
+// hashToGroup creates deterministic group assignment
+func hashToGroup(userID, experimentID string, controlPercent float64) bool {goCover_65b09fc02769__419[0] = 4 ; goCover_65b09fc02769__419[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__419[2] = 419 ; goCover_65b09fc02769__419[3] = 1;
+	hash := sha256.Sum256([]byte(userID + experimentID))
+	hashHex := hex.EncodeToString(hash[:8])
+	// Convert first 8 hex chars to int
+	var hashInt int64
+	for _, c := range hashHex {goCover_65b09fc02769__419[5] = 1;
+		hashInt = hashInt*16 + int64(c-'0')
+		if c >= 'a' {goCover_65b09fc02769__419[6] = 1;
+			hashInt = hashInt - 49 + 10 // Adjust for hex letters
+		}
+	}
+	goCover_65b09fc02769__419[4] = 1;bucket := float64(hashInt%1000) / 10.0
+	return bucket < controlPercent
+}
