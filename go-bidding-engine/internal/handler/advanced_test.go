@@ -873,3 +873,4 @@ func TestHandleAdvancedServicesStatus(t *testing.T) {
 		t.Error("Expected 'services' field in response")
 	}
 }
+
