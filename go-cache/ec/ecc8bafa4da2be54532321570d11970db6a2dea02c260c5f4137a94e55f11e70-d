@@ -1,0 +1,68 @@
+=== RUN   TestABTest_NewService
+--- PASS: TestABTest_NewService (0.00s)
+=== RUN   TestABTest_CreateExperiment_Success
+--- PASS: TestABTest_CreateExperiment_Success (0.00s)
+=== RUN   TestABTest_CreateExperiment_NoName
+--- PASS: TestABTest_CreateExperiment_NoName (0.00s)
+=== RUN   TestABTest_CreateExperiment_SingleVariant
+--- PASS: TestABTest_CreateExperiment_SingleVariant (0.00s)
+=== RUN   TestABTest_CreateExperiment_NoControl
+--- PASS: TestABTest_CreateExperiment_NoControl (0.00s)
+=== RUN   TestABTest_CreateExperiment_MultipleControls
+--- PASS: TestABTest_CreateExperiment_MultipleControls (0.00s)
+=== RUN   TestABTest_CreateExperiment_NormalizeWeights
+--- PASS: TestABTest_CreateExperiment_NormalizeWeights (0.00s)
+=== RUN   TestABTest_StartExperiment
+--- PASS: TestABTest_StartExperiment (0.00s)
+=== RUN   TestABTest_StartExperiment_NotFound
+--- PASS: TestABTest_StartExperiment_NotFound (0.00s)
+=== RUN   TestABTest_StartExperiment_AlreadyRunning
+--- PASS: TestABTest_StartExperiment_AlreadyRunning (0.00s)
+=== RUN   TestABTest_StartExperiment_MaxReached
+--- PASS: TestABTest_StartExperiment_MaxReached (0.00s)
+=== RUN   TestABTest_StopExperiment
+--- PASS: TestABTest_StopExperiment (0.00s)
+=== RUN   TestABTest_StopExperiment_NotRunning
+--- PASS: TestABTest_StopExperiment_NotRunning (0.00s)
+=== RUN   TestABTest_GetVariantForUser
+--- PASS: TestABTest_GetVariantForUser (0.00s)
+=== RUN   TestABTest_GetVariantForUser_Consistent
+--- PASS: TestABTest_GetVariantForUser_Consistent (0.00s)
+=== RUN   TestABTest_GetVariantForUser_NotRunning
+--- PASS: TestABTest_GetVariantForUser_NotRunning (0.00s)
+=== RUN   TestABTest_RecordEvent_Impression
+--- PASS: TestABTest_RecordEvent_Impression (0.00s)
+=== RUN   TestABTest_RecordEvent_Conversion
+--- PASS: TestABTest_RecordEvent_Conversion (0.00s)
+=== RUN   TestABTest_RecordEvent_CustomMetric
+--- PASS: TestABTest_RecordEvent_CustomMetric (0.00s)
+=== RUN   TestABTest_RecordEvent_VariantNotFound
+--- PASS: TestABTest_RecordEvent_VariantNotFound (0.00s)
+=== RUN   TestABTest_AnalyzeExperiment
+--- PASS: TestABTest_AnalyzeExperiment (0.00s)
+=== RUN   TestABTest_AnalyzeExperiment_NotFound
+--- PASS: TestABTest_AnalyzeExperiment_NotFound (0.00s)
+=== RUN   TestABTest_ListExperiments
+--- PASS: TestABTest_ListExperiments (0.00s)
+=== RUN   TestABTest_ListExperiments_StatusFilter
+--- PASS: TestABTest_ListExperiments_StatusFilter (0.00s)
+=== RUN   TestABTest_GetStats
+--- PASS: TestABTest_GetStats (0.00s)
+=== RUN   TestABTest_UpdateConfig
+--- PASS: TestABTest_UpdateConfig (0.00s)
+=== RUN   TestABTest_GetBanditRecommendation
+--- PASS: TestABTest_GetBanditRecommendation (0.00s)
+=== RUN   TestABTest_GetBanditRecommendation_NotBandit
+--- PASS: TestABTest_GetBanditRecommendation_NotBandit (0.00s)
+=== RUN   TestABTest_Concurrency
+--- PASS: TestABTest_Concurrency (0.00s)
+=== RUN   TestABTest_AutoStopOnSignificance
+--- PASS: TestABTest_AutoStopOnSignificance (0.00s)
+=== RUN   TestABTest_CalculatePValue
+--- PASS: TestABTest_CalculatePValue (0.00s)
+=== RUN   TestABTest_CalculateStandardError
+--- PASS: TestABTest_CalculateStandardError (0.00s)
+=== RUN   TestABTest_Duration
+--- PASS: TestABTest_Duration (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.065s
