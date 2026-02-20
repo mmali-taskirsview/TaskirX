@@ -73,8 +73,8 @@ This document outlines planned features and enhancements for TaskirX. All items 
 ### Header Bidding
 - [x] Prebid.js integration (Adapter `sdks/javascript/taskirxBidAdapter.js`)
 - [x] Client-side bidding support
-- [ ] Server-to-server bidding
-- [ ] Bid caching strategies
+- [x] Server-to-server bidding (S2SBiddingService with demand partner management)
+- [x] Bid caching strategies (BidCacheService with LRU, TTL, stale-serve)
 
 ### Private Marketplaces (PMP)
 - [x] Deal ID management (Backend + Dashboard + Bidding Engine)
