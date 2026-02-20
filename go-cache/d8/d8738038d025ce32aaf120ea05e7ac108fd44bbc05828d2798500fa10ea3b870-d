@@ -1,0 +1,24 @@
+=== RUN   TestAudienceModeling_GeoSimilarity_BaseScore
+--- PASS: TestAudienceModeling_GeoSimilarity_BaseScore (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_CountryMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_CountryMatch (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_CityMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_CityMatch (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_BothMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_BothMatch (0.00s)
+=== RUN   TestAudienceModeling_GeoSimilarity_NoMatch
+--- PASS: TestAudienceModeling_GeoSimilarity_NoMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_BaseScore
+--- PASS: TestAudienceModeling_DeviceSimilarity_BaseScore (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_TypeMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_TypeMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_OSMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_OSMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_BrowserMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_BrowserMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_AllMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_AllMatch (0.00s)
+=== RUN   TestAudienceModeling_DeviceSimilarity_NoMatch
+--- PASS: TestAudienceModeling_DeviceSimilarity_NoMatch (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.101s

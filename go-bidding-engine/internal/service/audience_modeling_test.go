@@ -381,3 +381,159 @@ func TestAudienceModeling_SuppressionNoUserID(t *testing.T) {
 		t.Error("should not suppress without user ID")
 	}
 }
+
+// ========== GeoSimilarity Tests ==========
+
+func TestAudienceModeling_GeoSimilarity_BaseScore(t *testing.T) {
+	mc := NewMockCache()
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		User:   model.InternalUser{Country: ""},
+		Device: model.InternalDevice{Geo: model.InternalGeo{City: ""}},
+	}
+
+	score := svc.geoSimilarity(req)
+	assertNear(t, "base_geo_score", score, 0.3, 0.001)
+}
+
+func TestAudienceModeling_GeoSimilarity_CountryMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_geo_countries", "us,uk,canada", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		User:   model.InternalUser{Country: "US"},
+		Device: model.InternalDevice{Geo: model.InternalGeo{City: ""}},
+	}
+
+	score := svc.geoSimilarity(req)
+	assertNear(t, "country_match", score, 0.8, 0.001) // 0.3 base + 0.5 country
+}
+
+func TestAudienceModeling_GeoSimilarity_CityMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_geo_cities", "new york,los angeles,chicago", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		User:   model.InternalUser{Country: ""},
+		Device: model.InternalDevice{Geo: model.InternalGeo{City: "New York"}},
+	}
+
+	score := svc.geoSimilarity(req)
+	assertNear(t, "city_match", score, 0.6, 0.001) // 0.3 base + 0.3 city
+}
+
+func TestAudienceModeling_GeoSimilarity_BothMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_geo_countries", "us,uk,canada", 0)
+	mc.Set("seed_geo_cities", "new york,los angeles,chicago", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		User:   model.InternalUser{Country: "US"},
+		Device: model.InternalDevice{Geo: model.InternalGeo{City: "New York"}},
+	}
+
+	score := svc.geoSimilarity(req)
+	assertNear(t, "both_match_capped", score, 1.0, 0.001) // Capped at 1.0
+}
+
+func TestAudienceModeling_GeoSimilarity_NoMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_geo_countries", "uk,germany,france", 0)
+	mc.Set("seed_geo_cities", "london,berlin,paris", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		User:   model.InternalUser{Country: "US"},
+		Device: model.InternalDevice{Geo: model.InternalGeo{City: "New York"}},
+	}
+
+	score := svc.geoSimilarity(req)
+	assertNear(t, "no_match", score, 0.3, 0.001) // Base score only
+}
+
+// ========== DeviceSimilarity Tests ==========
+
+func TestAudienceModeling_DeviceSimilarity_BaseScore(t *testing.T) {
+	mc := NewMockCache()
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		Device: model.InternalDevice{Type: "", OS: "", Browser: ""},
+	}
+
+	score := svc.deviceSimilarity(req)
+	assertNear(t, "base_device_score", score, 0.4, 0.001)
+}
+
+func TestAudienceModeling_DeviceSimilarity_TypeMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_device_types", "mobile,tablet", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		Device: model.InternalDevice{Type: "mobile", OS: "", Browser: ""},
+	}
+
+	score := svc.deviceSimilarity(req)
+	assertNear(t, "type_match", score, 0.7, 0.001) // 0.4 base + 0.3 type
+}
+
+func TestAudienceModeling_DeviceSimilarity_OSMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_device_os", "android,ios", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		Device: model.InternalDevice{Type: "", OS: "android", Browser: ""},
+	}
+
+	score := svc.deviceSimilarity(req)
+	assertNear(t, "os_match", score, 0.6, 0.001) // 0.4 base + 0.2 OS
+}
+
+func TestAudienceModeling_DeviceSimilarity_BrowserMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_device_browsers", "chrome,safari", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		Device: model.InternalDevice{Type: "", OS: "", Browser: "Chrome"},
+	}
+
+	score := svc.deviceSimilarity(req)
+	assertNear(t, "browser_match", score, 0.5, 0.001) // 0.4 base + 0.1 browser
+}
+
+func TestAudienceModeling_DeviceSimilarity_AllMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_device_types", "mobile,tablet", 0)
+	mc.Set("seed_device_os", "android,ios", 0)
+	mc.Set("seed_device_browsers", "chrome,safari", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		Device: model.InternalDevice{Type: "mobile", OS: "android", Browser: "Chrome"},
+	}
+
+	score := svc.deviceSimilarity(req)
+	assertNear(t, "all_match_capped", score, 1.0, 0.001) // Capped at 1.0
+}
+
+func TestAudienceModeling_DeviceSimilarity_NoMatch(t *testing.T) {
+	mc := NewMockCache()
+	mc.Set("seed_device_types", "desktop", 0)
+	mc.Set("seed_device_os", "windows", 0)
+	mc.Set("seed_device_browsers", "firefox", 0)
+	svc := NewAudienceModelingService(mc)
+
+	req := &model.BidRequest{
+		Device: model.InternalDevice{Type: "mobile", OS: "android", Browser: "Chrome"},
+	}
+
+	score := svc.deviceSimilarity(req)
+	assertNear(t, "no_device_match", score, 0.4, 0.001) // Base score only
+}
