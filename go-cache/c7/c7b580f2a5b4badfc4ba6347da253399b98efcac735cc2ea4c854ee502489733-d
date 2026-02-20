@@ -1,0 +1,168 @@
+=== RUN   TestGetHistoricalPerformance
+=== RUN   TestGetHistoricalPerformance/Default_values_when_no_cache
+--- PASS: TestGetHistoricalPerformance (0.00s)
+    --- PASS: TestGetHistoricalPerformance/Default_values_when_no_cache (0.00s)
+=== RUN   TestParsePerformanceCache
+=== RUN   TestParsePerformanceCache/Valid_cache_data
+=== RUN   TestParsePerformanceCache/Single_value
+=== RUN   TestParsePerformanceCache/Empty_string
+=== RUN   TestParsePerformanceCache/Invalid_format
+=== RUN   TestParsePerformanceCache/With_spaces
+--- PASS: TestParsePerformanceCache (0.00s)
+    --- PASS: TestParsePerformanceCache/Valid_cache_data (0.00s)
+    --- PASS: TestParsePerformanceCache/Single_value (0.00s)
+    --- PASS: TestParsePerformanceCache/Empty_string (0.00s)
+    --- PASS: TestParsePerformanceCache/Invalid_format (0.00s)
+    --- PASS: TestParsePerformanceCache/With_spaces (0.00s)
+=== RUN   TestPredictCTR
+=== RUN   TestPredictCTR/Default_CTR
+=== RUN   TestPredictCTR/Mobile_device_boost
+=== RUN   TestPredictCTR/Desktop_device
+=== RUN   TestPredictCTR/Above_fold_placement
+=== RUN   TestPredictCTR/Category_overlap_boost
+--- PASS: TestPredictCTR (0.00s)
+    --- PASS: TestPredictCTR/Default_CTR (0.00s)
+    --- PASS: TestPredictCTR/Mobile_device_boost (0.00s)
+    --- PASS: TestPredictCTR/Desktop_device (0.00s)
+    --- PASS: TestPredictCTR/Above_fold_placement (0.00s)
+    --- PASS: TestPredictCTR/Category_overlap_boost (0.00s)
+=== RUN   TestPredictCVR
+=== RUN   TestPredictCVR/Default_CVR
+=== RUN   TestPredictCVR/High_intent_segment_boost
+=== RUN   TestPredictCVR/Category_match_boost
+--- PASS: TestPredictCVR (0.00s)
+    --- PASS: TestPredictCVR/Default_CVR (0.00s)
+    --- PASS: TestPredictCVR/High_intent_segment_boost (0.00s)
+    --- PASS: TestPredictCVR/Category_match_boost (0.00s)
+=== RUN   TestPredictViewability
+=== RUN   TestPredictViewability/Default_viewability
+=== RUN   TestPredictViewability/Above_fold_boost
+=== RUN   TestPredictViewability/Below_fold_decrease
+--- PASS: TestPredictViewability (0.00s)
+    --- PASS: TestPredictViewability/Default_viewability (0.00s)
+    --- PASS: TestPredictViewability/Above_fold_boost (0.00s)
+    --- PASS: TestPredictViewability/Below_fold_decrease (0.00s)
+=== RUN   TestOptimizeForCPA
+=== RUN   TestOptimizeForCPA/No_CPA_target
+=== RUN   TestOptimizeForCPA/With_CPA_target
+--- PASS: TestOptimizeForCPA (0.00s)
+    --- PASS: TestOptimizeForCPA/No_CPA_target (0.00s)
+    --- PASS: TestOptimizeForCPA/With_CPA_target (0.00s)
+=== RUN   TestOptimizeForCPC
+=== RUN   TestOptimizeForCPC/No_CPC_target
+=== RUN   TestOptimizeForCPC/With_CPC_target
+--- PASS: TestOptimizeForCPC (0.00s)
+    --- PASS: TestOptimizeForCPC/No_CPC_target (0.00s)
+    --- PASS: TestOptimizeForCPC/With_CPC_target (0.00s)
+=== RUN   TestOptimizeForCPM
+=== RUN   TestOptimizeForCPM/No_CPM_target
+=== RUN   TestOptimizeForCPM/High_viewability_boost
+=== RUN   TestOptimizeForCPM/Low_viewability_decrease
+--- PASS: TestOptimizeForCPM (0.00s)
+    --- PASS: TestOptimizeForCPM/No_CPM_target (0.00s)
+    --- PASS: TestOptimizeForCPM/High_viewability_boost (0.00s)
+    --- PASS: TestOptimizeForCPM/Low_viewability_decrease (0.00s)
+=== RUN   TestIsPrimetime
+=== RUN   TestIsPrimetime/No_timezone_context
+=== RUN   TestIsPrimetime/With_timezone_context
+--- PASS: TestIsPrimetime (0.00s)
+    --- PASS: TestIsPrimetime/No_timezone_context (0.00s)
+    --- PASS: TestIsPrimetime/With_timezone_context (0.00s)
+=== RUN   TestIsLiveContent
+=== RUN   TestIsLiveContent/is_live_true
+=== RUN   TestIsLiveContent/is_live_false
+=== RUN   TestIsLiveContent/Content_type_live
+=== RUN   TestIsLiveContent/Content_type_VOD
+=== RUN   TestIsLiveContent/No_context
+--- PASS: TestIsLiveContent (0.00s)
+    --- PASS: TestIsLiveContent/is_live_true (0.00s)
+    --- PASS: TestIsLiveContent/is_live_false (0.00s)
+    --- PASS: TestIsLiveContent/Content_type_live (0.00s)
+    --- PASS: TestIsLiveContent/Content_type_VOD (0.00s)
+    --- PASS: TestIsLiveContent/No_context (0.00s)
+=== RUN   TestIsCoViewing
+=== RUN   TestIsCoViewing/co_viewing_true
+=== RUN   TestIsCoViewing/co_viewing_false
+=== RUN   TestIsCoViewing/Multiple_household_viewers
+=== RUN   TestIsCoViewing/Single_viewer
+=== RUN   TestIsCoViewing/No_context
+--- PASS: TestIsCoViewing (0.00s)
+    --- PASS: TestIsCoViewing/co_viewing_true (0.00s)
+    --- PASS: TestIsCoViewing/co_viewing_false (0.00s)
+    --- PASS: TestIsCoViewing/Multiple_household_viewers (0.00s)
+    --- PASS: TestIsCoViewing/Single_viewer (0.00s)
+    --- PASS: TestIsCoViewing/No_context (0.00s)
+=== RUN   TestGetCTVDevice
+=== RUN   TestGetCTVDevice/From_ctv_device_context
+=== RUN   TestGetCTVDevice/From_device_make_context
+=== RUN   TestGetCTVDevice/Fallback_to_device_type
+=== RUN   TestGetCTVDevice/Empty_request
+--- PASS: TestGetCTVDevice (0.00s)
+    --- PASS: TestGetCTVDevice/From_ctv_device_context (0.00s)
+    --- PASS: TestGetCTVDevice/From_device_make_context (0.00s)
+    --- PASS: TestGetCTVDevice/Fallback_to_device_type (0.00s)
+    --- PASS: TestGetCTVDevice/Empty_request (0.00s)
+=== RUN   TestIsIOSDevice
+=== RUN   TestIsIOSDevice/iOS_device
+=== RUN   TestIsIOSDevice/iPhone_device
+=== RUN   TestIsIOSDevice/Android_device
+=== RUN   TestIsIOSDevice/Empty_OS
+--- PASS: TestIsIOSDevice (0.00s)
+    --- PASS: TestIsIOSDevice/iOS_device (0.00s)
+    --- PASS: TestIsIOSDevice/iPhone_device (0.00s)
+    --- PASS: TestIsIOSDevice/Android_device (0.00s)
+    --- PASS: TestIsIOSDevice/Empty_OS (0.00s)
+=== RUN   TestIsCartAbandoner
+=== RUN   TestIsCartAbandoner/From_context
+=== RUN   TestIsCartAbandoner/Not_abandoner_from_context
+=== RUN   TestIsCartAbandoner/No_context
+--- PASS: TestIsCartAbandoner (0.00s)
+    --- PASS: TestIsCartAbandoner/From_context (0.00s)
+    --- PASS: TestIsCartAbandoner/Not_abandoner_from_context (0.00s)
+    --- PASS: TestIsCartAbandoner/No_context (0.00s)
+=== RUN   TestIsRepeatCustomer
+=== RUN   TestIsRepeatCustomer/From_context
+=== RUN   TestIsRepeatCustomer/Has_purchase_history
+=== RUN   TestIsRepeatCustomer/No_purchase_history
+=== RUN   TestIsRepeatCustomer/No_context
+--- PASS: TestIsRepeatCustomer (0.00s)
+    --- PASS: TestIsRepeatCustomer/From_context (0.00s)
+    --- PASS: TestIsRepeatCustomer/Has_purchase_history (0.00s)
+    --- PASS: TestIsRepeatCustomer/No_purchase_history (0.00s)
+    --- PASS: TestIsRepeatCustomer/No_context (0.00s)
+=== RUN   TestGetCurrentSeason
+--- PASS: TestGetCurrentSeason (0.00s)
+=== RUN   TestCalculateCarrierMultiplier
+=== RUN   TestCalculateCarrierMultiplier/No_carrier_targeting
+=== RUN   TestCalculateCarrierMultiplier/Cellular_only_-_wifi_user
+=== RUN   TestCalculateCarrierMultiplier/Cellular_only_-_cellular_user
+=== RUN   TestCalculateCarrierMultiplier/WiFi_only_-_cellular_user
+=== RUN   TestCalculateCarrierMultiplier/Excluded_carrier
+--- PASS: TestCalculateCarrierMultiplier (0.00s)
+    --- PASS: TestCalculateCarrierMultiplier/No_carrier_targeting (0.00s)
+    --- PASS: TestCalculateCarrierMultiplier/Cellular_only_-_wifi_user (0.00s)
+    --- PASS: TestCalculateCarrierMultiplier/Cellular_only_-_cellular_user (0.00s)
+    --- PASS: TestCalculateCarrierMultiplier/WiFi_only_-_cellular_user (0.00s)
+    --- PASS: TestCalculateCarrierMultiplier/Excluded_carrier (0.00s)
+=== RUN   TestPredictionRecordPerformance
+--- PASS: TestPredictionRecordPerformance (0.00s)
+=== RUN   TestPredictionPredict
+--- PASS: TestPredictionPredict (0.00s)
+=== RUN   TestPredictionPredict_InsufficientData
+--- PASS: TestPredictionPredict_InsufficientData (0.00s)
+=== RUN   TestPredictionForecast
+--- PASS: TestPredictionForecast (0.00s)
+=== RUN   TestPredictionForecast_InsufficientData
+--- PASS: TestPredictionForecast_InsufficientData (0.00s)
+=== RUN   TestPredictionGetAccuracy
+--- PASS: TestPredictionGetAccuracy (0.00s)
+=== RUN   TestPredictionGetStats
+--- PASS: TestPredictionGetStats (0.00s)
+=== RUN   TestPredictionConfig
+--- PASS: TestPredictionConfig (0.00s)
+=== RUN   TestPredictionUpdateConfig
+--- PASS: TestPredictionUpdateConfig (0.00s)
+=== RUN   TestPredictionMultipleEntityTypes
+--- PASS: TestPredictionMultipleEntityTypes (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.119s
