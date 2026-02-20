@@ -47,6 +47,12 @@ func (s *SupplyPathAnalyticsService) AnalyzeSupplyPathEfficiency(timeRange strin
 		Timestamp: time.Now(),
 	}
 
+	// If no metrics data available, return empty optimization with no suggestions
+	if metrics == nil {
+		optimization.Optimizations = []model.OptimizationSuggestion{}
+		return optimization, nil
+	}
+
 	// Analyze service performance and suggest optimizations
 	var suggestions []model.OptimizationSuggestion
 
@@ -113,6 +119,11 @@ func (s *SupplyPathAnalyticsService) GetTopBottlenecks(timeRange string, limit i
 		return nil, err
 	}
 
+	// If no metrics data available, return empty list
+	if metrics == nil {
+		return []*model.ServiceMetrics{}, nil
+	}
+
 	// Sort services by latency (highest first)
 	var services []*model.ServiceMetrics
 	for _, service := range metrics.ServiceMetrics {
@@ -143,6 +154,12 @@ func (s *SupplyPathAnalyticsService) GetCostAnalysis(timeRange string) (map[stri
 	}
 
 	costs := make(map[string]float64)
+
+	// If no metrics data available, return empty costs
+	if metrics == nil {
+		return costs, nil
+	}
+
 	costs["total_fees"] = metrics.AvgTotalFees * float64(metrics.TotalRequests)
 	costs["avg_fee_per_request"] = metrics.AvgTotalFees
 	costs["fee_efficiency"] = 1.0 - (metrics.AvgTotalFees / 0.01) // Lower is better (assuming $0.01 is target)
@@ -162,6 +179,11 @@ func (s *SupplyPathAnalyticsService) AnalyzeDirectPublisherOpportunities(timeRan
 		Timestamp:     time.Now(),
 		CurrentHops:   3, // Average hops in current supply chain
 		Opportunities: []model.DirectPublisherOpportunity{},
+	}
+
+	// If no metrics data available, return empty analysis
+	if metrics == nil {
+		return analysis, nil
 	}
 
 	// Analyze each service for direct connection potential
@@ -201,6 +223,15 @@ func (s *SupplyPathAnalyticsService) CalculateCostBenefitAnalysis(timeRange stri
 	metrics, err := s.GetSupplyChainMetrics(timeRange)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get supply chain metrics: %w", err)
+	}
+
+	// If no metrics data available, return empty analysis
+	if metrics == nil {
+		return &model.CostBenefitAnalysis{
+			TimeRange: timeRange,
+			Timestamp: time.Now(),
+			Scenarios: []model.OptimizationScenario{},
+		}, nil
 	}
 
 	analysis := &model.CostBenefitAnalysis{
