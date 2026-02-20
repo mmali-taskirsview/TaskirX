@@ -1,0 +1,94 @@
+=== RUN   TestEvaluateRule
+=== RUN   TestEvaluateRule/All_conditions_pass
+=== RUN   TestEvaluateRule/Condition_fails
+=== RUN   TestEvaluateRule/Empty_conditions_-_should_pass
+--- PASS: TestEvaluateRule (0.00s)
+    --- PASS: TestEvaluateRule/All_conditions_pass (0.00s)
+    --- PASS: TestEvaluateRule/Condition_fails (0.00s)
+    --- PASS: TestEvaluateRule/Empty_conditions_-_should_pass (0.00s)
+=== RUN   TestEvaluateCondition
+=== RUN   TestEvaluateCondition/Equals_-_device_type_match
+=== RUN   TestEvaluateCondition/Equals_-_device_type_no_match
+=== RUN   TestEvaluateCondition/Equals_-_context_category
+=== RUN   TestEvaluateCondition/Equals_-_time_of_day
+=== RUN   TestEvaluateCondition/Equals_-_geo_location
+=== RUN   TestEvaluateCondition/Contains_-_category
+=== RUN   TestEvaluateCondition/In_-_device_type_in_list
+=== RUN   TestEvaluateCondition/In_-_device_type_not_in_list
+=== RUN   TestEvaluateCondition/Unknown_field
+=== RUN   TestEvaluateCondition/Unknown_operator
+--- PASS: TestEvaluateCondition (0.00s)
+    --- PASS: TestEvaluateCondition/Equals_-_device_type_match (0.00s)
+    --- PASS: TestEvaluateCondition/Equals_-_device_type_no_match (0.00s)
+    --- PASS: TestEvaluateCondition/Equals_-_context_category (0.00s)
+    --- PASS: TestEvaluateCondition/Equals_-_time_of_day (0.00s)
+    --- PASS: TestEvaluateCondition/Equals_-_geo_location (0.00s)
+    --- PASS: TestEvaluateCondition/Contains_-_category (0.00s)
+    --- PASS: TestEvaluateCondition/In_-_device_type_in_list (0.00s)
+    --- PASS: TestEvaluateCondition/In_-_device_type_not_in_list (0.00s)
+    --- PASS: TestEvaluateCondition/Unknown_field (0.00s)
+    --- PASS: TestEvaluateCondition/Unknown_operator (0.00s)
+=== RUN   TestGetTotalImpressions
+--- PASS: TestGetTotalImpressions (0.00s)
+=== RUN   TestHashCombination
+=== RUN   TestHashCombination/Single_element
+=== RUN   TestHashCombination/Multiple_elements
+=== RUN   TestHashCombination/Empty_elements
+--- PASS: TestHashCombination (0.00s)
+    --- PASS: TestHashCombination/Single_element (0.00s)
+    --- PASS: TestHashCombination/Multiple_elements (0.00s)
+    --- PASS: TestHashCombination/Empty_elements (0.00s)
+=== RUN   TestHashCombination_Deterministic
+--- PASS: TestHashCombination_Deterministic (0.00s)
+=== RUN   TestCalculatePersonalizationScore
+=== RUN   TestCalculatePersonalizationScore/Empty_elements
+=== RUN   TestCalculatePersonalizationScore/User_has_engaged_with_element
+=== RUN   TestCalculatePersonalizationScore/User_has_converted_with_element
+=== RUN   TestCalculatePersonalizationScore/No_engagement_history
+--- PASS: TestCalculatePersonalizationScore (0.00s)
+    --- PASS: TestCalculatePersonalizationScore/Empty_elements (0.00s)
+    --- PASS: TestCalculatePersonalizationScore/User_has_engaged_with_element (0.00s)
+    --- PASS: TestCalculatePersonalizationScore/User_has_converted_with_element (0.00s)
+    --- PASS: TestCalculatePersonalizationScore/No_engagement_history (0.00s)
+=== RUN   TestDCOPredictCTR
+=== RUN   TestDCOPredictCTR/Low_impressions_-_default_CTR
+=== RUN   TestDCOPredictCTR/Sufficient_impressions_-_use_actual_CTR
+=== RUN   TestDCOPredictCTR/Mobile_device_boost
+=== RUN   TestDCOPredictCTR/Desktop_device_decrease
+=== RUN   TestDCOPredictCTR/Evening_time_boost
+=== RUN   TestDCOPredictCTR/Night_time_decrease
+--- PASS: TestDCOPredictCTR (0.00s)
+    --- PASS: TestDCOPredictCTR/Low_impressions_-_default_CTR (0.00s)
+    --- PASS: TestDCOPredictCTR/Sufficient_impressions_-_use_actual_CTR (0.00s)
+    --- PASS: TestDCOPredictCTR/Mobile_device_boost (0.00s)
+    --- PASS: TestDCOPredictCTR/Desktop_device_decrease (0.00s)
+    --- PASS: TestDCOPredictCTR/Evening_time_boost (0.00s)
+    --- PASS: TestDCOPredictCTR/Night_time_decrease (0.00s)
+=== RUN   TestRenderCreative
+=== RUN   TestRenderCreative/With_base_HTML
+=== RUN   TestRenderCreative/Without_base_HTML_-_auto_generate
+=== RUN   TestRenderCreative/Multiple_elements
+--- PASS: TestRenderCreative (0.00s)
+    --- PASS: TestRenderCreative/With_base_HTML (0.00s)
+    --- PASS: TestRenderCreative/Without_base_HTML_-_auto_generate (0.00s)
+    --- PASS: TestRenderCreative/Multiple_elements (0.00s)
+=== RUN   TestDetermineSelectionMethod
+=== RUN   TestDetermineSelectionMethod/No_rules_-_ML_optimized
+=== RUN   TestDetermineSelectionMethod/Exploration_rule
+=== RUN   TestDetermineSelectionMethod/Other_rules_-_rule_based
+=== RUN   TestDetermineSelectionMethod/Multiple_rules_with_exploration
+--- PASS: TestDetermineSelectionMethod (0.00s)
+    --- PASS: TestDetermineSelectionMethod/No_rules_-_ML_optimized (0.00s)
+    --- PASS: TestDetermineSelectionMethod/Exploration_rule (0.00s)
+    --- PASS: TestDetermineSelectionMethod/Other_rules_-_rule_based (0.00s)
+    --- PASS: TestDetermineSelectionMethod/Multiple_rules_with_exploration (0.00s)
+=== RUN   TestScoreElement
+=== RUN   TestScoreElement/New_element_-_exploration_bonus
+=== RUN   TestScoreElement/Element_with_engagement
+=== RUN   TestScoreElement/Element_with_matching_tags
+--- PASS: TestScoreElement (0.00s)
+    --- PASS: TestScoreElement/New_element_-_exploration_bonus (0.00s)
+    --- PASS: TestScoreElement/Element_with_engagement (0.00s)
+    --- PASS: TestScoreElement/Element_with_matching_tags (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.121s
