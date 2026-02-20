@@ -160,8 +160,8 @@ github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:706.7,709.13
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:709.13,710.10 1 1
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:713.3,716.31 3 1
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:716.31,718.4 1 1
-github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.3,719.48 1 0
-github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.48,721.4 1 0
+github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.3,719.48 1 1
+github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:719.48,721.4 1 1
 github.com/taskirx/go-bidding-engine/internal/service/ab_testing.go:727.37,730.2 1 1
 github.com/taskirx/go-bidding-engine/internal/service/attribution.go:21.67,23.2 1 1
 github.com/taskirx/go-bidding-engine/internal/service/attribution.go:33.147,34.18 1 1
@@ -3761,7 +3761,7 @@ github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:310.4,
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:310.21,312.5 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:313.4,313.12 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:317.3,320.30 3 1
-github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:320.30,322.4 1 1
+github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:320.30,322.4 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:326.2,344.8 5 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:348.79,350.9 2 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:350.9,352.3 1 0
@@ -3833,7 +3833,7 @@ github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:584.2,
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:587.189,588.26 1 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:588.26,590.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:593.2,593.47 1 1
-github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:593.47,595.3 1 1
+github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:593.47,595.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:598.2,598.29 1 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:598.29,599.20 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:599.20,600.12 1 0
@@ -3918,9 +3918,9 @@ github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:827.38
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:830.3,830.19 1 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:832.2,832.13 1 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:835.89,836.27 1 1
-github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:836.27,837.37 1 1
-github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:837.37,838.29 1 1
-github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:838.29,840.5 1 1
+github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:836.27,837.37 1 0
+github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:837.37,838.29 1 0
+github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:838.29,840.5 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:842.3,842.22 1 0
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:844.2,844.23 1 1
 github.com/taskirx/go-bidding-engine/internal/service/dynamic_creative.go:847.105,850.40 2 1
