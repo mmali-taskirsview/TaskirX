@@ -1,0 +1,56 @@
+=== RUN   TestDynBid_NewService
+--- PASS: TestDynBid_NewService (0.00s)
+=== RUN   TestDynBid_CalculateDynamicBid_Disabled
+--- PASS: TestDynBid_CalculateDynamicBid_Disabled (0.00s)
+=== RUN   TestDynBid_CalculateDynamicBid_Enabled
+--- PASS: TestDynBid_CalculateDynamicBid_Enabled (0.00s)
+=== RUN   TestDynBid_DeviceMultipliers
+--- PASS: TestDynBid_DeviceMultipliers (0.00s)
+=== RUN   TestDynBid_HourlyMultipliers
+--- PASS: TestDynBid_HourlyMultipliers (0.00s)
+=== RUN   TestDynBid_ClampMultiplier
+--- PASS: TestDynBid_ClampMultiplier (0.00s)
+=== RUN   TestDynBid_PublisherFactor_NoData
+--- PASS: TestDynBid_PublisherFactor_NoData (0.00s)
+=== RUN   TestDynBid_PublisherFactor_WithData
+--- PASS: TestDynBid_PublisherFactor_WithData (0.00s)
+=== RUN   TestDynBid_ContextFactor_NoData
+--- PASS: TestDynBid_ContextFactor_NoData (0.00s)
+=== RUN   TestDynBid_ContextFactor_GoodPerformance
+--- PASS: TestDynBid_ContextFactor_GoodPerformance (0.00s)
+=== RUN   TestDynBid_ContextFactor_PoorPerformance
+--- PASS: TestDynBid_ContextFactor_PoorPerformance (0.00s)
+=== RUN   TestDynBid_CompetitionFactor
+--- PASS: TestDynBid_CompetitionFactor (0.00s)
+=== RUN   TestDynBid_GoalFactor
+--- PASS: TestDynBid_GoalFactor (0.00s)
+=== RUN   TestDynBid_CalculateConfidence
+--- PASS: TestDynBid_CalculateConfidence (0.00s)
+=== RUN   TestDynBid_PredictWinRate
+--- PASS: TestDynBid_PredictWinRate (0.00s)
+=== RUN   TestDynBid_PredictROI
+--- PASS: TestDynBid_PredictROI (0.00s)
+=== RUN   TestDynBid_GenerateRecommendation
+--- PASS: TestDynBid_GenerateRecommendation (0.00s)
+=== RUN   TestDynBid_RecordOutcome_Win
+--- PASS: TestDynBid_RecordOutcome_Win (0.00s)
+=== RUN   TestDynBid_RecordOutcome_Loss
+--- PASS: TestDynBid_RecordOutcome_Loss (0.00s)
+=== RUN   TestDynBid_UpdatePublisherStats
+--- PASS: TestDynBid_UpdatePublisherStats (0.00s)
+=== RUN   TestDynBid_UpdateHourlyMultiplier
+--- PASS: TestDynBid_UpdateHourlyMultiplier (0.00s)
+=== RUN   TestDynBid_UpdateDeviceMultiplier
+--- PASS: TestDynBid_UpdateDeviceMultiplier (0.00s)
+=== RUN   TestDynBid_GetBidAnalytics
+--- PASS: TestDynBid_GetBidAnalytics (0.00s)
+=== RUN   TestDynBid_SetConfig
+--- PASS: TestDynBid_SetConfig (0.00s)
+=== RUN   TestDynBid_BuildContextKey
+--- PASS: TestDynBid_BuildContextKey (0.00s)
+=== RUN   TestDynBid_Concurrency
+--- PASS: TestDynBid_Concurrency (0.00s)
+=== RUN   TestDynBid_FactorsInResult
+--- PASS: TestDynBid_FactorsInResult (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/service	0.071s
