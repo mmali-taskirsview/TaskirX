@@ -135,12 +135,20 @@ See `docs/ADVANCED_API.md` for full API documentation.
 
 ## Test Coverage
 
-| Package | Tests | Status |
-|---------|-------|--------|
-| internal/model | 4 | ✅ |
-| internal/service | 84 | ✅ |
-| internal/handler | 21 | ✅ |
-| **Total** | **109** | ✅ |
+| Package | Tests | Coverage | Status |
+|---------|-------|----------|--------|
+| internal/model | 68 | 100% | ✅ |
+| internal/service | 281 | 45.2% | ✅ |
+| internal/handler | 40 | 35.3% | ✅ |
+| **Total** | **389** | | ✅ |
+
+### Test Categories
+- Unit tests for all services
+- Edge case and boundary tests
+- Concurrency tests
+- Handler integration tests
+- Model targeting tests (IsMatch, helpers)
+- PMP deal validation tests
 
 ## Performance
 
