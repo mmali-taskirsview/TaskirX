@@ -3050,7 +3050,7 @@ github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.g
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:145.61,147.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:147.8,149.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:152.96,153.23 1 1
-github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:153.23,155.3 1 1
+github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:153.23,155.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:157.2,158.29 2 1
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:158.29,160.3 1 1
 github.com/taskirx/go-bidding-engine/internal/service/competitive_intelligence.go:161.2,163.15 2 1
@@ -4475,7 +4475,7 @@ github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go
 github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:438.2,439.21 2 1
 github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:439.21,441.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:443.2,445.24 3 1
-github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:445.24,447.3 1 1
+github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:445.24,447.3 1 0
 github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:449.2,450.22 2 1
 github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:450.22,452.3 1 1
 github.com/taskirx/go-bidding-engine/internal/service/programmatic_guaranteed.go:454.2,464.19 7 1
