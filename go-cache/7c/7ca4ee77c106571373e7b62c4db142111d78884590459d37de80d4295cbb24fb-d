@@ -1,0 +1,298 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\supply_path_analytics.go:1:1
+package service
+
+import (
+	"fmt"
+	"sort"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// SupplyPathAnalyticsService provides analytics and insights for supply path optimization
+type SupplyPathAnalyticsService struct {
+	cache cache.Cache
+}
+
+// NewSupplyPathAnalyticsService creates a new SPO analytics service
+func NewSupplyPathAnalyticsService(cache cache.Cache) *SupplyPathAnalyticsService {goCover_65b09fc02769__526[0] = 1 ; goCover_65b09fc02769__526[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__526[2] = 526 ; goCover_65b09fc02769__526[3]++;
+	return &SupplyPathAnalyticsService{
+		cache: cache,
+	}
+}
+
+// GetSupplyChainMetrics returns aggregated metrics for supply chain performance
+func (s *SupplyPathAnalyticsService) GetSupplyChainMetrics(timeRange string) (*model.SupplyChainMetrics, error) {goCover_65b09fc02769__527[0] = 1 ; goCover_65b09fc02769__527[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__527[2] = 527 ; goCover_65b09fc02769__527[3]++;
+	return s.cache.GetSupplyChainMetrics(timeRange)
+}
+
+// GetServicePerformance returns performance metrics for a specific service
+func (s *SupplyPathAnalyticsService) GetServicePerformance(serviceName string, timeRange string) (*model.ServiceMetrics, error) {goCover_65b09fc02769__528[0] = 1 ; goCover_65b09fc02769__528[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__528[2] = 528 ; goCover_65b09fc02769__528[3]++;
+	return s.cache.GetServiceMetrics(serviceName, timeRange)
+}
+
+// GetBidPathAnalytics returns detailed analytics for a specific bid request
+func (s *SupplyPathAnalyticsService) GetBidPathAnalytics(requestID string) (*model.BidPathAnalytics, error) {goCover_65b09fc02769__529[0] = 1 ; goCover_65b09fc02769__529[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__529[2] = 529 ; goCover_65b09fc02769__529[3]++;
+	return s.cache.GetBidPathAnalytics(requestID)
+}
+
+// AnalyzeSupplyPathEfficiency analyzes the efficiency of the current supply path
+func (s *SupplyPathAnalyticsService) AnalyzeSupplyPathEfficiency(timeRange string) (*model.SupplyPathOptimization, error) {goCover_65b09fc02769__530[0] = 16 ; goCover_65b09fc02769__530[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__530[2] = 530 ; goCover_65b09fc02769__530[3]++;
+	metrics, err := s.GetSupplyChainMetrics(timeRange)
+	if err != nil {goCover_65b09fc02769__530[9]++;
+		return nil, fmt.Errorf("failed to get supply chain metrics: %w", err)
+	}
+
+	goCover_65b09fc02769__530[4]++;optimization := &model.SupplyPathOptimization{
+		Timestamp: time.Now(),
+	}
+
+	// If no metrics data available, return empty optimization with no suggestions
+	if metrics == nil {goCover_65b09fc02769__530[10]++;
+		optimization.Optimizations = []model.OptimizationSuggestion{}
+		return optimization, nil
+	}
+
+	// Analyze service performance and suggest optimizations
+	goCover_65b09fc02769__530[5]++;var suggestions []model.OptimizationSuggestion
+
+	// Check for high-latency services
+	for serviceName, serviceMetrics := range metrics.ServiceMetrics {goCover_65b09fc02769__530[11]++;
+		if serviceMetrics.AvgLatencyMs > 200 {goCover_65b09fc02769__530[14]++; // High latency threshold
+			suggestions = append(suggestions, model.OptimizationSuggestion{
+				Type:        "cache",
+				Service:     serviceName,
+				Description: fmt.Sprintf("High latency detected (%.2fms avg). Consider caching responses.", serviceMetrics.AvgLatencyMs),
+				Priority:    "medium",
+				Savings:     serviceMetrics.AvgLatencyMs * 0.3, // Estimated 30% reduction
+			})
+		}
+
+		goCover_65b09fc02769__530[12]++;if serviceMetrics.SuccessRate < 0.95 {goCover_65b09fc02769__530[15]++; // Low success rate
+			suggestions = append(suggestions, model.OptimizationSuggestion{
+				Type:        "circuit_breaker",
+				Service:     serviceName,
+				Description: fmt.Sprintf("Low success rate (%.2f%%). Circuit breaker may be tripping too frequently.", serviceMetrics.SuccessRate*100),
+				Priority:    "high",
+				Savings:     0, // Reliability improvement, not direct cost savings
+			})
+		}
+
+		goCover_65b09fc02769__530[13]++;if serviceMetrics.TotalFees > 0.01 {goCover_65b09fc02769__530[16]++; // High fee services
+			suggestions = append(suggestions, model.OptimizationSuggestion{
+				Type:        "fee_negotiation",
+				Service:     serviceName,
+				Description: fmt.Sprintf("High fees detected ($%.4f per call). Consider direct integration.", serviceMetrics.TotalFees/float64(serviceMetrics.TotalCalls)),
+				Priority:    "low",
+				Savings:     serviceMetrics.TotalFees * 0.2, // Estimated 20% fee reduction
+			})
+		}
+	}
+
+	// Check overall path efficiency
+	goCover_65b09fc02769__530[6]++;if metrics.PathEfficiency < 0.7 {goCover_65b09fc02769__530[17]++;
+		suggestions = append(suggestions, model.OptimizationSuggestion{
+			Type:        "direct_connection",
+			Service:     "supply_path",
+			Description: "Low overall path efficiency. Consider direct publisher connections to reduce hops.",
+			Priority:    "high",
+			Savings:     metrics.AvgTotalFees * 0.4, // Estimated 40% cost reduction
+		})
+	}
+
+	goCover_65b09fc02769__530[7]++;optimization.Optimizations = suggestions
+
+	// Calculate estimated savings
+	var totalSavings float64
+	for _, suggestion := range suggestions {goCover_65b09fc02769__530[18]++;
+		totalSavings += suggestion.Savings
+	}
+	goCover_65b09fc02769__530[8]++;optimization.EstimatedSavings = totalSavings
+
+	return optimization, nil
+}
+
+// GetTopBottlenecks identifies the top performance bottlenecks in the supply chain
+func (s *SupplyPathAnalyticsService) GetTopBottlenecks(timeRange string, limit int) ([]*model.ServiceMetrics, error) {goCover_65b09fc02769__531[0] = 13 ; goCover_65b09fc02769__531[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__531[2] = 531 ; goCover_65b09fc02769__531[3]++;
+	metrics, err := s.GetSupplyChainMetrics(timeRange)
+	if err != nil {goCover_65b09fc02769__531[9]++;
+		return nil, err
+	}
+
+	// If no metrics data available, return empty list
+	goCover_65b09fc02769__531[4]++;if metrics == nil {goCover_65b09fc02769__531[10]++;
+		return []*model.ServiceMetrics{}, nil
+	}
+
+	// Sort services by latency (highest first)
+	goCover_65b09fc02769__531[5]++;var services []*model.ServiceMetrics
+	for _, service := range metrics.ServiceMetrics {goCover_65b09fc02769__531[11]++;
+		services = append(services, &service)
+	}
+
+	// Simple sort by latency (in production, you'd use a more sophisticated ranking)
+	goCover_65b09fc02769__531[6]++;for i := 0; i < len(services)-1; i++ {goCover_65b09fc02769__531[12]++;
+		for j := i + 1; j < len(services); j++ {goCover_65b09fc02769__531[13]++;
+			if services[j].AvgLatencyMs > services[i].AvgLatencyMs {goCover_65b09fc02769__531[14]++;
+				services[i], services[j] = services[j], services[i]
+			}
+		}
+	}
+
+	goCover_65b09fc02769__531[7]++;if limit > 0 && len(services) > limit {goCover_65b09fc02769__531[15]++;
+		services = services[:limit]
+	}
+
+	goCover_65b09fc02769__531[8]++;return services, nil
+}
+
+// GetCostAnalysis provides cost analysis for the supply chain
+func (s *SupplyPathAnalyticsService) GetCostAnalysis(timeRange string) (map[string]float64, error) {goCover_65b09fc02769__532[0] = 5 ; goCover_65b09fc02769__532[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__532[2] = 532 ; goCover_65b09fc02769__532[3]++;
+	metrics, err := s.GetSupplyChainMetrics(timeRange)
+	if err != nil {goCover_65b09fc02769__532[6]++;
+		return nil, err
+	}
+
+	goCover_65b09fc02769__532[4]++;costs := make(map[string]float64)
+
+	// If no metrics data available, return empty costs
+	if metrics == nil {goCover_65b09fc02769__532[7]++;
+		return costs, nil
+	}
+
+	goCover_65b09fc02769__532[5]++;costs["total_fees"] = metrics.AvgTotalFees * float64(metrics.TotalRequests)
+	costs["avg_fee_per_request"] = metrics.AvgTotalFees
+	costs["fee_efficiency"] = 1.0 - (metrics.AvgTotalFees / 0.01) // Lower is better (assuming $0.01 is target)
+
+	return costs, nil
+}
+
+// AnalyzeDirectPublisherOpportunities analyzes opportunities for direct publisher relationships
+func (s *SupplyPathAnalyticsService) AnalyzeDirectPublisherOpportunities(timeRange string) (*model.DirectPublisherAnalysis, error) {goCover_65b09fc02769__533[0] = 10 ; goCover_65b09fc02769__533[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__533[2] = 533 ; goCover_65b09fc02769__533[3]++;
+	metrics, err := s.GetSupplyChainMetrics(timeRange)
+	if err != nil {goCover_65b09fc02769__533[8]++;
+		return nil, fmt.Errorf("failed to get supply chain metrics: %w", err)
+	}
+
+	goCover_65b09fc02769__533[4]++;analysis := &model.DirectPublisherAnalysis{
+		TimeRange:     timeRange,
+		Timestamp:     time.Now(),
+		CurrentHops:   3, // Average hops in current supply chain
+		Opportunities: []model.DirectPublisherOpportunity{},
+	}
+
+	// If no metrics data available, return empty analysis
+	if metrics == nil {goCover_65b09fc02769__533[9]++;
+		return analysis, nil
+	}
+
+	// Analyze each service for direct connection potential
+	goCover_65b09fc02769__533[5]++;for serviceName, serviceMetrics := range metrics.ServiceMetrics {goCover_65b09fc02769__533[10]++;
+		if serviceMetrics.SuccessRate < 0.95 {goCover_65b09fc02769__533[11]++;
+			// Low success rate indicates potential for direct connection
+			opportunity := model.DirectPublisherOpportunity{
+				ServiceName:        serviceName,
+				CurrentFeeRate:     serviceMetrics.TotalFees / float64(serviceMetrics.TotalCalls),
+				EstimatedDirectFee: serviceMetrics.TotalFees * 0.3, // Estimated 70% reduction
+				SuccessRate:        serviceMetrics.SuccessRate,
+				MonthlyVolume:      serviceMetrics.TotalCalls * 30, // Rough monthly estimate
+				Priority:           "high",
+				RiskLevel:          "medium",
+			}
+
+			// Calculate ROI
+			currentMonthlyCost := serviceMetrics.TotalFees * 30
+			directMonthlyCost := opportunity.EstimatedDirectFee * 30
+			opportunity.EstimatedSavings = currentMonthlyCost - directMonthlyCost
+			opportunity.ROI = (opportunity.EstimatedSavings / currentMonthlyCost) * 100
+
+			analysis.Opportunities = append(analysis.Opportunities, opportunity)
+		}
+	}
+
+	// Sort by potential savings
+	goCover_65b09fc02769__533[6]++;sort.Slice(analysis.Opportunities, func(i, j int) bool {goCover_65b09fc02769__533[12]++;
+		return analysis.Opportunities[i].EstimatedSavings > analysis.Opportunities[j].EstimatedSavings
+	})
+
+	goCover_65b09fc02769__533[7]++;return analysis, nil
+}
+
+// CalculateCostBenefitAnalysis performs detailed cost-benefit analysis for supply path changes
+func (s *SupplyPathAnalyticsService) CalculateCostBenefitAnalysis(timeRange string) (*model.CostBenefitAnalysis, error) {goCover_65b09fc02769__534[0] = 7 ; goCover_65b09fc02769__534[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__534[2] = 534 ; goCover_65b09fc02769__534[3]++;
+	metrics, err := s.GetSupplyChainMetrics(timeRange)
+	if err != nil {goCover_65b09fc02769__534[7]++;
+		return nil, fmt.Errorf("failed to get supply chain metrics: %w", err)
+	}
+
+	// If no metrics data available, return empty analysis
+	goCover_65b09fc02769__534[4]++;if metrics == nil {goCover_65b09fc02769__534[8]++;
+		return &model.CostBenefitAnalysis{
+			TimeRange: timeRange,
+			Timestamp: time.Now(),
+			Scenarios: []model.OptimizationScenario{},
+		}, nil
+	}
+
+	goCover_65b09fc02769__534[5]++;analysis := &model.CostBenefitAnalysis{
+		TimeRange:         timeRange,
+		Timestamp:         time.Now(),
+		CurrentTotalCost:  metrics.AvgTotalFees * float64(metrics.TotalRequests),
+		CurrentWinRate:    metrics.WinRate,
+		CurrentAvgLatency: metrics.AvgLatencyMs,
+		Scenarios:         []model.OptimizationScenario{},
+	}
+
+	// Scenario 1: Direct Publisher Connections
+	directScenario := model.OptimizationScenario{
+		Name:                      "Direct Publisher Connections",
+		Description:               "Bypass intermediaries and connect directly with publishers",
+		EstimatedCostReduction:    metrics.AvgTotalFees * 0.6, // 60% cost reduction
+		EstimatedLatencyReduction: metrics.AvgLatencyMs * 0.4, // 40% faster
+		RiskLevel:                 "medium",
+		ImplementationEffort:      "high",
+		TimeToValue:               "3-6 months",
+	}
+
+	directScenario.NetBenefit = directScenario.EstimatedCostReduction * float64(metrics.TotalRequests) * 30 // Monthly benefit
+	directScenario.BreakEvenMonths = 2                                                                      // Estimated implementation cost recovery
+	analysis.Scenarios = append(analysis.Scenarios, directScenario)
+
+	// Scenario 2: Service Optimization
+	optimizationScenario := model.OptimizationScenario{
+		Name:                      "Service Performance Optimization",
+		Description:               "Optimize existing services for better performance and cost efficiency",
+		EstimatedCostReduction:    metrics.AvgTotalFees * 0.25, // 25% cost reduction
+		EstimatedLatencyReduction: metrics.AvgLatencyMs * 0.2,  // 20% faster
+		RiskLevel:                 "low",
+		ImplementationEffort:      "medium",
+		TimeToValue:               "1-3 months",
+	}
+
+	optimizationScenario.NetBenefit = optimizationScenario.EstimatedCostReduction * float64(metrics.TotalRequests) * 30
+	optimizationScenario.BreakEvenMonths = 1
+	analysis.Scenarios = append(analysis.Scenarios, optimizationScenario)
+
+	// Scenario 3: Hybrid Approach
+	hybridScenario := model.OptimizationScenario{
+		Name:                      "Hybrid Optimization",
+		Description:               "Combine direct connections with service optimizations",
+		EstimatedCostReduction:    metrics.AvgTotalFees * 0.75, // 75% cost reduction
+		EstimatedLatencyReduction: metrics.AvgLatencyMs * 0.5,  // 50% faster
+		RiskLevel:                 "medium",
+		ImplementationEffort:      "high",
+		TimeToValue:               "2-4 months",
+	}
+
+	hybridScenario.NetBenefit = hybridScenario.EstimatedCostReduction * float64(metrics.TotalRequests) * 30
+	hybridScenario.BreakEvenMonths = 3
+	analysis.Scenarios = append(analysis.Scenarios, hybridScenario)
+
+	// Sort scenarios by net benefit
+	sort.Slice(analysis.Scenarios, func(i, j int) bool {goCover_65b09fc02769__534[9]++;
+		return analysis.Scenarios[i].NetBenefit > analysis.Scenarios[j].NetBenefit
+	})
+
+	goCover_65b09fc02769__534[6]++;return analysis, nil
+}

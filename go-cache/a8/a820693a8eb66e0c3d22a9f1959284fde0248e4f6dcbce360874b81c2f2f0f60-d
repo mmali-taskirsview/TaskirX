@@ -1,0 +1,731 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\ab_testing.go:1:1
+package service
+
+import (
+	"fmt"
+	"math"
+	"math/rand"
+	"sort"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+)
+
+// ABTestingService provides A/B testing framework with statistical significance testing
+type ABTestingService struct {
+	cache       cache.Cache
+	experiments sync.Map // experimentID -> *abExperiment
+	assignments sync.Map // userID -> map[experimentID]variantID
+	mu          sync.RWMutex
+	config      ABTestingConfig
+}
+
+// ABTestingConfig holds configuration for A/B testing
+type ABTestingConfig struct {
+	MinSampleSize         int     `json:"min_sample_size"`
+	SignificanceLevel     float64 `json:"significance_level"`
+	MinDetectableEffect   float64 `json:"min_detectable_effect"`
+	MaxRunningExperiments int     `json:"max_running_experiments"`
+	AutoStopOnSignificance bool   `json:"auto_stop_on_significance"`
+}
+
+// abExperiment represents an A/B test experiment (prefixed to avoid collision with incrementality.go)
+type abExperiment struct {
+	ID                string     `json:"id"`
+	Name              string     `json:"name"`
+	Description       string     `json:"description"`
+	Type              string     `json:"type"` // "ab", "multivariate", "bandit"
+	Status            string     `json:"status"` // "draft", "running", "paused", "completed"
+	Variants          []*variant `json:"variants"`
+	TrafficAllocation float64    `json:"traffic_allocation"` // Percentage of traffic to include
+	StartDate         time.Time  `json:"start_date"`
+	EndDate           time.Time  `json:"end_date"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+	WinningVariant    string     `json:"winning_variant"`
+	Metrics           []string   `json:"metrics"` // Metrics to track
+}
+
+// variant represents a test variant
+type variant struct {
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Weight      float64         `json:"weight"` // Traffic weight (0-1)
+	IsControl   bool            `json:"is_control"`
+	Config      map[string]any  `json:"config"` // Variant-specific configuration
+	Metrics     *variantMetrics `json:"metrics"`
+}
+
+// variantMetrics holds performance metrics for a variant
+type variantMetrics struct {
+	Impressions    int64            `json:"impressions"`
+	Clicks         int64            `json:"clicks"`
+	Conversions    int64            `json:"conversions"`
+	Revenue        float64          `json:"revenue"`
+	CTR            float64          `json:"ctr"`
+	ConversionRate float64          `json:"conversion_rate"`
+	ARPU           float64          `json:"arpu"`
+	CustomMetrics  map[string]float64 `json:"custom_metrics"`
+	mu             sync.Mutex
+}
+
+// ExperimentResult holds the analysis results
+type ExperimentResult struct {
+	ExperimentID       string                    `json:"experiment_id"`
+	ExperimentName     string                    `json:"experiment_name"`
+	Status             string                    `json:"status"`
+	Duration           time.Duration             `json:"duration"`
+	TotalSamples       int64                     `json:"total_samples"`
+	VariantResults     []VariantResult           `json:"variant_results"`
+	WinningVariant     string                    `json:"winning_variant"`
+	Confidence         float64                   `json:"confidence"`
+	IsSignificant      bool                      `json:"is_significant"`
+	Recommendation     string                    `json:"recommendation"`
+	StatisticalPower   float64                   `json:"statistical_power"`
+	ExpectedLift       float64                   `json:"expected_lift"`
+	RiskAssessment     string                    `json:"risk_assessment"`
+}
+
+// VariantResult holds results for a single variant
+type VariantResult struct {
+	VariantID      string  `json:"variant_id"`
+	VariantName    string  `json:"variant_name"`
+	IsControl      bool    `json:"is_control"`
+	SampleSize     int64   `json:"sample_size"`
+	ConversionRate float64 `json:"conversion_rate"`
+	CTR            float64 `json:"ctr"`
+	Revenue        float64 `json:"revenue"`
+	Lift           float64 `json:"lift"` // Lift over control
+	PValue         float64 `json:"p_value"`
+	ConfidenceInterval struct {
+		Lower float64 `json:"lower"`
+		Upper float64 `json:"upper"`
+	} `json:"confidence_interval"`
+}
+
+// CreateExperimentRequest for creating new experiments
+type CreateExperimentRequest struct {
+	Name              string           `json:"name"`
+	Description       string           `json:"description"`
+	Type              string           `json:"type"`
+	Variants          []VariantRequest `json:"variants"`
+	TrafficAllocation float64          `json:"traffic_allocation"`
+	Metrics           []string         `json:"metrics"`
+	Duration          time.Duration    `json:"duration"`
+}
+
+// VariantRequest for creating variants
+type VariantRequest struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Weight      float64        `json:"weight"`
+	IsControl   bool           `json:"is_control"`
+	Config      map[string]any `json:"config"`
+}
+
+// NewABTestingService creates a new A/B testing service
+func NewABTestingService(c cache.Cache) *ABTestingService {goCover_65b09fc02769__0[0] = 1 ; goCover_65b09fc02769__0[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__0[2] = 0 ; goCover_65b09fc02769__0[3]++;
+	return &ABTestingService{
+		cache: c,
+		config: ABTestingConfig{
+			MinSampleSize:         100,
+			SignificanceLevel:     0.05,
+			MinDetectableEffect:   0.05,
+			MaxRunningExperiments: 10,
+			AutoStopOnSignificance: false,
+		},
+	}
+}
+
+// CreateExperiment creates a new A/B test experiment
+func (s *ABTestingService) CreateExperiment(req CreateExperimentRequest) (*abExperiment, error) {goCover_65b09fc02769__1[0] = 22 ; goCover_65b09fc02769__1[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__1[2] = 1 ; goCover_65b09fc02769__1[3]++;
+	if req.Name == "" {goCover_65b09fc02769__1[13]++;
+		return nil, fmt.Errorf("experiment name is required")
+	}
+
+	goCover_65b09fc02769__1[4]++;if len(req.Variants) < 2 {goCover_65b09fc02769__1[14]++;
+		return nil, fmt.Errorf("at least 2 variants are required")
+	}
+
+	// Validate variants have exactly one control
+	goCover_65b09fc02769__1[5]++;controlCount := 0
+	totalWeight := 0.0
+	for _, v := range req.Variants {goCover_65b09fc02769__1[15]++;
+		if v.IsControl {goCover_65b09fc02769__1[17]++;
+			controlCount++
+		}
+		goCover_65b09fc02769__1[16]++;totalWeight += v.Weight
+	}
+
+	goCover_65b09fc02769__1[6]++;if controlCount != 1 {goCover_65b09fc02769__1[18]++;
+		return nil, fmt.Errorf("exactly one control variant is required")
+	}
+
+	// Normalize weights if they don't sum to 1
+	goCover_65b09fc02769__1[7]++;if math.Abs(totalWeight-1.0) > 0.01 {goCover_65b09fc02769__1[19]++;
+		for i := range req.Variants {goCover_65b09fc02769__1[20]++;
+			req.Variants[i].Weight /= totalWeight
+		}
+	}
+
+	goCover_65b09fc02769__1[8]++;now := time.Now()
+	exp := &abExperiment{
+		ID:                uuid.New().String(),
+		Name:              req.Name,
+		Description:       req.Description,
+		Type:              req.Type,
+		Status:            "draft",
+		TrafficAllocation: req.TrafficAllocation,
+		CreatedAt:         now,
+		UpdatedAt:         now,
+		Metrics:           req.Metrics,
+		Variants:          make([]*variant, len(req.Variants)),
+	}
+
+	if exp.Type == "" {goCover_65b09fc02769__1[21]++;
+		exp.Type = "ab"
+	}
+
+	goCover_65b09fc02769__1[9]++;if exp.TrafficAllocation <= 0 {goCover_65b09fc02769__1[22]++;
+		exp.TrafficAllocation = 1.0
+	}
+
+	goCover_65b09fc02769__1[10]++;if req.Duration > 0 {goCover_65b09fc02769__1[23]++;
+		exp.EndDate = now.Add(req.Duration)
+	}
+
+	// Create variants
+	goCover_65b09fc02769__1[11]++;for i, vr := range req.Variants {goCover_65b09fc02769__1[24]++;
+		exp.Variants[i] = &variant{
+			ID:          uuid.New().String(),
+			Name:        vr.Name,
+			Description: vr.Description,
+			Weight:      vr.Weight,
+			IsControl:   vr.IsControl,
+			Config:      vr.Config,
+			Metrics: &variantMetrics{
+				CustomMetrics: make(map[string]float64),
+			},
+		}
+	}
+
+	goCover_65b09fc02769__1[12]++;s.experiments.Store(exp.ID, exp)
+	return exp, nil
+}
+
+// StartExperiment starts an experiment
+func (s *ABTestingService) StartExperiment(experimentID string) error {goCover_65b09fc02769__2[0] = 11 ; goCover_65b09fc02769__2[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__2[2] = 2 ; goCover_65b09fc02769__2[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__2[8]++;
+		return fmt.Errorf("experiment not found: %s", experimentID)
+	}
+
+	goCover_65b09fc02769__2[4]++;exp := val.(*abExperiment)
+	if exp.Status == "running" {goCover_65b09fc02769__2[9]++;
+		return fmt.Errorf("experiment is already running")
+	}
+
+	// Check max running experiments
+	goCover_65b09fc02769__2[5]++;runningCount := 0
+	s.experiments.Range(func(key, value any) bool {goCover_65b09fc02769__2[10]++;
+		if e := value.(*abExperiment); e.Status == "running" {goCover_65b09fc02769__2[12]++;
+			runningCount++
+		}
+		goCover_65b09fc02769__2[11]++;return true
+	})
+
+	goCover_65b09fc02769__2[6]++;if runningCount >= s.config.MaxRunningExperiments {goCover_65b09fc02769__2[13]++;
+		return fmt.Errorf("maximum running experiments (%d) reached", s.config.MaxRunningExperiments)
+	}
+
+	goCover_65b09fc02769__2[7]++;exp.Status = "running"
+	exp.StartDate = time.Now()
+	exp.UpdatedAt = time.Now()
+	return nil
+}
+
+// StopExperiment stops an experiment
+func (s *ABTestingService) StopExperiment(experimentID string) error {goCover_65b09fc02769__3[0] = 5 ; goCover_65b09fc02769__3[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__3[2] = 3 ; goCover_65b09fc02769__3[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__3[6]++;
+		return fmt.Errorf("experiment not found: %s", experimentID)
+	}
+
+	goCover_65b09fc02769__3[4]++;exp := val.(*abExperiment)
+	if exp.Status != "running" {goCover_65b09fc02769__3[7]++;
+		return fmt.Errorf("experiment is not running")
+	}
+
+	goCover_65b09fc02769__3[5]++;exp.Status = "completed"
+	exp.EndDate = time.Now()
+	exp.UpdatedAt = time.Now()
+	return nil
+}
+
+// GetVariantForUser assigns or retrieves a variant for a user
+func (s *ABTestingService) GetVariantForUser(experimentID, userID string) (*variant, error) {goCover_65b09fc02769__4[0] = 13 ; goCover_65b09fc02769__4[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__4[2] = 4 ; goCover_65b09fc02769__4[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__4[8]++;
+		return nil, fmt.Errorf("experiment not found: %s", experimentID)
+	}
+
+	goCover_65b09fc02769__4[4]++;exp := val.(*abExperiment)
+	if exp.Status != "running" {goCover_65b09fc02769__4[9]++;
+		return nil, fmt.Errorf("experiment is not running")
+	}
+
+	// Check traffic allocation
+	goCover_65b09fc02769__4[5]++;if rand.Float64() > exp.TrafficAllocation {goCover_65b09fc02769__4[10]++;
+		// User not included in experiment, return control
+		for _, v := range exp.Variants {goCover_65b09fc02769__4[11]++;
+			if v.IsControl {goCover_65b09fc02769__4[12]++;
+				return v, nil
+			}
+		}
+	}
+
+	// Check if user already assigned
+	goCover_65b09fc02769__4[6]++;assignmentKey := fmt.Sprintf("%s:%s", experimentID, userID)
+	if cachedAssignment, exists := s.assignments.Load(assignmentKey); exists {goCover_65b09fc02769__4[13]++;
+		variantID := cachedAssignment.(string)
+		for _, v := range exp.Variants {goCover_65b09fc02769__4[14]++;
+			if v.ID == variantID {goCover_65b09fc02769__4[15]++;
+				return v, nil
+			}
+		}
+	}
+
+	// Assign variant based on weights (deterministic hash for consistency)
+	goCover_65b09fc02769__4[7]++;hash := s.hashUserID(userID, experimentID)
+	selectedVariant := s.selectVariantByWeight(exp.Variants, hash)
+
+	s.assignments.Store(assignmentKey, selectedVariant.ID)
+	return selectedVariant, nil
+}
+
+// RecordEvent records an event for a variant
+func (s *ABTestingService) RecordEvent(experimentID, variantID, eventType string, value float64) error {goCover_65b09fc02769__5[0] = 21 ; goCover_65b09fc02769__5[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__5[2] = 5 ; goCover_65b09fc02769__5[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__5[10]++;
+		return fmt.Errorf("experiment not found: %s", experimentID)
+	}
+
+	goCover_65b09fc02769__5[4]++;exp := val.(*abExperiment)
+
+	var targetVariant *variant
+	for _, v := range exp.Variants {goCover_65b09fc02769__5[11]++;
+		if v.ID == variantID {goCover_65b09fc02769__5[12]++;
+			targetVariant = v
+			break
+		}
+	}
+
+	goCover_65b09fc02769__5[5]++;if targetVariant == nil {goCover_65b09fc02769__5[13]++;
+		return fmt.Errorf("variant not found: %s", variantID)
+	}
+
+	goCover_65b09fc02769__5[6]++;targetVariant.Metrics.mu.Lock()
+	defer targetVariant.Metrics.mu.Unlock()
+
+	switch eventType {
+	case "impression":goCover_65b09fc02769__5[14]++;
+		targetVariant.Metrics.Impressions++
+	case "click":goCover_65b09fc02769__5[15]++;
+		targetVariant.Metrics.Clicks++
+	case "conversion":goCover_65b09fc02769__5[16]++;
+		targetVariant.Metrics.Conversions++
+		targetVariant.Metrics.Revenue += value
+	case "revenue":goCover_65b09fc02769__5[17]++;
+		targetVariant.Metrics.Revenue += value
+	default:goCover_65b09fc02769__5[18]++;
+		// Custom metric
+		if targetVariant.Metrics.CustomMetrics == nil {goCover_65b09fc02769__5[20]++;
+			targetVariant.Metrics.CustomMetrics = make(map[string]float64)
+		}
+		goCover_65b09fc02769__5[19]++;targetVariant.Metrics.CustomMetrics[eventType] += value
+	}
+
+	// Update calculated metrics
+	goCover_65b09fc02769__5[7]++;if targetVariant.Metrics.Impressions > 0 {goCover_65b09fc02769__5[21]++;
+		targetVariant.Metrics.CTR = float64(targetVariant.Metrics.Clicks) / float64(targetVariant.Metrics.Impressions)
+		targetVariant.Metrics.ConversionRate = float64(targetVariant.Metrics.Conversions) / float64(targetVariant.Metrics.Impressions)
+		targetVariant.Metrics.ARPU = targetVariant.Metrics.Revenue / float64(targetVariant.Metrics.Impressions)
+	}
+
+	// Check for auto-stop on significance
+	goCover_65b09fc02769__5[8]++;if s.config.AutoStopOnSignificance && exp.Status == "running" {goCover_65b09fc02769__5[22]++;
+		result := s.analyzeExperiment(exp)
+		if result.IsSignificant {goCover_65b09fc02769__5[23]++;
+			exp.Status = "completed"
+			exp.WinningVariant = result.WinningVariant
+			exp.EndDate = time.Now()
+		}
+	}
+
+	goCover_65b09fc02769__5[9]++;return nil
+}
+
+// AnalyzeExperiment performs statistical analysis on an experiment
+func (s *ABTestingService) AnalyzeExperiment(experimentID string) (*ExperimentResult, error) {goCover_65b09fc02769__6[0] = 3 ; goCover_65b09fc02769__6[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__6[2] = 6 ; goCover_65b09fc02769__6[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__6[5]++;
+		return nil, fmt.Errorf("experiment not found: %s", experimentID)
+	}
+
+	goCover_65b09fc02769__6[4]++;exp := val.(*abExperiment)
+	return s.analyzeExperiment(exp), nil
+}
+
+func (s *ABTestingService) analyzeExperiment(exp *abExperiment) *ExperimentResult {goCover_65b09fc02769__7[0] = 27 ; goCover_65b09fc02769__7[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__7[2] = 7 ; goCover_65b09fc02769__7[3]++;
+	result := &ExperimentResult{
+		ExperimentID:   exp.ID,
+		ExperimentName: exp.Name,
+		Status:         exp.Status,
+		VariantResults: make([]VariantResult, 0, len(exp.Variants)),
+	}
+
+	if !exp.StartDate.IsZero() {goCover_65b09fc02769__7[9]++;
+		if exp.Status == "running" {goCover_65b09fc02769__7[10]++;
+			result.Duration = time.Since(exp.StartDate)
+		} else{ goCover_65b09fc02769__7[11]++;{
+			result.Duration = exp.EndDate.Sub(exp.StartDate)
+		}}
+	}
+
+	// Find control variant
+	goCover_65b09fc02769__7[4]++;var controlVariant *variant
+	var totalSamples int64
+	for _, v := range exp.Variants {goCover_65b09fc02769__7[12]++;
+		if v.IsControl {goCover_65b09fc02769__7[14]++;
+			controlVariant = v
+		}
+		goCover_65b09fc02769__7[13]++;totalSamples += v.Metrics.Impressions
+	}
+	goCover_65b09fc02769__7[5]++;result.TotalSamples = totalSamples
+
+	if controlVariant == nil || controlVariant.Metrics.Impressions == 0 {goCover_65b09fc02769__7[15]++;
+		result.Recommendation = "Insufficient data - no control variant data"
+		return result
+	}
+
+	goCover_65b09fc02769__7[6]++;controlCR := controlVariant.Metrics.ConversionRate
+	bestLift := 0.0
+	var bestVariant *variant
+
+	// Analyze each variant
+	for _, v := range exp.Variants {goCover_65b09fc02769__7[16]++;
+		vr := VariantResult{
+			VariantID:      v.ID,
+			VariantName:    v.Name,
+			IsControl:      v.IsControl,
+			SampleSize:     v.Metrics.Impressions,
+			ConversionRate: v.Metrics.ConversionRate,
+			CTR:            v.Metrics.CTR,
+			Revenue:        v.Metrics.Revenue,
+		}
+
+		if !v.IsControl && v.Metrics.Impressions > 0 {goCover_65b09fc02769__7[18]++;
+			// Calculate lift over control
+			if controlCR > 0 {goCover_65b09fc02769__7[20]++;
+				vr.Lift = (v.Metrics.ConversionRate - controlCR) / controlCR * 100
+			}
+
+			// Calculate p-value using two-proportion z-test
+			goCover_65b09fc02769__7[19]++;vr.PValue = s.calculatePValue(
+				controlVariant.Metrics.Conversions, controlVariant.Metrics.Impressions,
+				v.Metrics.Conversions, v.Metrics.Impressions,
+			)
+
+			// Calculate confidence interval
+			se := s.calculateStandardError(v.Metrics.ConversionRate, v.Metrics.Impressions)
+			z := 1.96 // 95% confidence
+			vr.ConfidenceInterval.Lower = math.Max(0, v.Metrics.ConversionRate-z*se)
+			vr.ConfidenceInterval.Upper = math.Min(1, v.Metrics.ConversionRate+z*se)
+
+			// Track best performing variant
+			if vr.Lift > bestLift && vr.PValue < s.config.SignificanceLevel {goCover_65b09fc02769__7[21]++;
+				bestLift = vr.Lift
+				bestVariant = v
+			}
+		} else{ goCover_65b09fc02769__7[22]++;if v.IsControl {goCover_65b09fc02769__7[23]++;
+			// Confidence interval for control
+			se := s.calculateStandardError(v.Metrics.ConversionRate, v.Metrics.Impressions)
+			z := 1.96
+			vr.ConfidenceInterval.Lower = math.Max(0, v.Metrics.ConversionRate-z*se)
+			vr.ConfidenceInterval.Upper = math.Min(1, v.Metrics.ConversionRate+z*se)
+		}}
+
+		goCover_65b09fc02769__7[17]++;result.VariantResults = append(result.VariantResults, vr)
+	}
+
+	// Determine winning variant and significance
+	goCover_65b09fc02769__7[7]++;if bestVariant != nil {goCover_65b09fc02769__7[24]++;
+		result.WinningVariant = bestVariant.ID
+		result.IsSignificant = true
+		result.ExpectedLift = bestLift
+		result.Confidence = 1 - result.VariantResults[0].PValue
+
+		// Calculate statistical power
+		result.StatisticalPower = s.calculateStatisticalPower(
+			controlCR,
+			bestVariant.Metrics.ConversionRate,
+			controlVariant.Metrics.Impressions,
+			bestVariant.Metrics.Impressions,
+		)
+
+		if result.StatisticalPower >= 0.8 {goCover_65b09fc02769__7[25]++;
+			result.Recommendation = fmt.Sprintf("Implement variant '%s' - statistically significant with %.1f%% lift", bestVariant.Name, bestLift)
+			result.RiskAssessment = "Low risk - high statistical power"
+		} else{ goCover_65b09fc02769__7[26]++;{
+			result.Recommendation = fmt.Sprintf("Consider variant '%s' - significant but low power (%.1f%%)", bestVariant.Name, result.StatisticalPower*100)
+			result.RiskAssessment = "Medium risk - consider extending experiment"
+		}}
+	} else{ goCover_65b09fc02769__7[27]++;if totalSamples < int64(s.config.MinSampleSize) {goCover_65b09fc02769__7[28]++;
+		result.Recommendation = fmt.Sprintf("Continue experiment - need at least %d samples (currently %d)", s.config.MinSampleSize, totalSamples)
+		result.RiskAssessment = "Cannot assess - insufficient data"
+	} else{ goCover_65b09fc02769__7[29]++;{
+		result.Recommendation = "No significant difference detected - consider extending experiment or reviewing hypothesis"
+		result.RiskAssessment = "Low risk - no change recommended"
+	}}}
+
+	goCover_65b09fc02769__7[8]++;return result
+}
+
+// GetExperiment retrieves an experiment by ID
+func (s *ABTestingService) GetExperiment(experimentID string) (*abExperiment, error) {goCover_65b09fc02769__8[0] = 3 ; goCover_65b09fc02769__8[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__8[2] = 8 ; goCover_65b09fc02769__8[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__8[5]++;
+		return nil, fmt.Errorf("experiment not found: %s", experimentID)
+	}
+	goCover_65b09fc02769__8[4]++;return val.(*abExperiment), nil
+}
+
+// ListExperiments returns all experiments with optional status filter
+func (s *ABTestingService) ListExperiments(status string) []*abExperiment {goCover_65b09fc02769__9[0] = 7 ; goCover_65b09fc02769__9[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__9[2] = 9 ; goCover_65b09fc02769__9[3]++;
+	var experiments []*abExperiment
+	s.experiments.Range(func(key, value any) bool {goCover_65b09fc02769__9[6]++;
+		exp := value.(*abExperiment)
+		if status == "" || exp.Status == status {goCover_65b09fc02769__9[8]++;
+			experiments = append(experiments, exp)
+		}
+		goCover_65b09fc02769__9[7]++;return true
+	})
+
+	// Sort by created date descending
+	goCover_65b09fc02769__9[4]++;sort.Slice(experiments, func(i, j int) bool {goCover_65b09fc02769__9[9]++;
+		return experiments[i].CreatedAt.After(experiments[j].CreatedAt)
+	})
+
+	goCover_65b09fc02769__9[5]++;return experiments
+}
+
+// GetBanditRecommendation uses Thompson Sampling for multi-armed bandit
+func (s *ABTestingService) GetBanditRecommendation(experimentID, userID string) (*variant, error) {goCover_65b09fc02769__10[0] = 8 ; goCover_65b09fc02769__10[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__10[2] = 10 ; goCover_65b09fc02769__10[3]++;
+	val, ok := s.experiments.Load(experimentID)
+	if !ok {goCover_65b09fc02769__10[7]++;
+		return nil, fmt.Errorf("experiment not found: %s", experimentID)
+	}
+
+	goCover_65b09fc02769__10[4]++;exp := val.(*abExperiment)
+	if exp.Type != "bandit" {goCover_65b09fc02769__10[8]++;
+		return s.GetVariantForUser(experimentID, userID)
+	}
+
+	// Thompson Sampling: Sample from Beta distribution for each variant
+	goCover_65b09fc02769__10[5]++;bestSample := -1.0
+	var bestVariant *variant
+
+	for _, v := range exp.Variants {goCover_65b09fc02769__10[9]++;
+		// Beta(successes + 1, failures + 1)
+		alpha := float64(v.Metrics.Conversions + 1)
+		beta := float64(v.Metrics.Impressions - v.Metrics.Conversions + 1)
+
+		// Sample from Beta distribution using gamma distribution trick
+		sample := s.sampleBeta(alpha, beta)
+
+		if sample > bestSample {goCover_65b09fc02769__10[10]++;
+			bestSample = sample
+			bestVariant = v
+		}
+	}
+
+	goCover_65b09fc02769__10[6]++;return bestVariant, nil
+}
+
+// UpdateConfig updates the A/B testing configuration
+func (s *ABTestingService) UpdateConfig(config ABTestingConfig) {goCover_65b09fc02769__11[0] = 1 ; goCover_65b09fc02769__11[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__11[2] = 11 ; goCover_65b09fc02769__11[3]++;
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.config = config
+}
+
+// GetConfig returns the current configuration
+func (s *ABTestingService) GetConfig() ABTestingConfig {goCover_65b09fc02769__12[0] = 1 ; goCover_65b09fc02769__12[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__12[2] = 12 ; goCover_65b09fc02769__12[3]++;
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.config
+}
+
+// GetStats returns overall A/B testing statistics
+func (s *ABTestingService) GetStats() map[string]any {goCover_65b09fc02769__13[0] = 9 ; goCover_65b09fc02769__13[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__13[2] = 13 ; goCover_65b09fc02769__13[3]++;
+	stats := map[string]any{
+		"total_experiments":     0,
+		"running_experiments":   0,
+		"completed_experiments": 0,
+		"draft_experiments":     0,
+		"total_variants":        0,
+		"total_impressions":     int64(0),
+		"total_conversions":     int64(0),
+	}
+
+	s.experiments.Range(func(key, value any) bool {goCover_65b09fc02769__13[5]++;
+		exp := value.(*abExperiment)
+		stats["total_experiments"] = stats["total_experiments"].(int) + 1
+		stats["total_variants"] = stats["total_variants"].(int) + len(exp.Variants)
+
+		switch exp.Status {
+		case "running":goCover_65b09fc02769__13[8]++;
+			stats["running_experiments"] = stats["running_experiments"].(int) + 1
+		case "completed":goCover_65b09fc02769__13[9]++;
+			stats["completed_experiments"] = stats["completed_experiments"].(int) + 1
+		case "draft":goCover_65b09fc02769__13[10]++;
+			stats["draft_experiments"] = stats["draft_experiments"].(int) + 1
+		}
+
+		goCover_65b09fc02769__13[6]++;for _, v := range exp.Variants {goCover_65b09fc02769__13[11]++;
+			stats["total_impressions"] = stats["total_impressions"].(int64) + v.Metrics.Impressions
+			stats["total_conversions"] = stats["total_conversions"].(int64) + v.Metrics.Conversions
+		}
+
+		goCover_65b09fc02769__13[7]++;return true
+	})
+
+	goCover_65b09fc02769__13[4]++;return stats
+}
+
+// Helper functions
+
+func (s *ABTestingService) hashUserID(userID, experimentID string) float64 {goCover_65b09fc02769__14[0] = 3 ; goCover_65b09fc02769__14[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__14[2] = 14 ; goCover_65b09fc02769__14[3]++;
+	// Simple hash for deterministic assignment
+	combined := userID + experimentID
+	hash := uint64(0)
+	for _, c := range combined {goCover_65b09fc02769__14[5]++;
+		hash = hash*31 + uint64(c)
+	}
+	goCover_65b09fc02769__14[4]++;return float64(hash%10000) / 10000.0
+}
+
+func (s *ABTestingService) selectVariantByWeight(variants []*variant, hash float64) *variant {goCover_65b09fc02769__15[0] = 4 ; goCover_65b09fc02769__15[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__15[2] = 15 ; goCover_65b09fc02769__15[3]++;
+	cumulative := 0.0
+	for _, v := range variants {goCover_65b09fc02769__15[5]++;
+		cumulative += v.Weight
+		if hash < cumulative {goCover_65b09fc02769__15[6]++;
+			return v
+		}
+	}
+	// Fallback to last variant
+	goCover_65b09fc02769__15[4]++;return variants[len(variants)-1]
+}
+
+func (s *ABTestingService) calculatePValue(convA, samplesA, convB, samplesB int64) float64 {goCover_65b09fc02769__16[0] = 5 ; goCover_65b09fc02769__16[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__16[2] = 16 ; goCover_65b09fc02769__16[3]++;
+	if samplesA == 0 || samplesB == 0 {goCover_65b09fc02769__16[6]++;
+		return 1.0
+	}
+
+	// Two-proportion z-test
+	goCover_65b09fc02769__16[4]++;p1 := float64(convA) / float64(samplesA)
+	p2 := float64(convB) / float64(samplesB)
+
+	// Pooled proportion
+	pooled := float64(convA+convB) / float64(samplesA+samplesB)
+
+	// Standard error
+	se := math.Sqrt(pooled * (1 - pooled) * (1/float64(samplesA) + 1/float64(samplesB)))
+
+	if se == 0 {goCover_65b09fc02769__16[7]++;
+		return 1.0
+	}
+
+	// Z-score
+	goCover_65b09fc02769__16[5]++;z := math.Abs(p1-p2) / se
+
+	// Two-tailed p-value
+	return 2 * (1 - abNormalCDF(z))
+}
+
+func (s *ABTestingService) calculateStandardError(p float64, n int64) float64 {goCover_65b09fc02769__17[0] = 3 ; goCover_65b09fc02769__17[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__17[2] = 17 ; goCover_65b09fc02769__17[3]++;
+	if n == 0 {goCover_65b09fc02769__17[5]++;
+		return 0
+	}
+	goCover_65b09fc02769__17[4]++;return math.Sqrt(p * (1 - p) / float64(n))
+}
+
+func (s *ABTestingService) calculateStatisticalPower(p1, p2 float64, n1, n2 int64) float64 {goCover_65b09fc02769__18[0] = 5 ; goCover_65b09fc02769__18[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__18[2] = 18 ; goCover_65b09fc02769__18[3]++;
+	// Simplified power calculation
+	if n1 == 0 || n2 == 0 {goCover_65b09fc02769__18[6]++;
+		return 0
+	}
+
+	goCover_65b09fc02769__18[4]++;effect := math.Abs(p2 - p1)
+	pooledVar := p1*(1-p1)/float64(n1) + p2*(1-p2)/float64(n2)
+
+	if pooledVar == 0 {goCover_65b09fc02769__18[7]++;
+		return 0
+	}
+
+	// Non-centrality parameter
+	goCover_65b09fc02769__18[5]++;ncp := effect / math.Sqrt(pooledVar)
+
+	// Approximate power using normal distribution
+	criticalValue := 1.96 // 95% confidence
+	power := 1 - abNormalCDF(criticalValue-ncp)
+
+	return math.Min(1, math.Max(0, power))
+}
+
+func (s *ABTestingService) sampleBeta(alpha, beta float64) float64 {goCover_65b09fc02769__19[0] = 1 ; goCover_65b09fc02769__19[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__19[2] = 19 ; goCover_65b09fc02769__19[3]++;
+	// Sample from Beta distribution using two Gamma samples
+	x := s.sampleGamma(alpha, 1)
+	y := s.sampleGamma(beta, 1)
+	return x / (x + y)
+}
+
+func (s *ABTestingService) sampleGamma(shape, scale float64) float64 {goCover_65b09fc02769__20[0] = 10 ; goCover_65b09fc02769__20[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__20[2] = 20 ; goCover_65b09fc02769__20[3]++;
+	// Marsaglia and Tsang's method for shape >= 1
+	if shape < 1 {goCover_65b09fc02769__20[5]++;
+		return s.sampleGamma(shape+1, scale) * math.Pow(rand.Float64(), 1/shape)
+	}
+
+	goCover_65b09fc02769__20[4]++;d := shape - 1.0/3.0
+	c := 1.0 / math.Sqrt(9*d)
+
+	for {goCover_65b09fc02769__20[6]++;
+		var x, v float64
+		for {goCover_65b09fc02769__20[9]++;
+			x = rand.NormFloat64()
+			v = 1 + c*x
+			if v > 0 {goCover_65b09fc02769__20[10]++;
+				break
+			}
+		}
+		goCover_65b09fc02769__20[7]++;v = v * v * v
+		u := rand.Float64()
+
+		if u < 1-0.0331*(x*x)*(x*x) {goCover_65b09fc02769__20[11]++;
+			return d * v * scale
+		}
+		goCover_65b09fc02769__20[8]++;if math.Log(u) < 0.5*x*x+d*(1-v+math.Log(v)) {goCover_65b09fc02769__20[12]++;
+			return d * v * scale
+		}
+	}
+}
+
+// abNormalCDF calculates the cumulative distribution function of standard normal
+// Prefixed with 'ab' to avoid collision with normalCDF in incrementality.go
+func abNormalCDF(x float64) float64 {goCover_65b09fc02769__21[0] = 1 ; goCover_65b09fc02769__21[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__21[2] = 21 ; goCover_65b09fc02769__21[3]++;
+	// Approximation using error function
+	return 0.5 * (1 + math.Erf(x/math.Sqrt2))
+}

@@ -1,0 +1,382 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\bid_landscape.go:1:1
+package service
+
+import (
+	"math"
+	"sort"
+	"sync"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// BidLandscapeService provides bid distribution analysis and optimization
+type BidLandscapeService struct {
+	cache      cache.Cache
+	mu         sync.RWMutex
+	landscapes map[string]*landscapeData // key: placement+geo hash
+}
+
+type landscapeData struct {
+	bids         []bidRecord
+	lastAnalysis time.Time
+	cachedResult *model.BidLandscapeResult
+}
+
+type bidRecord struct {
+	bidPrice   float64
+	clearPrice float64
+	won        bool
+	timestamp  time.Time
+	placement  string
+	deviceType string
+}
+
+// NewBidLandscapeService creates a new bid landscape service
+func NewBidLandscapeService(c cache.Cache) *BidLandscapeService {goCover_65b09fc02769__79[0] = 1 ; goCover_65b09fc02769__79[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__79[2] = 79 ; goCover_65b09fc02769__79[3]++;
+	return &BidLandscapeService{
+		cache:      c,
+		landscapes: make(map[string]*landscapeData),
+	}
+}
+
+// AnalyzeLandscape performs bid landscape analysis for optimal bidding
+func (s *BidLandscapeService) AnalyzeLandscape(campaign *model.Campaign, req *model.BidRequest) *model.BidLandscapeResult {goCover_65b09fc02769__80[0] = 7 ; goCover_65b09fc02769__80[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__80[2] = 80 ; goCover_65b09fc02769__80[3]++;
+	config := campaign.Targeting.BidLandscape
+	if config == nil || !config.Enabled {goCover_65b09fc02769__80[7]++;
+		return &model.BidLandscapeResult{
+			Analyzed:      false,
+			BidMultiplier: 1.0,
+			Reason:        "bid_landscape_disabled",
+		}
+	}
+
+	// Generate landscape key based on placement characteristics
+	goCover_65b09fc02769__80[4]++;landscapeKey := s.generateLandscapeKey(req)
+
+	s.mu.RLock()
+	data, exists := s.landscapes[landscapeKey]
+	s.mu.RUnlock()
+
+	if !exists || len(data.bids) < config.MinSampleSize {goCover_65b09fc02769__80[8]++;
+		return &model.BidLandscapeResult{
+			Analyzed:        false,
+			SampleSize:      0,
+			BidMultiplier:   1.0,
+			Confidence:      0,
+			MarketCondition: "unknown",
+			Reason:          "insufficient_data",
+		}
+	}
+
+	// Use cached result if recent
+	goCover_65b09fc02769__80[5]++;if data.cachedResult != nil && time.Since(data.lastAnalysis) < 15*time.Minute {goCover_65b09fc02769__80[9]++;
+		return data.cachedResult
+	}
+
+	// Perform analysis
+	goCover_65b09fc02769__80[6]++;result := s.performAnalysis(data, campaign, config)
+
+	// Cache result
+	s.mu.Lock()
+	data.cachedResult = result
+	data.lastAnalysis = time.Now()
+	s.mu.Unlock()
+
+	return result
+}
+
+func (s *BidLandscapeService) performAnalysis(data *landscapeData, campaign *model.Campaign, config *model.BidLandscape) *model.BidLandscapeResult {goCover_65b09fc02769__81[0] = 10 ; goCover_65b09fc02769__81[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__81[2] = 81 ; goCover_65b09fc02769__81[3]++;
+	// Filter to analysis window
+	windowHours := config.AnalysisWindow
+	if windowHours <= 0 {goCover_65b09fc02769__81[8]++;
+		windowHours = 24
+	}
+	goCover_65b09fc02769__81[4]++;cutoff := time.Now().Add(-time.Duration(windowHours) * time.Hour)
+
+	var recentBids []bidRecord
+	for _, b := range data.bids {goCover_65b09fc02769__81[9]++;
+		if b.timestamp.After(cutoff) {goCover_65b09fc02769__81[10]++;
+			recentBids = append(recentBids, b)
+		}
+	}
+
+	goCover_65b09fc02769__81[5]++;if len(recentBids) < config.MinSampleSize {goCover_65b09fc02769__81[11]++;
+		return &model.BidLandscapeResult{
+			Analyzed:        false,
+			SampleSize:      len(recentBids),
+			BidMultiplier:   1.0,
+			MarketCondition: "unknown",
+			Reason:          "insufficient_recent_data",
+		}
+	}
+
+	// Sort bids by price
+	goCover_65b09fc02769__81[6]++;sort.Slice(recentBids, func(i, j int) bool {goCover_65b09fc02769__81[12]++;
+		return recentBids[i].bidPrice < recentBids[j].bidPrice
+	})
+
+	// Calculate percentiles
+	goCover_65b09fc02769__81[7]++;percentiles := s.calculatePercentiles(recentBids)
+
+	// Find optimal bid range
+	optimalRange := s.findOptimalRange(recentBids, percentiles)
+
+	// Determine market condition
+	marketCondition := s.assessMarketCondition(recentBids, percentiles)
+
+	// Calculate recommended bid
+	recommendedBid, multiplier := s.calculateRecommendedBid(campaign.BidPrice, optimalRange, marketCondition)
+
+	// Calculate confidence based on sample size and consistency
+	confidence := s.calculateConfidence(len(recentBids), config.MinSampleSize, recentBids)
+
+	return &model.BidLandscapeResult{
+		Analyzed:        true,
+		SampleSize:      len(recentBids),
+		RecommendedBid:  recommendedBid,
+		BidMultiplier:   multiplier,
+		Confidence:      confidence,
+		OptimalRange:    optimalRange,
+		MarketCondition: marketCondition,
+		Reason:          "analysis_complete",
+	}
+}
+
+func (s *BidLandscapeService) calculatePercentiles(bids []bidRecord) []model.BidPercentile {goCover_65b09fc02769__82[0] = 15 ; goCover_65b09fc02769__82[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__82[2] = 82 ; goCover_65b09fc02769__82[3]++;
+	percentiles := []int{10, 25, 50, 75, 90}
+	result := make([]model.BidPercentile, 0, len(percentiles))
+
+	for _, p := range percentiles {goCover_65b09fc02769__82[5]++;
+		idx := (len(bids) * p) / 100
+		if idx >= len(bids) {goCover_65b09fc02769__82[10]++;
+			idx = len(bids) - 1
+		}
+
+		// Calculate win rate at this percentile
+		goCover_65b09fc02769__82[6]++;winsAtOrAbove := 0
+		totalAtOrAbove := 0
+		var clearPrices []float64
+
+		threshold := bids[idx].bidPrice
+		for _, b := range bids {goCover_65b09fc02769__82[11]++;
+			if b.bidPrice >= threshold {goCover_65b09fc02769__82[12]++;
+				totalAtOrAbove++
+				if b.won {goCover_65b09fc02769__82[13]++;
+					winsAtOrAbove++
+					clearPrices = append(clearPrices, b.clearPrice)
+				}
+			}
+		}
+
+		goCover_65b09fc02769__82[7]++;winRate := 0.0
+		if totalAtOrAbove > 0 {goCover_65b09fc02769__82[14]++;
+			winRate = float64(winsAtOrAbove) / float64(totalAtOrAbove)
+		}
+
+		goCover_65b09fc02769__82[8]++;avgClear := 0.0
+		if len(clearPrices) > 0 {goCover_65b09fc02769__82[15]++;
+			for _, cp := range clearPrices {goCover_65b09fc02769__82[17]++;
+				avgClear += cp
+			}
+			goCover_65b09fc02769__82[16]++;avgClear /= float64(len(clearPrices))
+		}
+
+		goCover_65b09fc02769__82[9]++;result = append(result, model.BidPercentile{
+			Percentile:  p,
+			BidPrice:    threshold,
+			WinRate:     winRate,
+			AvgClearPrc: avgClear,
+		})
+	}
+
+	goCover_65b09fc02769__82[4]++;return result
+}
+
+func (s *BidLandscapeService) findOptimalRange(bids []bidRecord, percentiles []model.BidPercentile) *model.OptimalBidRange {goCover_65b09fc02769__83[0] = 9 ; goCover_65b09fc02769__83[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__83[2] = 83 ; goCover_65b09fc02769__83[3]++;
+	if len(percentiles) < 3 {goCover_65b09fc02769__83[7]++;
+		return nil
+	}
+
+	// Find the sweet spot: highest win rate / bid price ratio
+	goCover_65b09fc02769__83[4]++;var bestEfficiency float64
+	var sweetSpot float64
+	var expectedWinRate float64
+
+	for _, p := range percentiles {goCover_65b09fc02769__83[8]++;
+		if p.BidPrice > 0 {goCover_65b09fc02769__83[9]++;
+			efficiency := p.WinRate / p.BidPrice
+			if efficiency > bestEfficiency {goCover_65b09fc02769__83[10]++;
+				bestEfficiency = efficiency
+				sweetSpot = p.BidPrice
+				expectedWinRate = p.WinRate
+			}
+		}
+	}
+
+	// Min bid: 25th percentile (competitive floor)
+	goCover_65b09fc02769__83[5]++;minBid := percentiles[1].BidPrice
+	// Max bid: 90th percentile (diminishing returns)
+	maxBid := percentiles[len(percentiles)-1].BidPrice
+
+	// Expected CPM at sweet spot
+	expectedCPM := sweetSpot * 1000 / expectedWinRate
+	if expectedWinRate <= 0 {goCover_65b09fc02769__83[11]++;
+		expectedCPM = 0
+	}
+
+	goCover_65b09fc02769__83[6]++;return &model.OptimalBidRange{
+		MinBid:          minBid,
+		MaxBid:          maxBid,
+		SweetSpot:       sweetSpot,
+		ExpectedWinRate: expectedWinRate,
+		ExpectedCPM:     expectedCPM,
+	}
+}
+
+func (s *BidLandscapeService) assessMarketCondition(bids []bidRecord, percentiles []model.BidPercentile) string {goCover_65b09fc02769__84[0] = 12 ; goCover_65b09fc02769__84[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__84[2] = 84 ; goCover_65b09fc02769__84[3]++;
+	if len(percentiles) < 3 {goCover_65b09fc02769__84[8]++;
+		return "unknown"
+	}
+
+	// Calculate bid spread
+	goCover_65b09fc02769__84[4]++;p25 := percentiles[1].BidPrice
+	p75 := percentiles[3].BidPrice
+
+	spread := 0.0
+	if p25 > 0 {goCover_65b09fc02769__84[9]++;
+		spread = (p75 - p25) / p25
+	}
+
+	// Calculate overall win rate
+	goCover_65b09fc02769__84[5]++;wins := 0
+	for _, b := range bids {goCover_65b09fc02769__84[10]++;
+		if b.won {goCover_65b09fc02769__84[11]++;
+			wins++
+		}
+	}
+	goCover_65b09fc02769__84[6]++;winRate := float64(wins) / float64(len(bids))
+
+	// Determine market condition
+	if winRate > 0.5 && spread < 0.3 {goCover_65b09fc02769__84[12]++;
+		return "soft" // Easy to win, low competition
+	} else{ goCover_65b09fc02769__84[13]++;if winRate < 0.2 || spread > 0.8 {goCover_65b09fc02769__84[14]++;
+		return "aggressive" // Hard to win, high competition
+	}}
+	goCover_65b09fc02769__84[7]++;return "competitive" // Normal competition
+}
+
+func (s *BidLandscapeService) calculateRecommendedBid(currentBid float64, optimalRange *model.OptimalBidRange, marketCondition string) (float64, float64) {goCover_65b09fc02769__85[0] = 11 ; goCover_65b09fc02769__85[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__85[2] = 85 ; goCover_65b09fc02769__85[3]++;
+	if optimalRange == nil {goCover_65b09fc02769__85[7]++;
+		return currentBid, 1.0
+	}
+
+	goCover_65b09fc02769__85[4]++;recommended := optimalRange.SweetSpot
+
+	// Adjust based on market condition
+	switch marketCondition {
+	case "soft":goCover_65b09fc02769__85[8]++;
+		// Can bid lower in soft markets
+		recommended = optimalRange.MinBid + (optimalRange.SweetSpot-optimalRange.MinBid)*0.5
+	case "aggressive":goCover_65b09fc02769__85[9]++;
+		// Need to bid higher in aggressive markets
+		recommended = optimalRange.SweetSpot + (optimalRange.MaxBid-optimalRange.SweetSpot)*0.3
+	}
+
+	// Calculate multiplier
+	goCover_65b09fc02769__85[5]++;multiplier := 1.0
+	if currentBid > 0 {goCover_65b09fc02769__85[10]++;
+		multiplier = recommended / currentBid
+		// Cap multiplier to reasonable range
+		if multiplier > 2.0 {goCover_65b09fc02769__85[12]++;
+			multiplier = 2.0
+		}
+		goCover_65b09fc02769__85[11]++;if multiplier < 0.5 {goCover_65b09fc02769__85[13]++;
+			multiplier = 0.5
+		}
+	}
+
+	goCover_65b09fc02769__85[6]++;return recommended, multiplier
+}
+
+func (s *BidLandscapeService) calculateConfidence(sampleSize, minSampleSize int, bids []bidRecord) float64 {goCover_65b09fc02769__86[0] = 12 ; goCover_65b09fc02769__86[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__86[2] = 86 ; goCover_65b09fc02769__86[3]++;
+	// Base confidence on sample size
+	sizeRatio := float64(sampleSize) / float64(minSampleSize*5)
+	if sizeRatio > 1.0 {goCover_65b09fc02769__86[8]++;
+		sizeRatio = 1.0
+	}
+
+	// Adjust for data consistency (standard deviation)
+	goCover_65b09fc02769__86[4]++;if len(bids) < 2 {goCover_65b09fc02769__86[9]++;
+		return sizeRatio * 0.5
+	}
+
+	goCover_65b09fc02769__86[5]++;var sum, sumSq float64
+	for _, b := range bids {goCover_65b09fc02769__86[10]++;
+		sum += b.bidPrice
+		sumSq += b.bidPrice * b.bidPrice
+	}
+	goCover_65b09fc02769__86[6]++;mean := sum / float64(len(bids))
+	variance := (sumSq / float64(len(bids))) - (mean * mean)
+	stdDev := math.Sqrt(variance)
+
+	// Lower consistency if high variance
+	consistencyFactor := 1.0
+	if mean > 0 {goCover_65b09fc02769__86[11]++;
+		cv := stdDev / mean // Coefficient of variation
+		if cv > 0.5 {goCover_65b09fc02769__86[12]++;
+			consistencyFactor = 0.7
+		} else{ goCover_65b09fc02769__86[13]++;if cv > 0.3 {goCover_65b09fc02769__86[14]++;
+			consistencyFactor = 0.85
+		}}
+	}
+
+	goCover_65b09fc02769__86[7]++;return sizeRatio * consistencyFactor
+}
+
+func (s *BidLandscapeService) generateLandscapeKey(req *model.BidRequest) string {goCover_65b09fc02769__87[0] = 5 ; goCover_65b09fc02769__87[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__87[2] = 87 ; goCover_65b09fc02769__87[3]++;
+	// Create key from placement characteristics
+	key := req.PublisherID
+	if req.Device.Type != "" {goCover_65b09fc02769__87[6]++;
+		key += "_" + req.Device.Type
+	}
+	goCover_65b09fc02769__87[4]++;if req.Device.Geo.Country != "" {goCover_65b09fc02769__87[7]++;
+		key += "_" + req.Device.Geo.Country
+	}
+	goCover_65b09fc02769__87[5]++;return key
+}
+
+// RecordBid records a bid for landscape analysis
+func (s *BidLandscapeService) RecordBid(req *model.BidRequest, bidPrice, clearPrice float64, won bool) {goCover_65b09fc02769__88[0] = 5 ; goCover_65b09fc02769__88[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__88[2] = 88 ; goCover_65b09fc02769__88[3]++;
+	landscapeKey := s.generateLandscapeKey(req)
+
+	record := bidRecord{
+		bidPrice:   bidPrice,
+		clearPrice: clearPrice,
+		won:        won,
+		timestamp:  time.Now(),
+		placement:  req.PublisherID,
+		deviceType: req.Device.Type,
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.landscapes[landscapeKey]; !exists {goCover_65b09fc02769__88[6]++;
+		s.landscapes[landscapeKey] = &landscapeData{
+			bids: make([]bidRecord, 0, 1000),
+		}
+	}
+
+	goCover_65b09fc02769__88[4]++;data := s.landscapes[landscapeKey]
+	data.bids = append(data.bids, record)
+
+	// Keep only last 10000 bids
+	if len(data.bids) > 10000 {goCover_65b09fc02769__88[7]++;
+		data.bids = data.bids[len(data.bids)-10000:]
+	}
+
+	// Invalidate cache
+	goCover_65b09fc02769__88[5]++;data.cachedResult = nil
+}

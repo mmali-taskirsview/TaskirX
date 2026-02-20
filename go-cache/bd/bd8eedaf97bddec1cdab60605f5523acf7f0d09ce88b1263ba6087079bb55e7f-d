@@ -1,0 +1,432 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\dayparting.go:1:1
+package service
+
+import (
+	"fmt"
+	"math"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// DaypartingService provides automatic bid adjustments based on hour-of-day performance.
+// Tracks historical performance by hour and day-of-week to optimize bid multipliers.
+type DaypartingService struct {
+	cache cache.Cache
+}
+
+// NewDaypartingService creates a new dayparting optimization service
+func NewDaypartingService(cache cache.Cache) *DaypartingService {goCover_65b09fc02769__329[0] = 1 ; goCover_65b09fc02769__329[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__329[2] = 329 ; goCover_65b09fc02769__329[3]++;
+	return &DaypartingService{cache: cache}
+}
+
+// dayNames maps day-of-week integers to names
+var dayNames = map[int]string{
+	0: "sunday",
+	1: "monday",
+	2: "tuesday",
+	3: "wednesday",
+	4: "thursday",
+	5: "friday",
+	6: "saturday",
+}
+
+// CalculateDaypartMultiplier returns a bid multiplier for the current hour based on
+// campaign dayparting configuration and historical performance data.
+func (d *DaypartingService) CalculateDaypartMultiplier(campaign *model.Campaign, req *model.BidRequest) model.DaypartingResult {goCover_65b09fc02769__330[0] = 19 ; goCover_65b09fc02769__330[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__330[2] = 330 ; goCover_65b09fc02769__330[3]++;
+	result := model.DaypartingResult{
+		Multiplier: 1.0,
+	}
+
+	pg := campaign.Targeting.PerformanceGoals
+	if pg == nil || pg.DaypartingOptimization == nil || !pg.DaypartingOptimization.Enabled {goCover_65b09fc02769__330[10]++;
+		return result
+	}
+
+	goCover_65b09fc02769__330[4]++;dpConfig := pg.DaypartingOptimization
+
+	// Determine current time in configured timezone
+	now := time.Now()
+	if dpConfig.Timezone != "" {goCover_65b09fc02769__330[11]++;
+		if loc, err := time.LoadLocation(dpConfig.Timezone); err == nil {goCover_65b09fc02769__330[12]++;
+			now = now.In(loc)
+		}
+	}
+
+	// Also check request timezone
+	goCover_65b09fc02769__330[5]++;if req.Context != nil {goCover_65b09fc02769__330[13]++;
+		if tz, ok := req.Context["timezone"].(string); ok && dpConfig.Timezone == "" {goCover_65b09fc02769__330[14]++;
+			if loc, err := time.LoadLocation(tz); err == nil {goCover_65b09fc02769__330[15]++;
+				now = now.In(loc)
+			}
+		}
+	}
+
+	goCover_65b09fc02769__330[6]++;hour := now.Hour()
+	dayOfWeek := int(now.Weekday()) // 0=Sunday
+	dayName := dayNames[dayOfWeek]
+
+	result.Hour = hour
+	result.DayOfWeek = dayName
+
+	// 1. Check manual hourly multipliers first (they take precedence)
+	if len(dpConfig.HourlyMultipliers) > 0 {goCover_65b09fc02769__330[16]++;
+		if mult, ok := dpConfig.HourlyMultipliers[hour]; ok {goCover_65b09fc02769__330[17]++;
+			result.Multiplier = mult
+			result.Reason = fmt.Sprintf("manual_hourly_multiplier_h%d", hour)
+			return d.clampMultiplier(result, dpConfig)
+		}
+	}
+
+	// 2. Check day-specific multipliers
+	goCover_65b09fc02769__330[7]++;if dpConfig.DaySpecific != nil {goCover_65b09fc02769__330[18]++;
+		if dayMults, ok := dpConfig.DaySpecific[dayName]; ok {goCover_65b09fc02769__330[19]++;
+			if mult, ok := dayMults[hour]; ok {goCover_65b09fc02769__330[20]++;
+				result.Multiplier = mult
+				result.Reason = fmt.Sprintf("day_specific_%s_h%d", dayName, hour)
+				return d.clampMultiplier(result, dpConfig)
+			}
+		}
+	}
+
+	// 3. Auto-optimize using historical performance data
+	goCover_65b09fc02769__330[8]++;if dpConfig.AutoOptimize {goCover_65b09fc02769__330[21]++;
+		return d.autoOptimize(campaign.ID, hour, dayOfWeek, dpConfig, result)
+	}
+
+	goCover_65b09fc02769__330[9]++;return result
+}
+
+// autoOptimize uses historical hourly performance data to determine optimal bid multiplier
+func (d *DaypartingService) autoOptimize(campaignID string, hour, dayOfWeek int, dpConfig *model.DaypartingOptimization, result model.DaypartingResult) model.DaypartingResult {goCover_65b09fc02769__331[0] = 11 ; goCover_65b09fc02769__331[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__331[2] = 331 ; goCover_65b09fc02769__331[3]++;
+	lookbackDays := dpConfig.LookbackDays
+	if lookbackDays <= 0 {goCover_65b09fc02769__331[9]++;
+		lookbackDays = 14 // Default 2 weeks of data
+	}
+
+	// Get performance data for this hour across recent days
+	goCover_65b09fc02769__331[4]++;hourPerf := d.getHourlyPerformance(campaignID, hour, lookbackDays)
+
+	// Get overall average performance for normalization
+	avgPerf := d.getAveragePerformance(campaignID, lookbackDays)
+
+	if hourPerf.impressions < 100 || avgPerf.impressions < 100 {goCover_65b09fc02769__331[10]++;
+		// Not enough data for auto-optimization
+		result.Reason = "insufficient_data"
+		return result
+	}
+
+	goCover_65b09fc02769__331[5]++;result.HistoricalCTR = hourPerf.ctr
+	result.HistoricalCVR = hourPerf.cvr
+
+	// Calculate composite performance score relative to average
+	// Weighted by: CTR (30%), CVR (40%), Win Rate (30%)
+	ctrRatio := 1.0
+	if avgPerf.ctr > 0 {goCover_65b09fc02769__331[11]++;
+		ctrRatio = hourPerf.ctr / avgPerf.ctr
+	}
+
+	goCover_65b09fc02769__331[6]++;cvrRatio := 1.0
+	if avgPerf.cvr > 0 {goCover_65b09fc02769__331[12]++;
+		cvrRatio = hourPerf.cvr / avgPerf.cvr
+	}
+
+	goCover_65b09fc02769__331[7]++;winRateRatio := 1.0
+	if avgPerf.winRate > 0 {goCover_65b09fc02769__331[13]++;
+		winRateRatio = hourPerf.winRate / avgPerf.winRate
+	}
+
+	// Composite performance index
+	goCover_65b09fc02769__331[8]++;perfIndex := ctrRatio*0.3 + cvrRatio*0.4 + winRateRatio*0.3
+
+	// Convert performance index to multiplier
+	// perfIndex of 1.0 = average performance = multiplier 1.0
+	// Higher perfIndex = better performance = bid more
+	multiplier := 0.5 + perfIndex*0.5 // Maps [0, 2] -> [0.5, 1.5]
+
+	// Apply day-of-week modifier
+	dayMultiplier := d.getDayOfWeekModifier(campaignID, dayOfWeek, lookbackDays, avgPerf)
+	multiplier *= dayMultiplier
+
+	result.Multiplier = multiplier
+	result.IsOptimalHour = perfIndex > 1.3 // Top 30% performance considered "optimal"
+	result.Reason = fmt.Sprintf("auto_optimized_perf_index=%.2f_day_mod=%.2f", perfIndex, dayMultiplier)
+
+	return d.clampMultiplier(result, dpConfig)
+}
+
+// hourlyPerformance holds aggregated performance for a specific hour
+type hourlyPerformance struct {
+	impressions int64
+	clicks      int64
+	conversions int64
+	spend       float64
+	ctr         float64
+	cvr         float64
+	winRate     float64
+}
+
+// getHourlyPerformance retrieves performance metrics for a specific hour
+func (d *DaypartingService) getHourlyPerformance(campaignID string, hour, lookbackDays int) hourlyPerformance {goCover_65b09fc02769__332[0] = 3 ; goCover_65b09fc02769__332[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__332[2] = 332 ; goCover_65b09fc02769__332[3]++;
+	perf := hourlyPerformance{}
+
+	// Cache key format: daypart_perf:{campaignID}:{hour}
+	cacheKey := fmt.Sprintf("daypart_perf:%s:%d", campaignID, hour)
+	cached, err := d.cache.Get(cacheKey)
+	if err != nil || cached == "" {goCover_65b09fc02769__332[5]++;
+		return perf
+	}
+
+	// Parse cached data (format: "impressions:X,clicks:Y,conversions:Z,spend:W,wins:V")
+	goCover_65b09fc02769__332[4]++;perf = d.parseDaypartCache(cached)
+	return perf
+}
+
+// getAveragePerformance retrieves average performance across all hours
+func (d *DaypartingService) getAveragePerformance(campaignID string, lookbackDays int) hourlyPerformance {goCover_65b09fc02769__333[0] = 11 ; goCover_65b09fc02769__333[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__333[2] = 333 ; goCover_65b09fc02769__333[3]++;
+	perf := hourlyPerformance{}
+
+	cacheKey := fmt.Sprintf("daypart_avg:%s", campaignID)
+	cached, err := d.cache.Get(cacheKey)
+	if err != nil || cached == "" {goCover_65b09fc02769__333[5]++;
+		// Build average from all hours
+		totalImps := int64(0)
+		totalClicks := int64(0)
+		totalConversions := int64(0)
+		totalSpend := 0.0
+		hourCount := 0
+
+		for h := 0; h < 24; h++ {goCover_65b09fc02769__333[8]++;
+			hp := d.getHourlyPerformance(campaignID, h, lookbackDays)
+			if hp.impressions > 0 {goCover_65b09fc02769__333[9]++;
+				totalImps += hp.impressions
+				totalClicks += hp.clicks
+				totalConversions += hp.conversions
+				totalSpend += hp.spend
+				hourCount++
+			}
+		}
+
+		goCover_65b09fc02769__333[6]++;if hourCount > 0 {goCover_65b09fc02769__333[10]++;
+			perf.impressions = totalImps / int64(hourCount)
+			perf.clicks = totalClicks / int64(hourCount)
+			perf.conversions = totalConversions / int64(hourCount)
+			perf.spend = totalSpend / float64(hourCount)
+			if perf.impressions > 0 {goCover_65b09fc02769__333[12]++;
+				perf.ctr = float64(perf.clicks) / float64(perf.impressions)
+			}
+			goCover_65b09fc02769__333[11]++;if perf.clicks > 0 {goCover_65b09fc02769__333[13]++;
+				perf.cvr = float64(perf.conversions) / float64(perf.clicks)
+			}
+		}
+
+		goCover_65b09fc02769__333[7]++;return perf
+	}
+
+	goCover_65b09fc02769__333[4]++;perf = d.parseDaypartCache(cached)
+	return perf
+}
+
+// getDayOfWeekModifier returns a bid modifier for the current day of week
+func (d *DaypartingService) getDayOfWeekModifier(campaignID string, dayOfWeek, lookbackDays int, avgPerf hourlyPerformance) float64 {goCover_65b09fc02769__334[0] = 11 ; goCover_65b09fc02769__334[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__334[2] = 334 ; goCover_65b09fc02769__334[3]++;
+	dayKey := fmt.Sprintf("daypart_dow:%s:%d", campaignID, dayOfWeek)
+	cached, err := d.cache.Get(dayKey)
+	if err != nil || cached == "" {goCover_65b09fc02769__334[7]++;
+		return 1.0
+	}
+
+	goCover_65b09fc02769__334[4]++;dayPerf := d.parseDaypartCache(cached)
+	if dayPerf.impressions < 50 || avgPerf.ctr <= 0 {goCover_65b09fc02769__334[8]++;
+		return 1.0
+	}
+
+	// Compare day CTR to average
+	goCover_65b09fc02769__334[5]++;if dayPerf.ctr > 0 && avgPerf.ctr > 0 {goCover_65b09fc02769__334[9]++;
+		ratio := dayPerf.ctr / avgPerf.ctr
+		// Gentle day-of-week adjustment (±20%)
+		if ratio > 1.2 {goCover_65b09fc02769__334[12]++;
+			return 1.2
+		}
+		goCover_65b09fc02769__334[10]++;if ratio < 0.8 {goCover_65b09fc02769__334[13]++;
+			return 0.8
+		}
+		goCover_65b09fc02769__334[11]++;return ratio
+	}
+
+	goCover_65b09fc02769__334[6]++;return 1.0
+}
+
+// RecordHourlyPerformance updates performance tracking for the current hour.
+// Should be called on impression, click, and conversion events.
+func (d *DaypartingService) RecordHourlyPerformance(campaignID string, eventType string, now time.Time) error {goCover_65b09fc02769__335[0] = 1 ; goCover_65b09fc02769__335[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__335[2] = 335 ; goCover_65b09fc02769__335[3]++;
+	hour := now.Hour()
+	dayOfWeek := int(now.Weekday())
+
+	// Update hour-specific metrics
+	hourKey := fmt.Sprintf("daypart_perf:%s:%d", campaignID, hour)
+	dayKey := fmt.Sprintf("daypart_dow:%s:%d", campaignID, dayOfWeek)
+
+	// Get current values and increment
+	current, _ := d.cache.Get(hourKey)
+	updated := d.incrementDaypartMetric(current, eventType)
+	_ = d.cache.Set(hourKey, updated, 86400*14) // 14-day TTL
+
+	// Also update day-of-week metrics
+	currentDay, _ := d.cache.Get(dayKey)
+	updatedDay := d.incrementDaypartMetric(currentDay, eventType)
+	_ = d.cache.Set(dayKey, updatedDay, 86400*14)
+
+	return nil
+}
+
+// incrementDaypartMetric increments the appropriate counter in a serialized metrics string
+func (d *DaypartingService) incrementDaypartMetric(current, eventType string) string {goCover_65b09fc02769__336[0] = 10 ; goCover_65b09fc02769__336[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__336[2] = 336 ; goCover_65b09fc02769__336[3]++;
+	perf := d.parseDaypartCache(current)
+
+	switch eventType {
+	case "impression":goCover_65b09fc02769__336[7]++;
+		perf.impressions++
+	case "click":goCover_65b09fc02769__336[8]++;
+		perf.clicks++
+	case "conversion":goCover_65b09fc02769__336[9]++;
+		perf.conversions++
+	case "win":goCover_65b09fc02769__336[10]++;
+		// Track via win rate
+	}
+
+	// Recalculate derived metrics
+	goCover_65b09fc02769__336[4]++;if perf.impressions > 0 {goCover_65b09fc02769__336[11]++;
+		perf.ctr = float64(perf.clicks) / float64(perf.impressions)
+	}
+	goCover_65b09fc02769__336[5]++;if perf.clicks > 0 {goCover_65b09fc02769__336[12]++;
+		perf.cvr = float64(perf.conversions) / float64(perf.clicks)
+	}
+
+	goCover_65b09fc02769__336[6]++;return fmt.Sprintf("impressions:%d,clicks:%d,conversions:%d,spend:%.4f,ctr:%.6f,cvr:%.6f",
+		perf.impressions, perf.clicks, perf.conversions, perf.spend, perf.ctr, perf.cvr)
+}
+
+// parseDaypartCache parses a serialized performance string
+func (d *DaypartingService) parseDaypartCache(cached string) hourlyPerformance {goCover_65b09fc02769__337[0] = 21 ; goCover_65b09fc02769__337[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__337[2] = 337 ; goCover_65b09fc02769__337[3]++;
+	perf := hourlyPerformance{}
+	if cached == "" {goCover_65b09fc02769__337[6]++;
+		return perf
+	}
+
+	goCover_65b09fc02769__337[4]++;pairs := strings.Split(cached, ",")
+	for _, pair := range pairs {goCover_65b09fc02769__337[7]++;
+		parts := strings.SplitN(pair, ":", 2)
+		if len(parts) != 2 {goCover_65b09fc02769__337[9]++;
+			continue
+		}
+		goCover_65b09fc02769__337[8]++;key := strings.TrimSpace(parts[0])
+		val := strings.TrimSpace(parts[1])
+
+		switch key {
+		case "impressions":goCover_65b09fc02769__337[10]++;
+			if v, err := strconv.ParseInt(val, 10, 64); err == nil {goCover_65b09fc02769__337[17]++;
+				perf.impressions = v
+			}
+		case "clicks":goCover_65b09fc02769__337[11]++;
+			if v, err := strconv.ParseInt(val, 10, 64); err == nil {goCover_65b09fc02769__337[18]++;
+				perf.clicks = v
+			}
+		case "conversions":goCover_65b09fc02769__337[12]++;
+			if v, err := strconv.ParseInt(val, 10, 64); err == nil {goCover_65b09fc02769__337[19]++;
+				perf.conversions = v
+			}
+		case "spend":goCover_65b09fc02769__337[13]++;
+			if v, err := strconv.ParseFloat(val, 64); err == nil {goCover_65b09fc02769__337[20]++;
+				perf.spend = v
+			}
+		case "ctr":goCover_65b09fc02769__337[14]++;
+			if v, err := strconv.ParseFloat(val, 64); err == nil {goCover_65b09fc02769__337[21]++;
+				perf.ctr = v
+			}
+		case "cvr":goCover_65b09fc02769__337[15]++;
+			if v, err := strconv.ParseFloat(val, 64); err == nil {goCover_65b09fc02769__337[22]++;
+				perf.cvr = v
+			}
+		case "win_rate":goCover_65b09fc02769__337[16]++;
+			if v, err := strconv.ParseFloat(val, 64); err == nil {goCover_65b09fc02769__337[23]++;
+				perf.winRate = v
+			}
+		}
+	}
+
+	goCover_65b09fc02769__337[5]++;return perf
+}
+
+// clampMultiplier ensures the multiplier stays within configured bounds
+func (d *DaypartingService) clampMultiplier(result model.DaypartingResult, dpConfig *model.DaypartingOptimization) model.DaypartingResult {goCover_65b09fc02769__338[0] = 9 ; goCover_65b09fc02769__338[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__338[2] = 338 ; goCover_65b09fc02769__338[3]++;
+	minMult := dpConfig.MinMultiplier
+	if minMult <= 0 {goCover_65b09fc02769__338[8]++;
+		minMult = 0.3
+	}
+	goCover_65b09fc02769__338[4]++;maxMult := dpConfig.MaxMultiplier
+	if maxMult <= 0 {goCover_65b09fc02769__338[9]++;
+		maxMult = 2.0
+	}
+
+	goCover_65b09fc02769__338[5]++;if result.Multiplier < minMult {goCover_65b09fc02769__338[10]++;
+		result.Multiplier = minMult
+	}
+	goCover_65b09fc02769__338[6]++;if result.Multiplier > maxMult {goCover_65b09fc02769__338[11]++;
+		result.Multiplier = maxMult
+	}
+
+	goCover_65b09fc02769__338[7]++;return result
+}
+
+// GetOptimalHours returns the top N hours by performance for a campaign, useful for reporting.
+func (d *DaypartingService) GetOptimalHours(campaignID string, topN int) []model.DaypartingResult {goCover_65b09fc02769__339[0] = 15 ; goCover_65b09fc02769__339[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__339[2] = 339 ; goCover_65b09fc02769__339[3]++;
+	if topN <= 0 {goCover_65b09fc02769__339[8]++;
+		topN = 6
+	}
+
+	goCover_65b09fc02769__339[4]++;lookbackDays := 14
+	avgPerf := d.getAveragePerformance(campaignID, lookbackDays)
+
+	results := make([]model.DaypartingResult, 0, 24)
+
+	for h := 0; h < 24; h++ {goCover_65b09fc02769__339[9]++;
+		hp := d.getHourlyPerformance(campaignID, h, lookbackDays)
+		if hp.impressions < 10 {goCover_65b09fc02769__339[13]++;
+			continue
+		}
+
+		goCover_65b09fc02769__339[10]++;perfIndex := 0.0
+		if avgPerf.ctr > 0 {goCover_65b09fc02769__339[14]++;
+			perfIndex += (hp.ctr / avgPerf.ctr) * 0.4
+		}
+		goCover_65b09fc02769__339[11]++;if avgPerf.cvr > 0 {goCover_65b09fc02769__339[15]++;
+			perfIndex += (hp.cvr / avgPerf.cvr) * 0.6
+		}
+
+		goCover_65b09fc02769__339[12]++;results = append(results, model.DaypartingResult{
+			Hour:          h,
+			Multiplier:    0.5 + perfIndex*0.5,
+			HistoricalCTR: hp.ctr,
+			HistoricalCVR: hp.cvr,
+			IsOptimalHour: perfIndex > 1.3,
+		})
+	}
+
+	// Sort by multiplier descending
+	goCover_65b09fc02769__339[5]++;sort.Slice(results, func(i, j int) bool {goCover_65b09fc02769__339[16]++;
+		return results[i].Multiplier > results[j].Multiplier
+	})
+
+	goCover_65b09fc02769__339[6]++;if len(results) > topN {goCover_65b09fc02769__339[17]++;
+		results = results[:topN]
+	}
+
+	goCover_65b09fc02769__339[7]++;return results
+}
+
+// Ensure math import is used
+var _ = math.Abs

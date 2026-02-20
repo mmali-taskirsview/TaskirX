@@ -1,0 +1,330 @@
+//line C:\TaskirX\go-bidding-engine\internal\service\attribution.go:1:1
+package service
+
+import (
+	"fmt"
+	"math"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// AttributionService provides multi-touch attribution models for conversion credit assignment.
+// Supports: last_click, first_click, linear, time_decay, position_based
+type AttributionService struct {
+	cache cache.Cache
+}
+
+// NewAttributionService creates a new attribution service
+func NewAttributionService(cache cache.Cache) *AttributionService {goCover_65b09fc02769__22[0] = 1 ; goCover_65b09fc02769__22[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__22[2] = 22 ; goCover_65b09fc02769__22[3]++;
+	return &AttributionService{cache: cache}
+}
+
+// CalculateAttribution computes attribution credits for a conversion based on the specified model.
+// Parameters:
+//   - userID: the converting user
+//   - campaignID: the campaign to attribute (empty string = all campaigns)
+//   - modelType: one of "last_click", "first_click", "linear", "time_decay", "position_based"
+//   - halfLifeHours: half-life for time_decay model (default 168 = 7 days if 0)
+//
+// Returns a slice of AttributionCredit with normalized weights summing to 1.0
+func (a *AttributionService) CalculateAttribution(userID, campaignID, modelType string, halfLifeHours float64) ([]model.AttributionCredit, error) {goCover_65b09fc02769__23[0] = 21 ; goCover_65b09fc02769__23[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__23[2] = 23 ; goCover_65b09fc02769__23[3]++;
+	if userID == "" {goCover_65b09fc02769__23[10]++;
+		return nil, fmt.Errorf("userID is required for attribution")
+	}
+
+	// Get touchpoints from cache
+	goCover_65b09fc02769__23[4]++;touchpoints, err := a.cache.GetTouchpoints(userID, campaignID)
+	if err != nil {goCover_65b09fc02769__23[11]++;
+		return nil, fmt.Errorf("failed to get touchpoints: %w", err)
+	}
+
+	goCover_65b09fc02769__23[5]++;if len(touchpoints) == 0 {goCover_65b09fc02769__23[12]++;
+		return nil, nil
+	}
+
+	// Sort touchpoints by timestamp (ascending)
+	goCover_65b09fc02769__23[6]++;sort.Slice(touchpoints, func(i, j int) bool {goCover_65b09fc02769__23[13]++;
+		return touchpoints[i].Timestamp.Before(touchpoints[j].Timestamp)
+	})
+
+	// Assign positions
+	goCover_65b09fc02769__23[7]++;for i := range touchpoints {goCover_65b09fc02769__23[14]++;
+		touchpoints[i].Position = i + 1
+	}
+
+	// Normalize model type
+	goCover_65b09fc02769__23[8]++;modelType = strings.ToLower(strings.TrimSpace(modelType))
+	if modelType == "" {goCover_65b09fc02769__23[15]++;
+		modelType = "last_click"
+	}
+
+	goCover_65b09fc02769__23[9]++;switch modelType {
+	case "last_click", "last_touch":goCover_65b09fc02769__23[16]++;
+		return a.lastClickAttribution(touchpoints), nil
+	case "first_click", "first_touch":goCover_65b09fc02769__23[17]++;
+		return a.firstClickAttribution(touchpoints), nil
+	case "linear":goCover_65b09fc02769__23[18]++;
+		return a.linearAttribution(touchpoints), nil
+	case "time_decay":goCover_65b09fc02769__23[19]++;
+		if halfLifeHours <= 0 {goCover_65b09fc02769__23[23]++;
+			halfLifeHours = 168 // Default 7 days
+		}
+		goCover_65b09fc02769__23[20]++;return a.timeDecayAttribution(touchpoints, halfLifeHours), nil
+	case "position_based":goCover_65b09fc02769__23[21]++;
+		return a.positionBasedAttribution(touchpoints), nil
+	default:goCover_65b09fc02769__23[22]++;
+		return a.lastClickAttribution(touchpoints), nil
+	}
+}
+
+// lastClickAttribution assigns 100% credit to the last touchpoint before conversion.
+// Most common model, used as the default in most ad platforms.
+func (a *AttributionService) lastClickAttribution(touchpoints []model.Touchpoint) []model.AttributionCredit {goCover_65b09fc02769__24[0] = 5 ; goCover_65b09fc02769__24[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__24[2] = 24 ; goCover_65b09fc02769__24[3]++;
+	credits := make([]model.AttributionCredit, len(touchpoints))
+	for i, tp := range touchpoints {goCover_65b09fc02769__24[5]++;
+		credit := 0.0
+		if i == len(touchpoints)-1 {goCover_65b09fc02769__24[7]++;
+			credit = 1.0
+		}
+		goCover_65b09fc02769__24[6]++;credits[i] = model.AttributionCredit{
+			Touchpoint: tp,
+			Credit:     credit,
+			Model:      "last_click",
+		}
+	}
+	goCover_65b09fc02769__24[4]++;return credits
+}
+
+// firstClickAttribution assigns 100% credit to the first touchpoint in the journey.
+// Useful for understanding acquisition channels and top-of-funnel performance.
+func (a *AttributionService) firstClickAttribution(touchpoints []model.Touchpoint) []model.AttributionCredit {goCover_65b09fc02769__25[0] = 5 ; goCover_65b09fc02769__25[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__25[2] = 25 ; goCover_65b09fc02769__25[3]++;
+	credits := make([]model.AttributionCredit, len(touchpoints))
+	for i, tp := range touchpoints {goCover_65b09fc02769__25[5]++;
+		credit := 0.0
+		if i == 0 {goCover_65b09fc02769__25[7]++;
+			credit = 1.0
+		}
+		goCover_65b09fc02769__25[6]++;credits[i] = model.AttributionCredit{
+			Touchpoint: tp,
+			Credit:     credit,
+			Model:      "first_click",
+		}
+	}
+	goCover_65b09fc02769__25[4]++;return credits
+}
+
+// linearAttribution distributes credit equally across all touchpoints.
+// Each touchpoint receives 1/N of the total credit, where N is the number of touchpoints.
+func (a *AttributionService) linearAttribution(touchpoints []model.Touchpoint) []model.AttributionCredit {goCover_65b09fc02769__26[0] = 5 ; goCover_65b09fc02769__26[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__26[2] = 26 ; goCover_65b09fc02769__26[3]++;
+	n := len(touchpoints)
+	if n == 0 {goCover_65b09fc02769__26[6]++;
+		return nil
+	}
+
+	goCover_65b09fc02769__26[4]++;equalCredit := 1.0 / float64(n)
+	credits := make([]model.AttributionCredit, n)
+	for i, tp := range touchpoints {goCover_65b09fc02769__26[7]++;
+		credits[i] = model.AttributionCredit{
+			Touchpoint: tp,
+			Credit:     equalCredit,
+			Model:      "linear",
+		}
+	}
+	goCover_65b09fc02769__26[5]++;return credits
+}
+
+// timeDecayAttribution assigns credit based on how close each touchpoint is to the conversion.
+// Uses exponential decay: credit = 2^(-t/halfLife) where t is time before conversion.
+// More recent touchpoints receive proportionally more credit.
+func (a *AttributionService) timeDecayAttribution(touchpoints []model.Touchpoint, halfLifeHours float64) []model.AttributionCredit {goCover_65b09fc02769__27[0] = 11 ; goCover_65b09fc02769__27[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__27[2] = 27 ; goCover_65b09fc02769__27[3]++;
+	n := len(touchpoints)
+	if n == 0 {goCover_65b09fc02769__27[7]++;
+		return nil
+	}
+
+	// Reference time is the last touchpoint (closest to conversion)
+	goCover_65b09fc02769__27[4]++;conversionTime := touchpoints[n-1].Timestamp
+
+	// Calculate raw weights using exponential decay
+	rawWeights := make([]float64, n)
+	totalWeight := 0.0
+
+	for i, tp := range touchpoints {goCover_65b09fc02769__27[8]++;
+		// Time difference in hours from this touchpoint to conversion
+		hoursBeforeConversion := conversionTime.Sub(tp.Timestamp).Hours()
+		if hoursBeforeConversion < 0 {goCover_65b09fc02769__27[10]++;
+			hoursBeforeConversion = 0
+		}
+
+		// Exponential decay: weight = 2^(-t/halfLife)
+		goCover_65b09fc02769__27[9]++;weight := math.Pow(2, -hoursBeforeConversion/halfLifeHours)
+		rawWeights[i] = weight
+		totalWeight += weight
+	}
+
+	// Normalize weights to sum to 1.0
+	goCover_65b09fc02769__27[5]++;credits := make([]model.AttributionCredit, n)
+	for i, tp := range touchpoints {goCover_65b09fc02769__27[11]++;
+		normalizedCredit := 0.0
+		if totalWeight > 0 {goCover_65b09fc02769__27[13]++;
+			normalizedCredit = rawWeights[i] / totalWeight
+		}
+		goCover_65b09fc02769__27[12]++;credits[i] = model.AttributionCredit{
+			Touchpoint: tp,
+			Credit:     normalizedCredit,
+			Model:      "time_decay",
+		}
+	}
+
+	goCover_65b09fc02769__27[6]++;return credits
+}
+
+// positionBasedAttribution (U-shaped) assigns 40% to first, 40% to last, and distributes
+// the remaining 20% equally among middle touchpoints.
+// This model values both the introduction and closing touchpoints.
+func (a *AttributionService) positionBasedAttribution(touchpoints []model.Touchpoint) []model.AttributionCredit {goCover_65b09fc02769__28[0] = 13 ; goCover_65b09fc02769__28[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__28[2] = 28 ; goCover_65b09fc02769__28[3]++;
+	n := len(touchpoints)
+	if n == 0 {goCover_65b09fc02769__28[8]++;
+		return nil
+	}
+
+	goCover_65b09fc02769__28[4]++;credits := make([]model.AttributionCredit, n)
+
+	if n == 1 {goCover_65b09fc02769__28[9]++;
+		credits[0] = model.AttributionCredit{
+			Touchpoint: touchpoints[0],
+			Credit:     1.0,
+			Model:      "position_based",
+		}
+		return credits
+	}
+
+	goCover_65b09fc02769__28[5]++;if n == 2 {goCover_65b09fc02769__28[10]++;
+		credits[0] = model.AttributionCredit{
+			Touchpoint: touchpoints[0],
+			Credit:     0.5,
+			Model:      "position_based",
+		}
+		credits[1] = model.AttributionCredit{
+			Touchpoint: touchpoints[1],
+			Credit:     0.5,
+			Model:      "position_based",
+		}
+		return credits
+	}
+
+	// First: 40%, Last: 40%, Middle: 20% split equally
+	goCover_65b09fc02769__28[6]++;middleCredit := 0.20 / float64(n-2)
+
+	for i, tp := range touchpoints {goCover_65b09fc02769__28[11]++;
+		var credit float64
+		switch {
+		case i == 0:goCover_65b09fc02769__28[13]++;
+			credit = 0.40
+		case i == n-1:goCover_65b09fc02769__28[14]++;
+			credit = 0.40
+		default:goCover_65b09fc02769__28[15]++;
+			credit = middleCredit
+		}
+		goCover_65b09fc02769__28[12]++;credits[i] = model.AttributionCredit{
+			Touchpoint: tp,
+			Credit:     credit,
+			Model:      "position_based",
+		}
+	}
+
+	goCover_65b09fc02769__28[7]++;return credits
+}
+
+// GetAttributionSummary returns a summary of attribution credit by campaign for a user's conversion.
+// Aggregates credits across all touchpoints by campaign ID.
+func (a *AttributionService) GetAttributionSummary(userID, modelType string, halfLifeHours float64) (map[string]float64, error) {goCover_65b09fc02769__29[0] = 5 ; goCover_65b09fc02769__29[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__29[2] = 29 ; goCover_65b09fc02769__29[3]++;
+	credits, err := a.CalculateAttribution(userID, "", modelType, halfLifeHours)
+	if err != nil {goCover_65b09fc02769__29[6]++;
+		return nil, err
+	}
+
+	goCover_65b09fc02769__29[4]++;summary := make(map[string]float64)
+	for _, credit := range credits {goCover_65b09fc02769__29[7]++;
+		summary[credit.Touchpoint.CampaignID] += credit.Credit
+	}
+
+	goCover_65b09fc02769__29[5]++;return summary, nil
+}
+
+// GetAttributionBidAdjustment returns a bid multiplier based on attribution model insights.
+// Campaigns that historically contribute more to conversions receive higher multipliers.
+func (a *AttributionService) GetAttributionBidAdjustment(campaignID, userID, modelType string, halfLifeHours float64) float64 {goCover_65b09fc02769__30[0] = 16 ; goCover_65b09fc02769__30[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__30[2] = 30 ; goCover_65b09fc02769__30[3]++;
+	if userID == "" || campaignID == "" {goCover_65b09fc02769__30[11]++;
+		return 1.0
+	}
+
+	goCover_65b09fc02769__30[4]++;credits, err := a.CalculateAttribution(userID, "", modelType, halfLifeHours)
+	if err != nil || len(credits) == 0 {goCover_65b09fc02769__30[12]++;
+		return 1.0
+	}
+
+	// Sum credit for this specific campaign
+	goCover_65b09fc02769__30[5]++;campaignCredit := 0.0
+	totalCredit := 0.0
+	for _, credit := range credits {goCover_65b09fc02769__30[13]++;
+		totalCredit += credit.Credit
+		if credit.Touchpoint.CampaignID == campaignID {goCover_65b09fc02769__30[14]++;
+			campaignCredit += credit.Credit
+		}
+	}
+
+	goCover_65b09fc02769__30[6]++;if totalCredit <= 0 {goCover_65b09fc02769__30[15]++;
+		return 1.0
+	}
+
+	// Convert attribution share to bid multiplier
+	// If campaign has above-average attribution, boost bid
+	goCover_65b09fc02769__30[7]++;avgCredit := totalCredit / float64(len(credits))
+	if avgCredit <= 0 {goCover_65b09fc02769__30[16]++;
+		return 1.0
+	}
+
+	goCover_65b09fc02769__30[8]++;ratio := campaignCredit / avgCredit
+	// Map ratio to a multiplier in range [0.5, 2.0]
+	multiplier := 0.5 + ratio*0.5
+	if multiplier > 2.0 {goCover_65b09fc02769__30[17]++;
+		multiplier = 2.0
+	}
+	goCover_65b09fc02769__30[9]++;if multiplier < 0.5 {goCover_65b09fc02769__30[18]++;
+		multiplier = 0.5
+	}
+
+	goCover_65b09fc02769__30[10]++;return multiplier
+}
+
+// RecordConversionTouchpoint records a touchpoint event for later attribution
+func (a *AttributionService) RecordConversionTouchpoint(userID, campaignID, touchpointType, requestID string, ttlDays int) error {goCover_65b09fc02769__31[0] = 3 ; goCover_65b09fc02769__31[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__31[2] = 31 ; goCover_65b09fc02769__31[3]++;
+	if ttlDays <= 0 {goCover_65b09fc02769__31[5]++;
+		ttlDays = 30 // Default 30-day attribution window
+	}
+	goCover_65b09fc02769__31[4]++;return a.cache.RecordTouchpoint(userID, campaignID, touchpointType, requestID, ttlDays)
+}
+
+// CompareModels returns attribution results for all models side-by-side, useful for analysis
+func (a *AttributionService) CompareModels(userID, campaignID string) (map[string][]model.AttributionCredit, error) {goCover_65b09fc02769__32[0] = 5 ; goCover_65b09fc02769__32[1] = goCover_65b09fc02769_P ; goCover_65b09fc02769__32[2] = 32 ; goCover_65b09fc02769__32[3]++;
+	models := []string{"last_click", "first_click", "linear", "time_decay", "position_based"}
+	results := make(map[string][]model.AttributionCredit)
+
+	for _, m := range models {goCover_65b09fc02769__32[5]++;
+		credits, err := a.CalculateAttribution(userID, campaignID, m, 168)
+		if err != nil {goCover_65b09fc02769__32[7]++;
+			return nil, fmt.Errorf("failed for model %s: %w", m, err)
+		}
+		goCover_65b09fc02769__32[6]++;results[m] = credits
+	}
+
+	goCover_65b09fc02769__32[4]++;return results, nil
+}
+
+// Ensure time import is used
+var _ = time.Now
