@@ -165,6 +165,23 @@ func main() {
 	router.DELETE("/api/advanced/cache/partner/:partner_id", advancedHandler.HandleInvalidateBidCachePartner)
 	router.POST("/api/advanced/cache/clean", advancedHandler.HandleCleanExpiredBidCache)
 
+	// Programmatic Guaranteed (PG) Deals
+	router.POST("/api/advanced/pg/deal", advancedHandler.HandleCreatePGDeal)
+	router.GET("/api/advanced/pg/deal/:id", advancedHandler.HandleGetPGDeal)
+	router.GET("/api/advanced/pg/deals", advancedHandler.HandleListPGDeals)
+	router.POST("/api/advanced/pg/deal/:id/activate", advancedHandler.HandleActivatePGDeal)
+	router.POST("/api/advanced/pg/deal/:id/pause", advancedHandler.HandlePausePGDeal)
+	router.GET("/api/advanced/pg/deal/:id/progress", advancedHandler.HandleGetPGDeliveryProgress)
+	router.GET("/api/advanced/pg/stats", advancedHandler.HandleGetPGStats)
+
+	// Direct Publisher Management (SPO)
+	router.POST("/api/advanced/publisher", advancedHandler.HandleRegisterDirectPublisher)
+	router.GET("/api/advanced/publisher/:id", advancedHandler.HandleGetDirectPublisher)
+	router.GET("/api/advanced/publishers", advancedHandler.HandleListDirectPublishers)
+	router.POST("/api/advanced/publisher/:id/activate", advancedHandler.HandleActivateDirectPublisher)
+	router.GET("/api/advanced/publisher/:id/supply-path", advancedHandler.HandleAnalyzeSupplyPath)
+	router.GET("/api/advanced/publisher/stats", advancedHandler.HandleGetDirectPublisherStats)
+
 	log.Println("✓ Advanced service routes registered")
 
 	// Start background campaign refresh (every 5 minutes)

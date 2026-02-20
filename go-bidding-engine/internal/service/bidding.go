@@ -74,6 +74,10 @@ type BiddingService struct {
 	// Advanced Services - Phase 5 (S2S & Caching)
 	s2sBiddingService *S2SBiddingService
 	bidCacheService   *BidCacheService
+
+	// Advanced Services - Phase 5 (PMP & SPO)
+	programmaticGuaranteedService *ProgrammaticGuaranteedService
+	directPublisherService        *DirectPublisherService
 }
 
 // NewBiddingService creates a new bidding service
@@ -119,6 +123,9 @@ func NewBiddingService(cache cache.Cache, backendBaseURL string) *BiddingService
 		// Initialize advanced services - Phase 5 (S2S & Caching)
 		s2sBiddingService: nil, // Initialize after bidding service is created
 		bidCacheService:   NewBidCacheService(nil),
+		// Initialize advanced services - Phase 5 (PMP & SPO)
+		programmaticGuaranteedService: NewProgrammaticGuaranteedService(cache),
+		directPublisherService:        NewDirectPublisherService(cache),
 	}
 }
 
@@ -248,6 +255,16 @@ func (s *BiddingService) GetS2SBiddingService() *S2SBiddingService {
 // GetBidCacheService returns the bid caching service
 func (s *BiddingService) GetBidCacheService() *BidCacheService {
 	return s.bidCacheService
+}
+
+// GetProgrammaticGuaranteedService returns the PG deals service
+func (s *BiddingService) GetProgrammaticGuaranteedService() *ProgrammaticGuaranteedService {
+	return s.programmaticGuaranteedService
+}
+
+// GetDirectPublisherService returns the direct publisher relationships service
+func (s *BiddingService) GetDirectPublisherService() *DirectPublisherService {
+	return s.directPublisherService
 }
 
 // GetSupplyPathAnalytics returns the collected SPO analytics

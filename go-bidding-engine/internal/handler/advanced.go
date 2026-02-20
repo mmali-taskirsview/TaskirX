@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -1837,6 +1838,247 @@ func (h *AdvancedHandler) HandleCleanExpiredBidCache(c *gin.Context) {
 }
 
 // ============================================================================
+// PROGRAMMATIC GUARANTEED (PG) ENDPOINTS
+// ============================================================================
+
+// HandleCreatePGDeal creates a new programmatic guaranteed deal
+func (h *AdvancedHandler) HandleCreatePGDeal(c *gin.Context) {
+	var deal service.PGDeal
+	if err := c.ShouldBindJSON(&deal); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	result, err := svc.CreateDeal(&deal)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, result)
+}
+
+// HandleGetPGDeal retrieves a PG deal
+func (h *AdvancedHandler) HandleGetPGDeal(c *gin.Context) {
+	dealID := c.Param("id")
+
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	deal, err := svc.GetDeal(dealID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, deal)
+}
+
+// HandleListPGDeals lists all PG deals
+func (h *AdvancedHandler) HandleListPGDeals(c *gin.Context) {
+	buyerID := c.Query("buyer_id")
+	sellerID := c.Query("seller_id")
+	status := c.Query("status")
+
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	deals := svc.ListDeals(buyerID, sellerID, status)
+	c.JSON(http.StatusOK, gin.H{"deals": deals, "count": len(deals)})
+}
+
+// HandleActivatePGDeal activates a PG deal
+func (h *AdvancedHandler) HandleActivatePGDeal(c *gin.Context) {
+	dealID := c.Param("id")
+
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	if err := svc.ActivateDeal(dealID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deal activated"})
+}
+
+// HandlePausePGDeal pauses a PG deal
+func (h *AdvancedHandler) HandlePausePGDeal(c *gin.Context) {
+	dealID := c.Param("id")
+
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	if err := svc.PauseDeal(dealID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deal paused"})
+}
+
+// HandleGetPGDeliveryProgress returns delivery progress for a deal
+func (h *AdvancedHandler) HandleGetPGDeliveryProgress(c *gin.Context) {
+	dealID := c.Param("id")
+
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	progress, err := svc.GetDeliveryProgress(dealID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, progress)
+}
+
+// HandleGetPGStats returns PG service statistics
+func (h *AdvancedHandler) HandleGetPGStats(c *gin.Context) {
+	svc := h.biddingService.GetProgrammaticGuaranteedService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+		return
+	}
+
+	stats := svc.GetStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
+// DIRECT PUBLISHER ENDPOINTS
+// ============================================================================
+
+// HandleRegisterDirectPublisher registers a new direct publisher
+func (h *AdvancedHandler) HandleRegisterDirectPublisher(c *gin.Context) {
+	var pub service.DirectPublisher
+	if err := c.ShouldBindJSON(&pub); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	svc := h.biddingService.GetDirectPublisherService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+		return
+	}
+
+	result, err := svc.RegisterPublisher(&pub)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, result)
+}
+
+// HandleGetDirectPublisher retrieves a direct publisher
+func (h *AdvancedHandler) HandleGetDirectPublisher(c *gin.Context) {
+	publisherID := c.Param("id")
+
+	svc := h.biddingService.GetDirectPublisherService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+		return
+	}
+
+	pub, err := svc.GetPublisher(publisherID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, pub)
+}
+
+// HandleListDirectPublishers lists all direct publishers
+func (h *AdvancedHandler) HandleListDirectPublishers(c *gin.Context) {
+	status := c.Query("status")
+	minQualityStr := c.DefaultQuery("min_quality", "0")
+	minQuality := 0.0
+	fmt.Sscanf(minQualityStr, "%f", &minQuality)
+
+	svc := h.biddingService.GetDirectPublisherService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+		return
+	}
+
+	publishers := svc.ListPublishers(status, minQuality)
+	c.JSON(http.StatusOK, gin.H{"publishers": publishers, "count": len(publishers)})
+}
+
+// HandleActivateDirectPublisher activates a publisher
+func (h *AdvancedHandler) HandleActivateDirectPublisher(c *gin.Context) {
+	publisherID := c.Param("id")
+
+	svc := h.biddingService.GetDirectPublisherService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+		return
+	}
+
+	if err := svc.ActivatePublisher(publisherID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Publisher activated"})
+}
+
+// HandleAnalyzeSupplyPath analyzes supply path for optimization
+func (h *AdvancedHandler) HandleAnalyzeSupplyPath(c *gin.Context) {
+	publisherID := c.Param("id")
+
+	svc := h.biddingService.GetDirectPublisherService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+		return
+	}
+
+	result, err := svc.AnalyzeSupplyPath(publisherID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// HandleGetDirectPublisherStats returns direct publisher statistics
+func (h *AdvancedHandler) HandleGetDirectPublisherStats(c *gin.Context) {
+	svc := h.biddingService.GetDirectPublisherService()
+	if svc == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+		return
+	}
+
+	stats := svc.GetStats()
+	c.JSON(http.StatusOK, stats)
+}
+
+// ============================================================================
 // HEALTH & STATUS ENDPOINTS
 // ============================================================================
 
@@ -1858,6 +2100,8 @@ func (h *AdvancedHandler) HandleAdvancedServicesStatus(c *gin.Context) {
 		"ab_testing":               h.biddingService.GetABTestingService() != nil,
 		"s2s_bidding":              h.biddingService.GetS2SBiddingService() != nil,
 		"bid_cache":                h.biddingService.GetBidCacheService() != nil,
+		"programmatic_guaranteed":  h.biddingService.GetProgrammaticGuaranteedService() != nil,
+		"direct_publisher":         h.biddingService.GetDirectPublisherService() != nil,
 	}
 
 	allHealthy := true
