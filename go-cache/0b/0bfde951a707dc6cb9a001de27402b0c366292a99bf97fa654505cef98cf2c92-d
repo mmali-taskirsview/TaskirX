@@ -1,0 +1,249 @@
+//line C:\TaskirX\go-bidding-engine\cmd\server\main.go:1:1
+package main; import _ "runtime/coverage"
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/taskirx/go-bidding-engine/internal/cache"
+	"github.com/taskirx/go-bidding-engine/internal/handler"
+	"github.com/taskirx/go-bidding-engine/internal/service"
+)
+
+func main() {goCover_80df87435959__0[0] = 12 ; goCover_80df87435959__0[1] = goCover_80df87435959_P ; goCover_80df87435959__0[2] = 0 ; goCover_80df87435959__0[3] = 1;
+	// Load environment variables
+	port := getEnv("PORT", "5000")
+	redisHost := getEnv("REDIS_HOST", "localhost")
+	redisPort := getEnv("REDIS_PORT", "6379")
+	redisPassword := getEnv("REDIS_PASSWORD", "")
+	backendAPIURL := getEnv("BACKEND_API_URL", "http://localhost:4000")
+	aiServiceURL := getEnv("AI_SERVICE_URL", "http://ad-matching:6002/api")
+	fraudServiceURL := getEnv("FRAUD_SERVICE_URL", "http://fraud-detection:6001/api")
+	optServiceURL := getEnv("OPTIMIZATION_SERVICE_URL", "http://bid-optimizer:6003/api")
+	env := getEnv("ENV", "development")
+
+	// Build Redis URL from components if individual vars are set
+	redisURL := fmt.Sprintf("redis://%s:%s", redisHost, redisPort)
+
+	log.Printf("Starting TaskirX Go Bidding Engine...")
+	log.Printf("Environment: %s", env)
+	log.Printf("Port: %s", port)
+	log.Printf("Backend API: %s", backendAPIURL)
+	log.Printf("AI Service: %s", aiServiceURL)
+	log.Printf("Fraud Service: %s", fraudServiceURL)
+	log.Printf("Optimization Service: %s", optServiceURL)
+
+	// Initialize Redis cache
+	redisCache, err := cache.NewRedisCache(redisURL, redisPassword, 0)
+	if err != nil {goCover_80df87435959__0[8] = 1;
+		log.Fatalf("Failed to connect to Redis: %v", err)
+	}
+	goCover_80df87435959__0[4] = 1;defer redisCache.Close()
+
+	log.Println("✓ Connected to Redis")
+
+	// Initialize services
+	biddingService := service.NewBiddingService(redisCache, backendAPIURL)
+	biddingService.SetAIServiceURL(aiServiceURL)
+	biddingService.SetFraudServiceURL(fraudServiceURL)
+	biddingService.SetOptimizationServiceURL(optServiceURL)
+
+	// Load initial campaigns
+	log.Println("Loading initial campaigns...")
+	if err := biddingService.RefreshCampaigns(backendAPIURL); err != nil {goCover_80df87435959__0[9] = 1;
+		log.Printf("Warning: Failed to load campaigns: %v", err)
+	}
+
+	// Initialize handlers
+	goCover_80df87435959__0[5] = 1;bidHandler := handler.NewBidHandler(biddingService)
+	analyticsHandler := handler.NewAnalyticsHandler(biddingService)
+	advancedHandler := handler.NewAdvancedHandler(biddingService)
+	log.Printf("✓ Initialized handlers: bidHandler=%v, analyticsHandler=%v, advancedHandler=%v", bidHandler != nil, analyticsHandler != nil, advancedHandler != nil)
+
+	// Setup Gin router
+	if env == "production" {goCover_80df87435959__0[10] = 1;
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	goCover_80df87435959__0[6] = 1;router := gin.Default()
+
+	// Middleware
+	router.Use(corsMiddleware())
+	router.Use(loggingMiddleware())
+
+	// Routes
+	router.POST("/bid", bidHandler.HandleBid)
+	router.POST("/openrtb", bidHandler.HandleOpenRTB) // New OpenRTB Endpoint
+	router.GET("/health", bidHandler.HandleHealth)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	router.POST("/refresh", bidHandler.HandleRefresh)
+	router.GET("/track", bidHandler.HandleTrack)
+
+	// Analytics routes for Supply Path Optimization
+	log.Println("Registering analytics routes...")
+	router.GET("/api/analytics/supply-chain", analyticsHandler.GetSupplyChainMetrics)
+	router.GET("/api/analytics/supply-path-optimization", analyticsHandler.GetSupplyPathOptimization)
+	router.GET("/api/analytics/bid-path/:requestId", analyticsHandler.GetBidPathAnalytics)
+	router.GET("/api/analytics/service-performance", analyticsHandler.GetServicePerformance)
+	router.GET("/api/analytics/direct-publisher-analysis", analyticsHandler.GetDirectPublisherAnalysis)
+	router.GET("/api/analytics/cost-benefit-analysis", analyticsHandler.GetCostBenefitAnalysis)
+	router.GET("/api/analytics/bid-landscape", analyticsHandler.GetBidLandscape)
+	router.GET("/api/analytics/auto-bid-recommendations", analyticsHandler.GetAutoBidRecommendations)
+	router.GET("/api/analytics/segment-performance", analyticsHandler.GetSegmentPerformance)
+	router.GET("/api/analytics/optimal-bid-floor", analyticsHandler.GetOptimalBidFloor)
+	router.GET("/api/analytics/multi-touch-attribution", analyticsHandler.GetMultiTouchAttribution)
+
+	// Cross-device targeting routes
+	router.POST("/api/analytics/cross-device/link", analyticsHandler.LinkDevices)
+	router.GET("/api/analytics/cross-device/graph", analyticsHandler.GetDeviceGraph)
+	router.GET("/api/analytics/cross-device/frequency", analyticsHandler.GetCrossDeviceFrequency)
+
+	// Tracking pixel routes (used by ImpressionURL / ClickURL in ad markup)
+	router.GET("/api/analytics/track/click", analyticsHandler.TrackClick)
+	router.GET("/api/analytics/track/impression", analyticsHandler.TrackImpression)
+
+	// Conversion attribution tracking (postback endpoint)
+	router.POST("/api/analytics/track/conversion", analyticsHandler.TrackConversion)
+	log.Println("✓ Analytics routes registered")
+
+	// Advanced Services Routes
+	log.Println("Registering advanced service routes...")
+
+	// Bid Landscape
+	router.POST("/api/advanced/bid-landscape/analyze", advancedHandler.HandleBidLandscapeAnalysis)
+	router.POST("/api/advanced/bid-landscape/record", advancedHandler.HandleRecordBid)
+
+	// Creative Optimization
+	router.POST("/api/advanced/creative/select", advancedHandler.HandleCreativeSelect)
+
+	// Incrementality Testing
+	router.POST("/api/advanced/incrementality/evaluate", advancedHandler.HandleIncrementalityEval)
+	router.GET("/api/advanced/incrementality/results/:experiment_id", advancedHandler.HandleGetExperimentResults)
+	router.POST("/api/advanced/incrementality/conversion", advancedHandler.HandleRecordConversion)
+
+	// Privacy Sandbox
+	router.POST("/api/advanced/privacy/topic", advancedHandler.HandleRegisterTopic)
+	router.POST("/api/advanced/privacy/interest-group", advancedHandler.HandleAddToInterestGroup)
+	router.GET("/api/advanced/privacy/interest-groups/:user_id", advancedHandler.HandleGetInterestGroups)
+
+	// Contextual AI
+	router.POST("/api/advanced/contextual/analyze", advancedHandler.HandleContextAnalysis)
+
+	// Real-Time Alerts
+	router.POST("/api/advanced/alerts/check", advancedHandler.HandleCheckAlerts)
+	router.POST("/api/advanced/alerts/metrics", advancedHandler.HandleRecordMetrics)
+
+	// Competitive Intelligence
+	router.POST("/api/advanced/competitive/analyze", advancedHandler.HandleCompetitiveAnalysis)
+	router.POST("/api/advanced/competitive/outcome", advancedHandler.HandleRecordAuctionOutcome)
+	router.GET("/api/advanced/competitive/report", advancedHandler.HandleGetMarketReport)
+
+	// Unified ID
+	router.POST("/api/advanced/identity/resolve", advancedHandler.HandleResolveIdentity)
+	router.POST("/api/advanced/identity/link", advancedHandler.HandleLinkIdentities)
+	router.GET("/api/advanced/identity/report", advancedHandler.HandleGetIdentityReport)
+	router.GET("/api/advanced/identity/cross-device-reach", advancedHandler.HandleGetCrossDeviceReach)
+
+	// Advanced Services Status
+	router.GET("/api/advanced/status", advancedHandler.HandleAdvancedServicesStatus)
+
+	// S2S Bidding (Server-to-Server Header Bidding)
+	router.POST("/api/advanced/s2s/partner", advancedHandler.HandleRegisterS2SPartner)
+	router.GET("/api/advanced/s2s/partner/:id", advancedHandler.HandleGetS2SPartner)
+	router.GET("/api/advanced/s2s/partners", advancedHandler.HandleListS2SPartners)
+	router.DELETE("/api/advanced/s2s/partner/:id", advancedHandler.HandleRemoveS2SPartner)
+	router.POST("/api/advanced/s2s/bid", advancedHandler.HandleS2SBidRequest)
+	router.GET("/api/advanced/s2s/stats", advancedHandler.HandleGetS2SStats)
+
+	// Bid Cache Management
+	router.GET("/api/advanced/cache/stats", advancedHandler.HandleGetBidCacheStats)
+	router.GET("/api/advanced/cache/hit-rate", advancedHandler.HandleGetBidCacheHitRate)
+	router.DELETE("/api/advanced/cache", advancedHandler.HandleClearBidCache)
+	router.DELETE("/api/advanced/cache/partner/:partner_id", advancedHandler.HandleInvalidateBidCachePartner)
+	router.POST("/api/advanced/cache/clean", advancedHandler.HandleCleanExpiredBidCache)
+
+	// Programmatic Guaranteed (PG) Deals
+	router.POST("/api/advanced/pg/deal", advancedHandler.HandleCreatePGDeal)
+	router.GET("/api/advanced/pg/deal/:id", advancedHandler.HandleGetPGDeal)
+	router.GET("/api/advanced/pg/deals", advancedHandler.HandleListPGDeals)
+	router.POST("/api/advanced/pg/deal/:id/activate", advancedHandler.HandleActivatePGDeal)
+	router.POST("/api/advanced/pg/deal/:id/pause", advancedHandler.HandlePausePGDeal)
+	router.GET("/api/advanced/pg/deal/:id/progress", advancedHandler.HandleGetPGDeliveryProgress)
+	router.GET("/api/advanced/pg/stats", advancedHandler.HandleGetPGStats)
+
+	// Direct Publisher Management (SPO)
+	router.POST("/api/advanced/publisher", advancedHandler.HandleRegisterDirectPublisher)
+	router.GET("/api/advanced/publisher/:id", advancedHandler.HandleGetDirectPublisher)
+	router.GET("/api/advanced/publishers", advancedHandler.HandleListDirectPublishers)
+	router.POST("/api/advanced/publisher/:id/activate", advancedHandler.HandleActivateDirectPublisher)
+	router.GET("/api/advanced/publisher/:id/supply-path", advancedHandler.HandleAnalyzeSupplyPath)
+	router.GET("/api/advanced/publisher/stats", advancedHandler.HandleGetDirectPublisherStats)
+
+	log.Println("✓ Advanced service routes registered")
+
+	// Start background campaign refresh (every 5 minutes)
+	go func() {goCover_80df87435959__0[11] = 1;
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+		for range ticker.C {goCover_80df87435959__0[12] = 1;
+			log.Println("Refreshing campaigns from backend...")
+			if err := biddingService.RefreshCampaigns(backendAPIURL); err != nil {goCover_80df87435959__0[13] = 1;
+				log.Printf("Failed to refresh campaigns: %v", err)
+			}
+		}
+	}()
+
+	// Start server
+	goCover_80df87435959__0[7] = 1;addr := fmt.Sprintf(":%s", port)
+	log.Printf("🚀 Server listening on %s", addr)
+	log.Printf("📊 Metrics available at http://localhost:%s/metrics", port)
+
+	if err := router.Run(addr); err != nil {goCover_80df87435959__0[14] = 1;
+		log.Fatalf("Failed to start server: %v", err)
+	}
+}
+
+// getEnv gets environment variable with fallback
+func getEnv(key, fallback string) string {goCover_80df87435959__1[0] = 3 ; goCover_80df87435959__1[1] = goCover_80df87435959_P ; goCover_80df87435959__1[2] = 1 ; goCover_80df87435959__1[3] = 1;
+	if value := os.Getenv(key); value != "" {goCover_80df87435959__1[5] = 1;
+		return value
+	}
+	goCover_80df87435959__1[4] = 1;return fallback
+}
+
+// corsMiddleware adds CORS headers
+func corsMiddleware() gin.HandlerFunc {goCover_80df87435959__2[0] = 4 ; goCover_80df87435959__2[1] = goCover_80df87435959_P ; goCover_80df87435959__2[2] = 2 ; goCover_80df87435959__2[3] = 1;
+	return func(c *gin.Context) {goCover_80df87435959__2[4] = 1;
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if c.Request.Method == "OPTIONS" {goCover_80df87435959__2[6] = 1;
+			c.AbortWithStatus(204)
+			return
+		}
+
+		goCover_80df87435959__2[5] = 1;c.Next()
+	}
+}
+
+// loggingMiddleware logs requests
+func loggingMiddleware() gin.HandlerFunc {goCover_80df87435959__3[0] = 2 ; goCover_80df87435959__3[1] = goCover_80df87435959_P ; goCover_80df87435959__3[2] = 3 ; goCover_80df87435959__3[3] = 1;
+	return func(c *gin.Context) {goCover_80df87435959__3[4] = 1;
+		start := time.Now()
+		path := c.Request.URL.Path
+		method := c.Request.Method
+
+		c.Next()
+
+		latency := time.Since(start)
+		statusCode := c.Writer.Status()
+
+		log.Printf("[%s] %s %d %v", method, path, statusCode, latency)
+	}
+}

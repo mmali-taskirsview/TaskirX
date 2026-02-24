@@ -1,0 +1,4 @@
+=== RUN   TestGetSegmentPerformance_Success
+--- PASS: TestGetSegmentPerformance_Success (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/cache	0.054s

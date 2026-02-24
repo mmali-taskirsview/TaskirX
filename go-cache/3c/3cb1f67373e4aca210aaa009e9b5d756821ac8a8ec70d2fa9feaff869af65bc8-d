@@ -1,0 +1,148 @@
+=== RUN   TestIsMatch_GeoFencing
+=== RUN   TestIsMatch_GeoFencing/Match_inside_GeoFence
+=== RUN   TestIsMatch_GeoFencing/No_Match_outside_GeoFence_(London)
+=== RUN   TestIsMatch_GeoFencing/No_Match_border_case_(20km_away)
+=== RUN   TestIsMatch_GeoFencing/No_Geo_in_Request
+--- PASS: TestIsMatch_GeoFencing (0.00s)
+    --- PASS: TestIsMatch_GeoFencing/Match_inside_GeoFence (0.00s)
+    --- PASS: TestIsMatch_GeoFencing/No_Match_outside_GeoFence_(London) (0.00s)
+    --- PASS: TestIsMatch_GeoFencing/No_Match_border_case_(20km_away) (0.00s)
+    --- PASS: TestIsMatch_GeoFencing/No_Geo_in_Request (0.00s)
+=== RUN   TestGenerateRequestID
+--- PASS: TestGenerateRequestID (0.00s)
+=== RUN   TestIsMatch_CountryTargeting
+=== RUN   TestIsMatch_CountryTargeting/Match_US
+=== RUN   TestIsMatch_CountryTargeting/Match_CA
+=== RUN   TestIsMatch_CountryTargeting/Match_GB
+=== RUN   TestIsMatch_CountryTargeting/No_Match_DE
+=== RUN   TestIsMatch_CountryTargeting/No_Match_empty
+--- PASS: TestIsMatch_CountryTargeting (0.00s)
+    --- PASS: TestIsMatch_CountryTargeting/Match_US (0.00s)
+    --- PASS: TestIsMatch_CountryTargeting/Match_CA (0.00s)
+    --- PASS: TestIsMatch_CountryTargeting/Match_GB (0.00s)
+    --- PASS: TestIsMatch_CountryTargeting/No_Match_DE (0.00s)
+    --- PASS: TestIsMatch_CountryTargeting/No_Match_empty (0.00s)
+=== RUN   TestIsMatch_DeviceTargeting
+=== RUN   TestIsMatch_DeviceTargeting/Match_mobile
+=== RUN   TestIsMatch_DeviceTargeting/Match_tablet
+=== RUN   TestIsMatch_DeviceTargeting/No_Match_desktop
+=== RUN   TestIsMatch_DeviceTargeting/No_Match_ctv
+--- PASS: TestIsMatch_DeviceTargeting (0.00s)
+    --- PASS: TestIsMatch_DeviceTargeting/Match_mobile (0.00s)
+    --- PASS: TestIsMatch_DeviceTargeting/Match_tablet (0.00s)
+    --- PASS: TestIsMatch_DeviceTargeting/No_Match_desktop (0.00s)
+    --- PASS: TestIsMatch_DeviceTargeting/No_Match_ctv (0.00s)
+=== RUN   TestIsMatch_OSTargeting
+=== RUN   TestIsMatch_OSTargeting/Match_iOS
+=== RUN   TestIsMatch_OSTargeting/Match_Android
+=== RUN   TestIsMatch_OSTargeting/No_Match_Windows
+=== RUN   TestIsMatch_OSTargeting/No_Match_MacOS
+--- PASS: TestIsMatch_OSTargeting (0.00s)
+    --- PASS: TestIsMatch_OSTargeting/Match_iOS (0.00s)
+    --- PASS: TestIsMatch_OSTargeting/Match_Android (0.00s)
+    --- PASS: TestIsMatch_OSTargeting/No_Match_Windows (0.00s)
+    --- PASS: TestIsMatch_OSTargeting/No_Match_MacOS (0.00s)
+=== RUN   TestIsMatch_AgeTargeting
+=== RUN   TestIsMatch_AgeTargeting/Match_middle_age_35
+=== RUN   TestIsMatch_AgeTargeting/Match_min_boundary_25
+=== RUN   TestIsMatch_AgeTargeting/Match_max_boundary_54
+=== RUN   TestIsMatch_AgeTargeting/No_Match_below_min_18
+=== RUN   TestIsMatch_AgeTargeting/No_Match_above_max_65
+=== RUN   TestIsMatch_AgeTargeting/No_Match_zero_age
+--- PASS: TestIsMatch_AgeTargeting (0.00s)
+    --- PASS: TestIsMatch_AgeTargeting/Match_middle_age_35 (0.00s)
+    --- PASS: TestIsMatch_AgeTargeting/Match_min_boundary_25 (0.00s)
+    --- PASS: TestIsMatch_AgeTargeting/Match_max_boundary_54 (0.00s)
+    --- PASS: TestIsMatch_AgeTargeting/No_Match_below_min_18 (0.00s)
+    --- PASS: TestIsMatch_AgeTargeting/No_Match_above_max_65 (0.00s)
+    --- PASS: TestIsMatch_AgeTargeting/No_Match_zero_age (0.00s)
+=== RUN   TestIsMatch_CategoryTargeting
+=== RUN   TestIsMatch_CategoryTargeting/Match_single_category
+=== RUN   TestIsMatch_CategoryTargeting/Match_multiple_overlap
+=== RUN   TestIsMatch_CategoryTargeting/Match_all_categories
+=== RUN   TestIsMatch_CategoryTargeting/No_Match_different_categories
+=== RUN   TestIsMatch_CategoryTargeting/Empty_user_categories_skips_check
+--- PASS: TestIsMatch_CategoryTargeting (0.00s)
+    --- PASS: TestIsMatch_CategoryTargeting/Match_single_category (0.00s)
+    --- PASS: TestIsMatch_CategoryTargeting/Match_multiple_overlap (0.00s)
+    --- PASS: TestIsMatch_CategoryTargeting/Match_all_categories (0.00s)
+    --- PASS: TestIsMatch_CategoryTargeting/No_Match_different_categories (0.00s)
+    --- PASS: TestIsMatch_CategoryTargeting/Empty_user_categories_skips_check (0.00s)
+=== RUN   TestIsMatch_CreativeFormat
+=== RUN   TestIsMatch_CreativeFormat/Banner_matches_banner
+=== RUN   TestIsMatch_CreativeFormat/Video_matches_video
+=== RUN   TestIsMatch_CreativeFormat/Native_matches_native
+=== RUN   TestIsMatch_CreativeFormat/Banner_not_in_video
+=== RUN   TestIsMatch_CreativeFormat/Video_matches_interstitial
+=== RUN   TestIsMatch_CreativeFormat/Rich_media_matches_interstitial
+=== RUN   TestIsMatch_CreativeFormat/Banner_not_in_interstitial
+--- PASS: TestIsMatch_CreativeFormat (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Banner_matches_banner (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Video_matches_video (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Native_matches_native (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Banner_not_in_video (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Video_matches_interstitial (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Rich_media_matches_interstitial (0.00s)
+    --- PASS: TestIsMatch_CreativeFormat/Banner_not_in_interstitial (0.00s)
+=== RUN   TestIsMatch_PMPDeals
+=== RUN   TestIsMatch_PMPDeals/Campaign_with_deal_matches_request_deal
+=== RUN   TestIsMatch_PMPDeals/Campaign_deal_not_in_request
+=== RUN   TestIsMatch_PMPDeals/Campaign_bid_below_deal_floor
+=== RUN   TestIsMatch_PMPDeals/Private_auction_with_no_deal_campaign
+=== RUN   TestIsMatch_PMPDeals/Campaign_needs_deal_but_no_PMP_in_request
+--- PASS: TestIsMatch_PMPDeals (0.00s)
+    --- PASS: TestIsMatch_PMPDeals/Campaign_with_deal_matches_request_deal (0.00s)
+    --- PASS: TestIsMatch_PMPDeals/Campaign_deal_not_in_request (0.00s)
+    --- PASS: TestIsMatch_PMPDeals/Campaign_bid_below_deal_floor (0.00s)
+    --- PASS: TestIsMatch_PMPDeals/Private_auction_with_no_deal_campaign (0.00s)
+    --- PASS: TestIsMatch_PMPDeals/Campaign_needs_deal_but_no_PMP_in_request (0.00s)
+=== RUN   TestIsMatch_CombinedTargeting
+=== RUN   TestIsMatch_CombinedTargeting/All_criteria_match
+=== RUN   TestIsMatch_CombinedTargeting/Wrong_country
+=== RUN   TestIsMatch_CombinedTargeting/Wrong_device
+=== RUN   TestIsMatch_CombinedTargeting/Wrong_OS
+=== RUN   TestIsMatch_CombinedTargeting/Too_young
+--- PASS: TestIsMatch_CombinedTargeting (0.00s)
+    --- PASS: TestIsMatch_CombinedTargeting/All_criteria_match (0.00s)
+    --- PASS: TestIsMatch_CombinedTargeting/Wrong_country (0.00s)
+    --- PASS: TestIsMatch_CombinedTargeting/Wrong_device (0.00s)
+    --- PASS: TestIsMatch_CombinedTargeting/Wrong_OS (0.00s)
+    --- PASS: TestIsMatch_CombinedTargeting/Too_young (0.00s)
+=== RUN   TestContains
+=== RUN   TestContains/Found_at_start
+=== RUN   TestContains/Found_in_middle
+=== RUN   TestContains/Found_at_end
+=== RUN   TestContains/Not_found
+=== RUN   TestContains/Empty_slice
+--- PASS: TestContains (0.00s)
+    --- PASS: TestContains/Found_at_start (0.00s)
+    --- PASS: TestContains/Found_in_middle (0.00s)
+    --- PASS: TestContains/Found_at_end (0.00s)
+    --- PASS: TestContains/Not_found (0.00s)
+    --- PASS: TestContains/Empty_slice (0.00s)
+=== RUN   TestHasOverlap
+=== RUN   TestHasOverlap/Single_overlap
+=== RUN   TestHasOverlap/Multiple_overlap
+=== RUN   TestHasOverlap/No_overlap
+=== RUN   TestHasOverlap/Empty_first
+=== RUN   TestHasOverlap/Empty_second
+=== RUN   TestHasOverlap/Both_empty
+--- PASS: TestHasOverlap (0.00s)
+    --- PASS: TestHasOverlap/Single_overlap (0.00s)
+    --- PASS: TestHasOverlap/Multiple_overlap (0.00s)
+    --- PASS: TestHasOverlap/No_overlap (0.00s)
+    --- PASS: TestHasOverlap/Empty_first (0.00s)
+    --- PASS: TestHasOverlap/Empty_second (0.00s)
+    --- PASS: TestHasOverlap/Both_empty (0.00s)
+=== RUN   TestHaversine
+=== RUN   TestHaversine/NYC_to_itself
+=== RUN   TestHaversine/NYC_to_LA_(approx_3940km)
+=== RUN   TestHaversine/London_to_Paris_(approx_340km)
+--- PASS: TestHaversine (0.00s)
+    --- PASS: TestHaversine/NYC_to_itself (0.00s)
+    --- PASS: TestHaversine/NYC_to_LA_(approx_3940km) (0.00s)
+    --- PASS: TestHaversine/London_to_Paris_(approx_340km) (0.00s)
+=== RUN   TestIsMatch_NoTargeting
+--- PASS: TestIsMatch_NoTargeting (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/model	0.040s

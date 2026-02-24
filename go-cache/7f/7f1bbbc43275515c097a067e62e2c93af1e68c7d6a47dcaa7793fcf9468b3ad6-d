@@ -1,0 +1,548 @@
+=== RUN   TestHandleBidLandscapeAnalysis
+--- PASS: TestHandleBidLandscapeAnalysis (0.00s)
+=== RUN   TestHandleBidLandscapeAnalysis_InvalidRequest
+--- PASS: TestHandleBidLandscapeAnalysis_InvalidRequest (0.00s)
+=== RUN   TestHandleRecordBid
+--- PASS: TestHandleRecordBid (0.00s)
+=== RUN   TestHandleCreativeSelect
+--- PASS: TestHandleCreativeSelect (0.00s)
+=== RUN   TestHandleIncrementalityEval
+--- PASS: TestHandleIncrementalityEval (0.00s)
+=== RUN   TestHandleGetExperimentResults
+--- PASS: TestHandleGetExperimentResults (0.00s)
+=== RUN   TestHandleRecordConversion
+--- PASS: TestHandleRecordConversion (0.00s)
+=== RUN   TestHandleRegisterTopic
+--- PASS: TestHandleRegisterTopic (0.00s)
+=== RUN   TestHandleAddToInterestGroup
+--- PASS: TestHandleAddToInterestGroup (0.00s)
+=== RUN   TestHandleGetInterestGroups
+--- PASS: TestHandleGetInterestGroups (0.00s)
+=== RUN   TestHandleContextAnalysis
+--- PASS: TestHandleContextAnalysis (0.00s)
+=== RUN   TestHandleCheckAlerts
+--- PASS: TestHandleCheckAlerts (0.00s)
+=== RUN   TestHandleRecordMetrics
+--- PASS: TestHandleRecordMetrics (0.00s)
+=== RUN   TestHandleCompetitiveAnalysis
+--- PASS: TestHandleCompetitiveAnalysis (0.00s)
+=== RUN   TestHandleRecordAuctionOutcome
+--- PASS: TestHandleRecordAuctionOutcome (0.00s)
+=== RUN   TestHandleGetMarketReport
+--- PASS: TestHandleGetMarketReport (0.00s)
+=== RUN   TestHandleResolveIdentity
+--- PASS: TestHandleResolveIdentity (0.00s)
+=== RUN   TestHandleLinkIdentities
+--- PASS: TestHandleLinkIdentities (0.00s)
+=== RUN   TestHandleGetIdentityReport
+--- PASS: TestHandleGetIdentityReport (0.00s)
+=== RUN   TestHandleGetCrossDeviceReach
+--- PASS: TestHandleGetCrossDeviceReach (0.00s)
+=== RUN   TestHandleCalculateDynamicBid
+--- PASS: TestHandleCalculateDynamicBid (0.00s)
+=== RUN   TestHandleRecordDynamicBidOutcome
+--- PASS: TestHandleRecordDynamicBidOutcome (0.00s)
+=== RUN   TestHandleGetDynamicBidAnalytics
+--- PASS: TestHandleGetDynamicBidAnalytics (0.00s)
+=== RUN   TestHandleGetDynamicBidConfig
+--- PASS: TestHandleGetDynamicBidConfig (0.00s)
+=== RUN   TestHandleGenerateLookalike
+--- PASS: TestHandleGenerateLookalike (0.00s)
+=== RUN   TestHandleRegisterUserProfile
+--- PASS: TestHandleRegisterUserProfile (0.00s)
+=== RUN   TestHandleGetLookalikeAudience
+--- PASS: TestHandleGetLookalikeAudience (0.00s)
+=== RUN   TestHandleIsUserInLookalike
+--- PASS: TestHandleIsUserInLookalike (0.00s)
+=== RUN   TestHandleGetLookalikeStats
+--- PASS: TestHandleGetLookalikeStats (0.00s)
+=== RUN   TestHandleRegisterClusterUser
+--- PASS: TestHandleRegisterClusterUser (0.00s)
+=== RUN   TestHandleRunClustering
+--- PASS: TestHandleRunClustering (0.00s)
+=== RUN   TestHandleGetUserCluster
+--- PASS: TestHandleGetUserCluster (0.00s)
+=== RUN   TestHandleGetClusterUsers
+--- PASS: TestHandleGetClusterUsers (0.00s)
+=== RUN   TestHandleGetClusteringStats
+--- PASS: TestHandleGetClusteringStats (0.00s)
+=== RUN   TestHandleAdvancedServicesStatus
+--- PASS: TestHandleAdvancedServicesStatus (0.00s)
+=== RUN   TestHandleCreatePGDeal
+--- PASS: TestHandleCreatePGDeal (0.00s)
+=== RUN   TestHandleCreatePGDeal_InvalidRequest
+--- PASS: TestHandleCreatePGDeal_InvalidRequest (0.00s)
+=== RUN   TestHandleGetPGDeal
+--- PASS: TestHandleGetPGDeal (0.00s)
+=== RUN   TestHandleListPGDeals
+--- PASS: TestHandleListPGDeals (0.00s)
+=== RUN   TestHandleListPGDeals_WithFilters
+--- PASS: TestHandleListPGDeals_WithFilters (0.00s)
+=== RUN   TestHandleActivatePGDeal
+--- PASS: TestHandleActivatePGDeal (0.00s)
+=== RUN   TestHandlePausePGDeal
+--- PASS: TestHandlePausePGDeal (0.00s)
+=== RUN   TestHandleGetPGDeliveryProgress
+--- PASS: TestHandleGetPGDeliveryProgress (0.00s)
+=== RUN   TestHandleGetPGStats
+--- PASS: TestHandleGetPGStats (0.00s)
+=== RUN   TestHandleRegisterDirectPublisher
+--- PASS: TestHandleRegisterDirectPublisher (0.00s)
+=== RUN   TestHandleRegisterDirectPublisher_InvalidRequest
+--- PASS: TestHandleRegisterDirectPublisher_InvalidRequest (0.00s)
+=== RUN   TestHandleGetDirectPublisher
+--- PASS: TestHandleGetDirectPublisher (0.00s)
+=== RUN   TestHandleListDirectPublishers
+--- PASS: TestHandleListDirectPublishers (0.00s)
+=== RUN   TestHandleListDirectPublishers_WithFilters
+--- PASS: TestHandleListDirectPublishers_WithFilters (0.00s)
+=== RUN   TestHandleActivateDirectPublisher
+--- PASS: TestHandleActivateDirectPublisher (0.00s)
+=== RUN   TestHandleAnalyzeSupplyPath
+--- PASS: TestHandleAnalyzeSupplyPath (0.00s)
+=== RUN   TestHandleGetDirectPublisherStats
+--- PASS: TestHandleGetDirectPublisherStats (0.00s)
+=== RUN   TestHandleRegisterS2SPartner
+--- PASS: TestHandleRegisterS2SPartner (0.00s)
+=== RUN   TestHandleListS2SPartners
+--- PASS: TestHandleListS2SPartners (0.00s)
+=== RUN   TestHandleGetS2SStats
+--- PASS: TestHandleGetS2SStats (0.00s)
+=== RUN   TestHandleGetBidCacheStats
+--- PASS: TestHandleGetBidCacheStats (0.00s)
+=== RUN   TestHandleClearBidCache
+--- PASS: TestHandleClearBidCache (0.00s)
+=== RUN   TestHandleGetBidCacheHitRate
+--- PASS: TestHandleGetBidCacheHitRate (0.00s)
+=== RUN   TestHandleRecordChurnActivity
+--- PASS: TestHandleRecordChurnActivity (0.00s)
+=== RUN   TestHandleRecordChurnActivity_InvalidRequest
+--- PASS: TestHandleRecordChurnActivity_InvalidRequest (0.00s)
+=== RUN   TestHandlePredictChurn
+--- PASS: TestHandlePredictChurn (0.00s)
+=== RUN   TestHandlePredictChurn_MissingUserID
+--- PASS: TestHandlePredictChurn_MissingUserID (0.00s)
+=== RUN   TestHandleBatchPredictChurn
+--- PASS: TestHandleBatchPredictChurn (0.00s)
+=== RUN   TestHandleBatchPredictChurn_InvalidRequest
+--- PASS: TestHandleBatchPredictChurn_InvalidRequest (0.00s)
+=== RUN   TestHandleGetHighRiskUsers
+--- PASS: TestHandleGetHighRiskUsers (0.00s)
+=== RUN   TestHandleGetChurnStats
+--- PASS: TestHandleGetChurnStats (0.00s)
+=== RUN   TestHandleCreateExperiment
+--- PASS: TestHandleCreateExperiment (0.00s)
+=== RUN   TestHandleCreateExperiment_InvalidRequest
+--- PASS: TestHandleCreateExperiment_InvalidRequest (0.00s)
+=== RUN   TestHandleStartExperiment
+--- PASS: TestHandleStartExperiment (0.00s)
+=== RUN   TestHandleStartExperiment_MissingID
+--- PASS: TestHandleStartExperiment_MissingID (0.00s)
+=== RUN   TestHandleStopExperiment
+--- PASS: TestHandleStopExperiment (0.00s)
+=== RUN   TestHandleStopExperiment_MissingID
+--- PASS: TestHandleStopExperiment_MissingID (0.00s)
+=== RUN   TestHandleGetExperiment
+--- PASS: TestHandleGetExperiment (0.00s)
+=== RUN   TestHandleGetExperiment_MissingID
+--- PASS: TestHandleGetExperiment_MissingID (0.00s)
+=== RUN   TestHandleListExperiments
+--- PASS: TestHandleListExperiments (0.00s)
+=== RUN   TestHandleGetVariantForUser
+--- PASS: TestHandleGetVariantForUser (0.00s)
+=== RUN   TestHandleGetVariantForUser_MissingParams
+--- PASS: TestHandleGetVariantForUser_MissingParams (0.00s)
+=== RUN   TestHandleRecordABEvent
+--- PASS: TestHandleRecordABEvent (0.00s)
+=== RUN   TestHandleRecordABEvent_InvalidRequest
+--- PASS: TestHandleRecordABEvent_InvalidRequest (0.00s)
+=== RUN   TestHandleRecordABEvent_MissingExperimentID
+--- PASS: TestHandleRecordABEvent_MissingExperimentID (0.00s)
+=== RUN   TestHandleAnalyzeExperiment
+--- PASS: TestHandleAnalyzeExperiment (0.00s)
+=== RUN   TestHandleAnalyzeExperiment_MissingID
+--- PASS: TestHandleAnalyzeExperiment_MissingID (0.00s)
+=== RUN   TestHandleGetBanditRecommendation
+--- PASS: TestHandleGetBanditRecommendation (0.00s)
+=== RUN   TestHandleGetBanditRecommendation_MissingParams
+--- PASS: TestHandleGetBanditRecommendation_MissingParams (0.00s)
+=== RUN   TestHandleGetABTestingStats
+--- PASS: TestHandleGetABTestingStats (0.00s)
+=== RUN   TestHandleCreateTemplate
+--- PASS: TestHandleCreateTemplate (0.00s)
+=== RUN   TestHandleCreateTemplate_InvalidRequest
+--- PASS: TestHandleCreateTemplate_InvalidRequest (0.00s)
+=== RUN   TestHandleGetTemplate
+--- PASS: TestHandleGetTemplate (0.00s)
+=== RUN   TestHandleCreateElement
+--- PASS: TestHandleCreateElement (0.00s)
+=== RUN   TestHandleCreateElement_InvalidRequest
+--- PASS: TestHandleCreateElement_InvalidRequest (0.00s)
+=== RUN   TestHandleGetElement
+--- PASS: TestHandleGetElement (0.00s)
+=== RUN   TestHandleGenerateOptimizedCreative
+--- PASS: TestHandleGenerateOptimizedCreative (0.00s)
+=== RUN   TestHandleGenerateOptimizedCreative_InvalidRequest
+--- PASS: TestHandleGenerateOptimizedCreative_InvalidRequest (0.00s)
+=== RUN   TestHandleRecordDCOImpression
+--- PASS: TestHandleRecordDCOImpression (0.00s)
+=== RUN   TestHandleRecordDCOImpression_InvalidRequest
+--- PASS: TestHandleRecordDCOImpression_InvalidRequest (0.00s)
+=== RUN   TestHandleRecordDCOClick
+--- PASS: TestHandleRecordDCOClick (0.00s)
+=== RUN   TestHandleRecordDCOClick_InvalidRequest
+--- PASS: TestHandleRecordDCOClick_InvalidRequest (0.00s)
+=== RUN   TestHandleRecordDCOConversion
+--- PASS: TestHandleRecordDCOConversion (0.00s)
+=== RUN   TestHandleRecordDCOConversion_InvalidRequest
+--- PASS: TestHandleRecordDCOConversion_InvalidRequest (0.00s)
+=== RUN   TestHandleGetTopCombinations
+--- PASS: TestHandleGetTopCombinations (0.00s)
+=== RUN   TestHandleGetDCOStats
+--- PASS: TestHandleGetDCOStats (0.00s)
+=== RUN   TestHandleRecordPerformance
+--- PASS: TestHandleRecordPerformance (0.00s)
+=== RUN   TestHandleRecordPerformance_InvalidRequest
+--- PASS: TestHandleRecordPerformance_InvalidRequest (0.00s)
+=== RUN   TestHandlePredictPerformance
+--- PASS: TestHandlePredictPerformance (0.00s)
+=== RUN   TestHandlePredictPerformance_InvalidRequest
+--- PASS: TestHandlePredictPerformance_InvalidRequest (0.00s)
+=== RUN   TestHandleForecastPerformance
+--- PASS: TestHandleForecastPerformance (0.00s)
+=== RUN   TestHandleForecastPerformance_InvalidRequest
+--- PASS: TestHandleForecastPerformance_InvalidRequest (0.00s)
+=== RUN   TestHandleGetPredictionAccuracy
+--- PASS: TestHandleGetPredictionAccuracy (0.00s)
+=== RUN   TestHandleGetPredictionStats
+--- PASS: TestHandleGetPredictionStats (0.00s)
+=== RUN   TestHandleGetS2SPartner
+--- PASS: TestHandleGetS2SPartner (0.00s)
+=== RUN   TestHandleRemoveS2SPartner
+--- PASS: TestHandleRemoveS2SPartner (0.00s)
+=== RUN   TestHandleS2SBidRequest
+--- PASS: TestHandleS2SBidRequest (0.00s)
+=== RUN   TestHandleS2SBidRequest_InvalidRequest
+--- PASS: TestHandleS2SBidRequest_InvalidRequest (0.00s)
+=== RUN   TestHandleInvalidateBidCachePartner
+--- PASS: TestHandleInvalidateBidCachePartner (0.00s)
+=== RUN   TestHandleCleanExpiredBidCache
+--- PASS: TestHandleCleanExpiredBidCache (0.00s)
+=== RUN   TestHandleGetExperimentResults_Success
+--- PASS: TestHandleGetExperimentResults_Success (0.00s)
+=== RUN   TestHandleGetExperimentResults_MissingID
+--- PASS: TestHandleGetExperimentResults_MissingID (0.00s)
+=== RUN   TestHandleRecordConversion_Success
+--- PASS: TestHandleRecordConversion_Success (0.00s)
+=== RUN   TestHandleRecordConversion_InvalidRequest
+--- PASS: TestHandleRecordConversion_InvalidRequest (0.00s)
+=== RUN   TestHandleRegisterTopic_Success
+--- PASS: TestHandleRegisterTopic_Success (0.00s)
+=== RUN   TestHandleRegisterTopic_InvalidRequest
+--- PASS: TestHandleRegisterTopic_InvalidRequest (0.00s)
+=== RUN   TestHandleGetInterestGroups_Success
+--- PASS: TestHandleGetInterestGroups_Success (0.00s)
+=== RUN   TestHandleRecordMetrics_Success
+--- PASS: TestHandleRecordMetrics_Success (0.00s)
+=== RUN   TestHandleRecordMetrics_InvalidRequest
+--- PASS: TestHandleRecordMetrics_InvalidRequest (0.00s)
+=== RUN   TestHandleGetClusterUsers_Success
+--- PASS: TestHandleGetClusterUsers_Success (0.00s)
+=== RUN   TestHandleBatchPredictChurn_Success
+--- PASS: TestHandleBatchPredictChurn_Success (0.00s)
+=== RUN   TestHandleGetHighRiskUsers_Success
+--- PASS: TestHandleGetHighRiskUsers_Success (0.00s)
+=== RUN   TestHandleGetTemplate_Success
+--- PASS: TestHandleGetTemplate_Success (0.00s)
+=== RUN   TestHandleGetElement_Success
+--- PASS: TestHandleGetElement_Success (0.00s)
+=== RUN   TestHandleRecordPerformance_Success
+--- PASS: TestHandleRecordPerformance_Success (0.00s)
+=== RUN   TestHandleGetS2SPartner_Success
+--- PASS: TestHandleGetS2SPartner_Success (0.00s)
+=== RUN   TestHandleGetPGDeal_Success
+--- PASS: TestHandleGetPGDeal_Success (0.00s)
+=== RUN   TestHandleGetPGDeliveryProgress_Success
+--- PASS: TestHandleGetPGDeliveryProgress_Success (0.00s)
+=== RUN   TestHandleGetDirectPublisher_Success
+--- PASS: TestHandleGetDirectPublisher_Success (0.00s)
+=== RUN   TestHandleListDirectPublishers_Success
+--- PASS: TestHandleListDirectPublishers_Success (0.00s)
+=== RUN   TestHandleActivateDirectPublisher_Success
+--- PASS: TestHandleActivateDirectPublisher_Success (0.00s)
+=== RUN   TestHandleGetDirectPublisherStats_Success
+--- PASS: TestHandleGetDirectPublisherStats_Success (0.00s)
+=== RUN   TestHandleActivatePGDeal_Success
+--- PASS: TestHandleActivatePGDeal_Success (0.00s)
+=== RUN   TestHandlePausePGDeal_Success
+--- PASS: TestHandlePausePGDeal_Success (0.00s)
+=== RUN   TestHandleGetPGStats_Success
+--- PASS: TestHandleGetPGStats_Success (0.00s)
+=== RUN   TestHandleListS2SPartners_Success
+--- PASS: TestHandleListS2SPartners_Success (0.00s)
+=== RUN   TestHandleGetS2SStats_Success
+--- PASS: TestHandleGetS2SStats_Success (0.00s)
+=== RUN   TestHandleGetDCOStats_Success
+--- PASS: TestHandleGetDCOStats_Success (0.00s)
+=== RUN   TestHandleGetPredictionStats_Success
+--- PASS: TestHandleGetPredictionStats_Success (0.00s)
+=== RUN   TestHandleGetChurnStats_Additional
+--- PASS: TestHandleGetChurnStats_Additional (0.00s)
+=== RUN   TestHandleGetClusteringStats_Success
+--- PASS: TestHandleGetClusteringStats_Success (0.00s)
+=== RUN   TestHandleGetABTestingStats_Success
+--- PASS: TestHandleGetABTestingStats_Success (0.00s)
+=== RUN   TestHandleGetLookalikeStats_Success
+--- PASS: TestHandleGetLookalikeStats_Success (0.00s)
+=== RUN   TestHandleGetDynamicBidAnalytics_Success
+--- PASS: TestHandleGetDynamicBidAnalytics_Success (0.00s)
+=== RUN   TestHandleGetDynamicBidConfig_Success
+--- PASS: TestHandleGetDynamicBidConfig_Success (0.00s)
+=== RUN   TestHandleGetMarketReport_Success
+--- PASS: TestHandleGetMarketReport_Success (0.00s)
+=== RUN   TestHandleGetIdentityReport_Success
+--- PASS: TestHandleGetIdentityReport_Success (0.00s)
+=== RUN   TestHandleGetCrossDeviceReach_Success
+--- PASS: TestHandleGetCrossDeviceReach_Success (0.00s)
+=== RUN   TestGetSupplyChainMetrics_Default
+--- PASS: TestGetSupplyChainMetrics_Default (0.00s)
+=== RUN   TestGetSupplyChainMetrics_WithTimeRange
+--- PASS: TestGetSupplyChainMetrics_WithTimeRange (0.00s)
+=== RUN   TestGetSupplyPathOptimization_Default
+--- PASS: TestGetSupplyPathOptimization_Default (0.00s)
+=== RUN   TestGetSupplyPathOptimization_CustomTimeRange
+--- PASS: TestGetSupplyPathOptimization_CustomTimeRange (0.00s)
+=== RUN   TestGetBidPathAnalytics_ValidRequestID
+--- PASS: TestGetBidPathAnalytics_ValidRequestID (0.00s)
+=== RUN   TestGetBidPathAnalytics_EmptyRequestID
+--- PASS: TestGetBidPathAnalytics_EmptyRequestID (0.00s)
+=== RUN   TestGetServicePerformance_ValidService
+--- PASS: TestGetServicePerformance_ValidService (0.00s)
+=== RUN   TestGetServicePerformance_MissingServiceName
+--- PASS: TestGetServicePerformance_MissingServiceName (0.00s)
+=== RUN   TestGetServicePerformance_WithTimeRange
+--- PASS: TestGetServicePerformance_WithTimeRange (0.00s)
+=== RUN   TestGetDirectPublisherAnalysis_Default
+--- PASS: TestGetDirectPublisherAnalysis_Default (0.00s)
+=== RUN   TestGetCostBenefitAnalysis_Default
+--- PASS: TestGetCostBenefitAnalysis_Default (0.00s)
+=== RUN   TestTrackClick_ValidRequest
+--- PASS: TestTrackClick_ValidRequest (0.00s)
+=== RUN   TestTrackClick_MissingCampaignID
+--- PASS: TestTrackClick_MissingCampaignID (0.00s)
+=== RUN   TestTrackClick_WithUserAndRequest
+--- PASS: TestTrackClick_WithUserAndRequest (0.00s)
+=== RUN   TestTrackClick_WithRedirect
+--- PASS: TestTrackClick_WithRedirect (0.00s)
+=== RUN   TestTrackImpression_ValidRequest
+--- PASS: TestTrackImpression_ValidRequest (0.00s)
+=== RUN   TestTrackImpression_MissingCampaignID
+--- PASS: TestTrackImpression_MissingCampaignID (0.00s)
+=== RUN   TestTrackImpression_WithUserAndRequest
+--- PASS: TestTrackImpression_WithUserAndRequest (0.00s)
+=== RUN   TestGetBidLandscape_Default
+--- PASS: TestGetBidLandscape_Default (0.00s)
+=== RUN   TestGetBidLandscape_ResponseFormat
+--- PASS: TestGetBidLandscape_ResponseFormat (0.00s)
+=== RUN   TestGetAutoBidRecommendations_Default
+--- PASS: TestGetAutoBidRecommendations_Default (0.00s)
+=== RUN   TestGetSegmentPerformance_Device
+--- PASS: TestGetSegmentPerformance_Device (0.00s)
+=== RUN   TestGetSegmentPerformance_OS
+--- PASS: TestGetSegmentPerformance_OS (0.00s)
+=== RUN   TestGetSegmentPerformance_Geo
+--- PASS: TestGetSegmentPerformance_Geo (0.00s)
+=== RUN   TestGetSegmentPerformance_MissingType
+--- PASS: TestGetSegmentPerformance_MissingType (0.00s)
+=== RUN   TestGetSegmentPerformance_InvalidType
+--- PASS: TestGetSegmentPerformance_InvalidType (0.00s)
+=== RUN   TestGetOptimalBidFloor_ValidRequest
+--- PASS: TestGetOptimalBidFloor_ValidRequest (0.00s)
+=== RUN   TestGetOptimalBidFloor_CustomTargetWinRate
+--- PASS: TestGetOptimalBidFloor_CustomTargetWinRate (0.00s)
+=== RUN   TestGetOptimalBidFloor_MissingPublisherID
+--- PASS: TestGetOptimalBidFloor_MissingPublisherID (0.00s)
+=== RUN   TestGetOptimalBidFloor_InvalidTargetWinRate_TooLow
+--- PASS: TestGetOptimalBidFloor_InvalidTargetWinRate_TooLow (0.00s)
+=== RUN   TestGetOptimalBidFloor_InvalidTargetWinRate_TooHigh
+--- PASS: TestGetOptimalBidFloor_InvalidTargetWinRate_TooHigh (0.00s)
+=== RUN   TestGetOptimalBidFloor_InvalidTargetWinRate_NotNumber
+--- PASS: TestGetOptimalBidFloor_InvalidTargetWinRate_NotNumber (0.00s)
+=== RUN   TestTrackConversion_ValidRequest
+--- PASS: TestTrackConversion_ValidRequest (0.00s)
+=== RUN   TestTrackConversion_MissingUserID
+--- PASS: TestTrackConversion_MissingUserID (0.00s)
+=== RUN   TestTrackConversion_MissingCampaignID
+--- PASS: TestTrackConversion_MissingCampaignID (0.00s)
+=== RUN   TestTrackConversion_InvalidJSON
+--- PASS: TestTrackConversion_InvalidJSON (0.00s)
+=== RUN   TestGetMultiTouchAttribution_ValidRequest
+--- PASS: TestGetMultiTouchAttribution_ValidRequest (0.00s)
+=== RUN   TestGetMultiTouchAttribution_LinearModel
+--- PASS: TestGetMultiTouchAttribution_LinearModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_TimeDecayModel
+--- PASS: TestGetMultiTouchAttribution_TimeDecayModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_MissingUserID
+--- PASS: TestGetMultiTouchAttribution_MissingUserID (0.00s)
+=== RUN   TestGetMultiTouchAttribution_MissingCampaignID
+--- PASS: TestGetMultiTouchAttribution_MissingCampaignID (0.00s)
+=== RUN   TestLinkDevices_ValidRequest
+--- PASS: TestLinkDevices_ValidRequest (0.00s)
+=== RUN   TestLinkDevices_MissingPrimaryUserID
+--- PASS: TestLinkDevices_MissingPrimaryUserID (0.00s)
+=== RUN   TestLinkDevices_EmptyDeviceIDs
+--- PASS: TestLinkDevices_EmptyDeviceIDs (0.00s)
+=== RUN   TestGetDeviceGraph_ValidRequest
+--- PASS: TestGetDeviceGraph_ValidRequest (0.00s)
+=== RUN   TestGetDeviceGraph_MissingUserID
+--- PASS: TestGetDeviceGraph_MissingUserID (0.00s)
+=== RUN   TestGetCrossDeviceFrequency_ValidRequest
+--- PASS: TestGetCrossDeviceFrequency_ValidRequest (0.00s)
+=== RUN   TestGetCrossDeviceFrequency_MissingUserID
+--- PASS: TestGetCrossDeviceFrequency_MissingUserID (0.00s)
+=== RUN   TestGetCrossDeviceFrequency_MissingCampaignID
+--- PASS: TestGetCrossDeviceFrequency_MissingCampaignID (0.00s)
+=== RUN   TestAnalyticsHandler_EmptyQueryParameters
+--- PASS: TestAnalyticsHandler_EmptyQueryParameters (0.00s)
+=== RUN   TestAnalyticsHandler_SpecialCharactersInParams
+--- PASS: TestAnalyticsHandler_SpecialCharactersInParams (0.00s)
+=== RUN   TestAnalyticsHandler_ContentTypeValidation
+--- PASS: TestAnalyticsHandler_ContentTypeValidation (0.00s)
+=== RUN   TestGetServicePerformance_Success
+--- PASS: TestGetServicePerformance_Success (0.00s)
+=== RUN   TestGetServicePerformance_DefaultParams
+--- PASS: TestGetServicePerformance_DefaultParams (0.00s)
+=== RUN   TestGetAutoBidRecommendations_Success
+--- PASS: TestGetAutoBidRecommendations_Success (0.00s)
+=== RUN   TestGetAutoBidRecommendations_MissingCampaignID
+--- PASS: TestGetAutoBidRecommendations_MissingCampaignID (0.00s)
+=== RUN   TestGetSegmentPerformance_Success
+--- PASS: TestGetSegmentPerformance_Success (0.00s)
+=== RUN   TestGetSegmentPerformance_MissingSegmentID
+--- PASS: TestGetSegmentPerformance_MissingSegmentID (0.00s)
+=== RUN   TestHandleBid_ValidRequest
+--- PASS: TestHandleBid_ValidRequest (0.00s)
+=== RUN   TestHandleBid_InvalidRequest
+--- PASS: TestHandleBid_InvalidRequest (0.00s)
+=== RUN   TestHandleBid_EmptyBody
+--- PASS: TestHandleBid_EmptyBody (0.00s)
+=== RUN   TestHandleBid_MultipleFormats
+--- PASS: TestHandleBid_MultipleFormats (0.00s)
+=== RUN   TestHandleBid_NoRequestID
+--- PASS: TestHandleBid_NoRequestID (0.00s)
+=== RUN   TestHandleBid_NoTimestamp
+--- PASS: TestHandleBid_NoTimestamp (0.00s)
+=== RUN   TestHandleBid_WithGeoData
+--- PASS: TestHandleBid_WithGeoData (0.00s)
+=== RUN   TestHandleBid_WithUserCategories
+--- PASS: TestHandleBid_WithUserCategories (0.00s)
+=== RUN   TestHandleOpenRTB_ValidRequest
+--- PASS: TestHandleOpenRTB_ValidRequest (0.00s)
+=== RUN   TestHandleOpenRTB_InvalidRequest
+--- PASS: TestHandleOpenRTB_InvalidRequest (0.00s)
+=== RUN   TestHandleOpenRTB_VideoImpression
+--- PASS: TestHandleOpenRTB_VideoImpression (0.00s)
+=== RUN   TestHandleOpenRTB_NativeImpression
+--- PASS: TestHandleOpenRTB_NativeImpression (0.00s)
+=== RUN   TestHandleOpenRTB_MultipleImpressions
+--- PASS: TestHandleOpenRTB_MultipleImpressions (0.00s)
+=== RUN   TestHandleTrack_Impression
+--- PASS: TestHandleTrack_Impression (0.00s)
+=== RUN   TestHandleTrack_Click
+--- PASS: TestHandleTrack_Click (0.00s)
+=== RUN   TestHandleTrack_Conversion
+--- PASS: TestHandleTrack_Conversion (0.00s)
+=== RUN   TestHandleTrack_MissingParams
+--- PASS: TestHandleTrack_MissingParams (0.00s)
+=== RUN   TestHandleTrack_Pixel
+--- PASS: TestHandleTrack_Pixel (0.00s)
+=== RUN   TestHandleRefresh
+--- PASS: TestHandleRefresh (0.01s)
+=== RUN   TestHandleHealth
+--- PASS: TestHandleHealth (0.00s)
+=== RUN   TestHandleMetrics
+--- PASS: TestHandleMetrics (0.00s)
+=== RUN   TestConvertToOpenRTBResponse
+--- PASS: TestConvertToOpenRTBResponse (0.00s)
+=== RUN   TestHandleMetrics_Success
+--- PASS: TestHandleMetrics_Success (0.00s)
+=== RUN   TestHandleOpenRTB_WithSite
+--- PASS: TestHandleOpenRTB_WithSite (0.00s)
+=== RUN   TestHandleOpenRTB_WithApp
+--- PASS: TestHandleOpenRTB_WithApp (0.00s)
+=== RUN   TestHandleOpenRTB_WithNative
+--- PASS: TestHandleOpenRTB_WithNative (0.00s)
+=== RUN   TestHandleOpenRTB_WithRegs
+--- PASS: TestHandleOpenRTB_WithRegs (0.00s)
+=== RUN   TestHandleOpenRTB_WithGeo
+--- PASS: TestHandleOpenRTB_WithGeo (0.00s)
+=== RUN   TestHandleMetrics_Basic
+--- PASS: TestHandleMetrics_Basic (0.00s)
+=== RUN   TestHandleMetrics_WithQueryParams
+--- PASS: TestHandleMetrics_WithQueryParams (0.00s)
+=== RUN   TestHandleTrack_WithUserAgent
+--- PASS: TestHandleTrack_WithUserAgent (0.00s)
+=== RUN   TestHandleTrack_WithReferer
+--- PASS: TestHandleTrack_WithReferer (0.00s)
+=== RUN   TestHandleTrack_Win
+--- PASS: TestHandleTrack_Win (0.00s)
+=== RUN   TestHandleTrack_InvalidEventType
+--- PASS: TestHandleTrack_InvalidEventType (0.00s)
+=== RUN   TestHandleTrack_VideoStart
+--- PASS: TestHandleTrack_VideoStart (0.00s)
+=== RUN   TestHandleTrack_VideoFirstQuartile
+--- PASS: TestHandleTrack_VideoFirstQuartile (0.00s)
+=== RUN   TestHandleTrack_VideoMidpoint
+--- PASS: TestHandleTrack_VideoMidpoint (0.00s)
+=== RUN   TestHandleTrack_VideoThirdQuartile
+--- PASS: TestHandleTrack_VideoThirdQuartile (0.00s)
+=== RUN   TestHandleTrack_VideoComplete
+--- PASS: TestHandleTrack_VideoComplete (0.00s)
+=== RUN   TestHandleTrack_RichMediaExpand
+--- PASS: TestHandleTrack_RichMediaExpand (0.00s)
+=== RUN   TestHandleTrack_RichMediaCollapse
+--- PASS: TestHandleTrack_RichMediaCollapse (0.00s)
+=== RUN   TestHandleTrack_RichMediaInteract
+--- PASS: TestHandleTrack_RichMediaInteract (0.00s)
+=== RUN   TestHandleTrack_View
+--- PASS: TestHandleTrack_View (0.00s)
+=== RUN   TestHandleRefresh_WithBackendUrl
+--- PASS: TestHandleRefresh_WithBackendUrl (0.01s)
+=== RUN   TestHandleRefresh_GetMethod
+--- PASS: TestHandleRefresh_GetMethod (0.00s)
+=== RUN   TestHandleOpenRTB_WithVideo
+--- PASS: TestHandleOpenRTB_WithVideo (0.00s)
+=== RUN   TestHandleOpenRTB_WithAudio
+--- PASS: TestHandleOpenRTB_WithAudio (0.00s)
+=== RUN   TestHandleOpenRTB_WithUser
+--- PASS: TestHandleOpenRTB_WithUser (0.00s)
+=== RUN   TestHandleOpenRTB_WithBidFloor
+--- PASS: TestHandleOpenRTB_WithBidFloor (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeals
+--- PASS: TestHandleOpenRTB_WithDeals (0.00s)
+=== RUN   TestHandleOpenRTB_WithMultipleImps
+--- PASS: TestHandleOpenRTB_WithMultipleImps (0.00s)
+=== RUN   TestHandleOpenRTB_WithExt
+--- PASS: TestHandleOpenRTB_WithExt (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeviceTypeDesktop
+--- PASS: TestHandleOpenRTB_WithDeviceTypeDesktop (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeviceTypeTablet
+--- PASS: TestHandleOpenRTB_WithDeviceTypeTablet (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeviceTypeCTV
+--- PASS: TestHandleOpenRTB_WithDeviceTypeCTV (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeviceTypeSetTopBox
+--- PASS: TestHandleOpenRTB_WithDeviceTypeSetTopBox (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeviceTypeConnected
+--- PASS: TestHandleOpenRTB_WithDeviceTypeConnected (0.00s)
+=== RUN   TestHandleOpenRTB_WithDeviceTypePhone
+--- PASS: TestHandleOpenRTB_WithDeviceTypePhone (0.00s)
+=== RUN   TestHandleOpenRTB_WithInterstitial
+--- PASS: TestHandleOpenRTB_WithInterstitial (0.00s)
+=== RUN   TestHandleOpenRTB_WithUserDataSegments
+--- PASS: TestHandleOpenRTB_WithUserDataSegments (0.00s)
+=== RUN   TestHandleOpenRTB_WithBidFloorNoCurrency
+--- PASS: TestHandleOpenRTB_WithBidFloorNoCurrency (0.00s)
+=== RUN   TestHandleOpenRTB_WithBidFloorEUR
+--- PASS: TestHandleOpenRTB_WithBidFloorEUR (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/handler	0.174s

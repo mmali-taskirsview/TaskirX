@@ -1,4 +1,0 @@
-=== RUN   TestCreativeOpt_SelectCreative_Exploitation
---- PASS: TestCreativeOpt_SelectCreative_Exploitation (0.00s)
-PASS
-ok  	github.com/taskirx/go-bidding-engine/internal/service	0.063s

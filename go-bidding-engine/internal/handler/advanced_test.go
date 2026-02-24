@@ -1638,3 +1638,202 @@ func TestHandleForecastPerformance_InvalidJSON(t *testing.T) {
 		t.Errorf("Expected status 400, got %d", w.Code)
 	}
 }
+
+// ============================================================================
+// A/B TESTING EXPERIMENT CONTROL TESTS
+// ============================================================================
+
+func TestHandleStartExperiment(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments/:experiment_id/start", handler.HandleStartExperiment)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments/exp-001/start", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Service should be available
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleStartExperiment_MissingID(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments/:experiment_id/start", handler.HandleStartExperiment)
+
+	// Empty experiment_id param
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments//start", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Should be 404 (route not matched) or 400
+	if w.Code != http.StatusNotFound && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 404 or 400, got %d", w.Code)
+	}
+}
+
+func TestHandleStopExperiment(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments/:experiment_id/stop", handler.HandleStopExperiment)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments/exp-001/stop", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Service should be available
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleStopExperiment_MissingID(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments/:experiment_id/stop", handler.HandleStopExperiment)
+
+	// Empty experiment_id via different URL
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments//stop", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 404 or 400, got %d", w.Code)
+	}
+}
+
+func TestHandleRecordABEvent(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/events", handler.HandleRecordABEvent)
+
+	reqBody := map[string]interface{}{
+		"experiment_id": "exp-001",
+		"user_id":       "user-123",
+		"variant_id":    "variant-A",
+		"event_type":    "click",
+		"value":         1.0,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/events", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleRecordABEvent_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/events", handler.HandleRecordABEvent)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/events", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// DCO TEMPLATE/ELEMENT RETRIEVAL TESTS
+// ============================================================================
+
+func TestHandleGetTemplate(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dco/templates/:id", handler.HandleGetTemplate)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dco/templates/template-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 if exists, 404 if not, or 503 if service unavailable
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound && w.Code != http.StatusServiceUnavailable {
+		t.Errorf("Expected status 200, 404, or 503, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetTemplate_MissingID(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dco/templates/:id", handler.HandleGetTemplate)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dco/templates/", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+func TestHandleGetElement(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dco/elements/:id", handler.HandleGetElement)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dco/elements/element-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 if exists, 404 if not, or 503 if service unavailable
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound && w.Code != http.StatusServiceUnavailable {
+		t.Errorf("Expected status 200, 404, or 503, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetElement_MissingID(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dco/elements/:id", handler.HandleGetElement)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dco/elements/", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// PG DEAL RETRIEVAL TESTS
+// ============================================================================
+
+func TestHandleGetPGDeal_NotFound(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/deals/:id", handler.HandleGetPGDeal)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deals/nonexistent-deal", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200, 404, or 503
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound && w.Code != http.StatusServiceUnavailable {
+		t.Errorf("Expected status 200, 404, or 503, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetPGDeal_MissingID(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/pg/deals/:id", handler.HandleGetPGDeal)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deals/", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}

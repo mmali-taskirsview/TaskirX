@@ -1,0 +1,355 @@
+//line C:\TaskirX\go-bidding-engine\internal\handler\bid.go:1:1
+package handler
+
+import (
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+	"github.com/taskirx/go-bidding-engine/internal/service"
+	"github.com/taskirx/go-bidding-engine/pkg/metrics"
+)
+
+// BidHandler handles HTTP bid requests
+type BidHandler struct {
+	biddingService *service.BiddingService
+}
+
+// NewBidHandler creates a new bid handler
+func NewBidHandler(biddingService *service.BiddingService) *BidHandler {goCover_e47c67ed8c54__107[0] = 1 ; goCover_e47c67ed8c54__107[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__107[2] = 107 ; goCover_e47c67ed8c54__107[3] = 1;
+	return &BidHandler{
+		biddingService: biddingService,
+	}
+}
+
+// HandleBid processes a bid request
+func (h *BidHandler) HandleBid(c *gin.Context) {goCover_e47c67ed8c54__108[0] = 11 ; goCover_e47c67ed8c54__108[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__108[2] = 108 ; goCover_e47c67ed8c54__108[3] = 1;
+	timer := prometheus.NewTimer(metrics.BidLatency)
+	defer timer.ObserveDuration()
+	metrics.BidRequestsTotal.Inc()
+
+	var req model.BidRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {goCover_e47c67ed8c54__108[9] = 1;
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Increment metrics based on format (Legacy)
+	goCover_e47c67ed8c54__108[4] = 1;for _, format := range req.AdSlot.Formats {goCover_e47c67ed8c54__108[10] = 1;
+		metrics.BidRequestsByFormat.WithLabelValues(format).Inc()
+		h.biddingService.IncrementFormatStats(format)
+	}
+
+	// Set timestamp if not provided
+	goCover_e47c67ed8c54__108[5] = 1;if req.Timestamp.IsZero() {goCover_e47c67ed8c54__108[11] = 1;
+		req.Timestamp = time.Now()
+	}
+
+	// Generate request ID if not provided
+	goCover_e47c67ed8c54__108[6] = 1;if req.ID == "" {goCover_e47c67ed8c54__108[12] = 1;
+		req.ID = model.GenerateRequestID()
+	}
+
+	// Process bid
+	goCover_e47c67ed8c54__108[7] = 1;response, err := h.biddingService.ProcessBid(&req)
+	if err != nil {goCover_e47c67ed8c54__108[13] = 1;
+		// Return no-bid response
+		c.JSON(http.StatusOK, model.NoBidResponse{
+			RequestID: req.ID,
+			Reason:    err.Error(),
+		})
+		return
+	}
+
+	goCover_e47c67ed8c54__108[8] = 1;c.JSON(http.StatusOK, response)
+}
+
+// HandleOpenRTB processes standard OpenRTB 2.5/2.6 requests
+func (h *BidHandler) HandleOpenRTB(c *gin.Context) {goCover_e47c67ed8c54__109[0] = 7 ; goCover_e47c67ed8c54__109[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__109[2] = 109 ; goCover_e47c67ed8c54__109[3] = 1;
+	timer := prometheus.NewTimer(metrics.BidLatency)
+	defer timer.ObserveDuration()
+	metrics.BidRequestsTotal.Inc()
+
+	var ortbReq model.OpenRTBRequest
+	if err := c.ShouldBindJSON(&ortbReq); err != nil {goCover_e47c67ed8c54__109[7] = 1;
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OpenRTB request", "details": err.Error()})
+		return
+	}
+
+	// 1. Normalize OpenRTB to Internal Model
+	goCover_e47c67ed8c54__109[4] = 1;internalReq := h.normalizeOpenRTB(&ortbReq)
+
+	// Increment metrics based on format
+	for _, format := range internalReq.AdSlot.Formats {goCover_e47c67ed8c54__109[8] = 1;
+		metrics.BidRequestsByFormat.WithLabelValues(format).Inc()
+		h.biddingService.IncrementFormatStats(format)
+	}
+
+	// 2. Process Bid using existing engine logic
+	goCover_e47c67ed8c54__109[5] = 1;response, err := h.biddingService.ProcessBid(internalReq)
+
+	if err != nil {goCover_e47c67ed8c54__109[9] = 1;
+		// OpenRTB No-Bid Response (Empty 204 or specific JSON)
+		// Standard is 204 No Content
+		c.Status(http.StatusNoContent)
+		return
+	}
+
+	// 3. Convert Internal Response to OpenRTB Response
+	goCover_e47c67ed8c54__109[6] = 1;ortbRes := h.convertToOpenRTBResponse(response, &ortbReq)
+	c.JSON(http.StatusOK, ortbRes)
+}
+
+// normalizeOpenRTB converts OpenRTB request to internal format
+func (h *BidHandler) normalizeOpenRTB(req *model.OpenRTBRequest) *model.BidRequest {goCover_e47c67ed8c54__110[0] = 47 ; goCover_e47c67ed8c54__110[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__110[2] = 110 ; goCover_e47c67ed8c54__110[3] = 1;
+	// Basic mapping logic
+	internal := &model.BidRequest{
+		ID:        req.ID,
+		Timestamp: time.Now(),
+		// PublisherID logic: From Site.ID or App.ID
+		PublisherID: "unknown",
+		AdSlot: model.AdSlot{
+			ID:      "unknown",
+			Formats: []string{},
+		},
+		Device: model.InternalDevice{
+			Type: "mobile", // Default
+			Geo:  model.InternalGeo{},
+		},
+		User: model.InternalUser{},
+	}
+
+	if req.Site != nil {goCover_e47c67ed8c54__110[8] = 1;
+		internal.PublisherID = req.Site.ID
+		internal.Device.Type = "desktop" // Assume desktop for site
+	} else{ goCover_e47c67ed8c54__110[9] = 1;if req.App != nil {goCover_e47c67ed8c54__110[10] = 1;
+		internal.PublisherID = req.App.ID
+		internal.Device.Type = "mobile" // Assume mobile for app
+	}}
+
+	goCover_e47c67ed8c54__110[4] = 1;if len(req.Imp) > 0 {goCover_e47c67ed8c54__110[11] = 1;
+		imp := req.Imp[0] // Simplify: handle first impression only for now
+		internal.AdSlot.ID = imp.ID
+
+		// Map bid floor from OpenRTB impression
+		internal.AdSlot.BidFloor = imp.BidFloor
+		if imp.BidFloorCur != "" {goCover_e47c67ed8c54__110[18] = 1;
+			internal.AdSlot.BidFloorCur = imp.BidFloorCur
+		} else{ goCover_e47c67ed8c54__110[19] = 1;{
+			internal.AdSlot.BidFloorCur = "USD"
+		}}
+
+		// PMP Support
+		goCover_e47c67ed8c54__110[12] = 1;if imp.Pmp != nil {goCover_e47c67ed8c54__110[20] = 1;
+			internal.Pmp = imp.Pmp
+		}
+
+		goCover_e47c67ed8c54__110[13] = 1;if imp.Banner != nil {goCover_e47c67ed8c54__110[21] = 1;
+			internal.AdSlot.Formats = append(internal.AdSlot.Formats, "banner")
+			internal.AdSlot.Dimensions = []int{imp.Banner.W, imp.Banner.H}
+		}
+		goCover_e47c67ed8c54__110[14] = 1;if imp.Video != nil {goCover_e47c67ed8c54__110[22] = 1;
+			internal.AdSlot.Formats = append(internal.AdSlot.Formats, "video")
+		}
+		goCover_e47c67ed8c54__110[15] = 1;if imp.Audio != nil {goCover_e47c67ed8c54__110[23] = 1;
+			internal.AdSlot.Formats = append(internal.AdSlot.Formats, "audio")
+		}
+		goCover_e47c67ed8c54__110[16] = 1;if imp.Native != nil {goCover_e47c67ed8c54__110[24] = 1;
+			internal.AdSlot.Formats = append(internal.AdSlot.Formats, "native")
+			// Store raw Native Request payload in Context for later use
+			if internal.Context == nil {goCover_e47c67ed8c54__110[26] = 1;
+				internal.Context = make(map[string]interface{})
+			}
+			goCover_e47c67ed8c54__110[25] = 1;internal.Context["native_request"] = imp.Native.Request
+		}
+		// OpenRTB 2.5: "instl": 1 means interstitial/fullscreen
+		goCover_e47c67ed8c54__110[17] = 1;if imp.Instl == 1 {goCover_e47c67ed8c54__110[27] = 1;
+			internal.AdSlot.Formats = append(internal.AdSlot.Formats, "interstitial")
+			// Interstitials often imply Rich Media or full-screen Video support
+			// We can also infer "rich_media" compatibility
+			internal.AdSlot.Formats = append(internal.AdSlot.Formats, "rich_media")
+		}
+	}
+
+	goCover_e47c67ed8c54__110[5] = 1;if req.Device != nil {goCover_e47c67ed8c54__110[28] = 1;
+		internal.Device.IP = req.Device.IP
+		internal.Device.UserAgent = req.Device.UA
+		internal.Device.OS = req.Device.OS
+		internal.Device.Model = req.Device.Model
+		internal.Device.Make = req.Device.Make
+
+		if req.Device.Geo != nil {goCover_e47c67ed8c54__110[30] = 1;
+			internal.Device.Geo.Country = req.Device.Geo.Country
+			internal.Device.Geo.City = req.Device.Geo.City
+			internal.Device.Geo.Lat = req.Device.Geo.Lat
+			internal.Device.Geo.Lon = req.Device.Geo.Lon
+
+			// Also set User Country from Device Geo if not already set (common practice)
+			if internal.User.Country == "" {goCover_e47c67ed8c54__110[31] = 1;
+				internal.User.Country = req.Device.Geo.Country
+			}
+		}
+
+		// Map Devicetype ID (OpenRTB 2.5) to internal string
+		// 1=Mobile/Tablet, 2=PC, 3=TV, 4=Phone, 5=Tablet, 6=Connected Device, 7=Set Top Box
+		goCover_e47c67ed8c54__110[29] = 1;switch req.Device.DeviceType {
+		case 2:goCover_e47c67ed8c54__110[32] = 1;
+			internal.Device.Type = "desktop"
+		case 1, 4:goCover_e47c67ed8c54__110[33] = 1;
+			internal.Device.Type = "mobile"
+		case 5:goCover_e47c67ed8c54__110[34] = 1;
+			internal.Device.Type = "tablet"
+		case 3, 7:goCover_e47c67ed8c54__110[35] = 1;
+			internal.Device.Type = "ctv"
+		case 6:goCover_e47c67ed8c54__110[36] = 1;
+			internal.Device.Type = "connected_device"
+		default:goCover_e47c67ed8c54__110[37] = 1;
+			// Fallback logic if DeviceType is missing (using UA or assumed from Site/App earlier)
+			if internal.Device.Type == "" {goCover_e47c67ed8c54__110[38] = 1;
+				internal.Device.Type = "mobile"
+			}
+		}
+	}
+
+	goCover_e47c67ed8c54__110[6] = 1;if req.User != nil {goCover_e47c67ed8c54__110[39] = 1;
+		internal.User.ID = req.User.ID
+		internal.User.Gender = req.User.Gender
+		if req.User.Yob > 0 {goCover_e47c67ed8c54__110[42] = 1;
+			internal.User.Age = time.Now().Year() - req.User.Yob
+		}
+		// Map Keywords (comma separated)
+		goCover_e47c67ed8c54__110[40] = 1;if req.User.Keywords != "" {goCover_e47c67ed8c54__110[43] = 1;
+			parts := strings.Split(req.User.Keywords, ",")
+			for _, p := range parts {goCover_e47c67ed8c54__110[44] = 1;
+				if p != "" {goCover_e47c67ed8c54__110[45] = 1;
+					internal.User.Categories = append(internal.User.Categories, strings.TrimSpace(p))
+				}
+			}
+		}
+		// Map Data Segments (e.g., from DMP)
+		goCover_e47c67ed8c54__110[41] = 1;if len(req.User.Data) > 0 {goCover_e47c67ed8c54__110[46] = 1;
+			for _, data := range req.User.Data {goCover_e47c67ed8c54__110[47] = 1;
+				for _, segment := range data.Segment {goCover_e47c67ed8c54__110[48] = 1;
+					if segment.ID != "" {goCover_e47c67ed8c54__110[49] = 1;
+						internal.User.Categories = append(internal.User.Categories, segment.ID)
+					}
+					// Also add segment Value as category if useful? Or just ID.
+					// Often ID is the segment ID.
+				}
+			}
+		}
+	}
+
+	goCover_e47c67ed8c54__110[7] = 1;return internal
+}
+
+// convertToOpenRTBResponse converts internal response to OpenRTB
+func (h *BidHandler) convertToOpenRTBResponse(res *model.BidResponse, req *model.OpenRTBRequest) map[string]interface{} {goCover_e47c67ed8c54__111[0] = 1 ; goCover_e47c67ed8c54__111[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__111[2] = 111 ; goCover_e47c67ed8c54__111[3] = 1;
+	// Standard OpenRTB Response Structure
+	return map[string]interface{}{
+		"id": res.RequestID,
+		"seatbid": []map[string]interface{}{
+			{
+				"bid": []map[string]interface{}{
+					{
+						"id":    model.GenerateRequestID(),
+						"impid": req.Imp[0].ID, // Match request imp ID
+						"price": res.BidPrice,
+						"adm":   res.AdMarkup,
+						"crid":  res.CreativeURL,
+						"iurl":  res.ImpressionURL,
+					},
+				},
+			},
+		},
+		"cur": "USD",
+	}
+}
+
+// HandleTrack processes tracking pixels and events
+func (h *BidHandler) HandleTrack(c *gin.Context) {goCover_e47c67ed8c54__112[0] = 10 ; goCover_e47c67ed8c54__112[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__112[2] = 112 ; goCover_e47c67ed8c54__112[3] = 1;
+	eventType := c.Query("event") // "impression", "click", "video_start", "expand", etc.
+	campaignID := c.Query("id")   // Campaign ID
+
+	if eventType == "" || campaignID == "" {goCover_e47c67ed8c54__112[7] = 1;
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing event or id"})
+		return
+	}
+
+	// Record Metric based on type
+	goCover_e47c67ed8c54__112[4] = 1;switch eventType {
+	case "impression", "click", "view":goCover_e47c67ed8c54__112[8] = 1;
+		metrics.EventsTotal.WithLabelValues(eventType, campaignID).Inc()
+	case "start", "first_quartile", "midpoint", "third_quartile", "complete":goCover_e47c67ed8c54__112[9] = 1;
+		metrics.VideoEventsTotal.WithLabelValues(eventType, campaignID).Inc()
+	case "expand", "collapse", "interact":goCover_e47c67ed8c54__112[10] = 1;
+		metrics.RichMediaEventsTotal.WithLabelValues(eventType, campaignID).Inc()
+	default:goCover_e47c67ed8c54__112[11] = 1;
+		// Generic event
+		metrics.EventsTotal.WithLabelValues(eventType, campaignID).Inc()
+	}
+
+	// Return 1x1 GIF for pixels
+	goCover_e47c67ed8c54__112[5] = 1;if c.Query("pixel") == "1" {goCover_e47c67ed8c54__112[12] = 1;
+		c.Data(http.StatusOK, "image/gif", []byte{
+			0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00,
+			0x80, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x21,
+			0xF9, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x00,
+			0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44,
+			0x01, 0x00, 0x3B,
+		})
+		return
+	}
+
+	goCover_e47c67ed8c54__112[6] = 1;c.Status(http.StatusNoContent)
+}
+
+// HandleHealth returns service health status
+func (h *BidHandler) HandleHealth(c *gin.Context) {goCover_e47c67ed8c54__113[0] = 1 ; goCover_e47c67ed8c54__113[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__113[2] = 113 ; goCover_e47c67ed8c54__113[3] = 1;
+	c.JSON(http.StatusOK, gin.H{
+		"status":    "healthy",
+		"service":   "go-bidding-engine",
+		"timestamp": time.Now(),
+	})
+}
+
+// HandleMetrics returns service metrics
+func (h *BidHandler) HandleMetrics(c *gin.Context) {goCover_e47c67ed8c54__114[0] = 3 ; goCover_e47c67ed8c54__114[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__114[2] = 114 ; goCover_e47c67ed8c54__114[3] = 1;
+	metrics, err := h.biddingService.GetMetrics()
+	if err != nil {goCover_e47c67ed8c54__114[5] = 1;
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get metrics",
+		})
+		return
+	}
+
+	goCover_e47c67ed8c54__114[4] = 1;c.JSON(http.StatusOK, metrics)
+}
+
+// HandleRefresh refreshes campaigns from backend
+func (h *BidHandler) HandleRefresh(c *gin.Context) {goCover_e47c67ed8c54__115[0] = 5 ; goCover_e47c67ed8c54__115[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__115[2] = 115 ; goCover_e47c67ed8c54__115[3] = 1;
+	backendURL := c.Query("backend_url")
+	if backendURL == "" {goCover_e47c67ed8c54__115[6] = 1;
+		backendURL = h.biddingService.GetBackendBaseURL()
+	}
+
+	goCover_e47c67ed8c54__115[4] = 1;if err := h.biddingService.RefreshCampaigns(backendURL); err != nil {goCover_e47c67ed8c54__115[7] = 1;
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to refresh campaigns",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	goCover_e47c67ed8c54__115[5] = 1;c.JSON(http.StatusOK, gin.H{
+		"message":   "Campaigns refreshed successfully",
+		"timestamp": time.Now(),
+	})
+}

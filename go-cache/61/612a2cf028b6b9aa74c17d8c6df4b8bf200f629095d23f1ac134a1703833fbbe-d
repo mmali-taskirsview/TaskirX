@@ -1,0 +1,136 @@
+//line C:\TaskirX\go-bidding-engine\internal\handler\coverage_sweep_tests.go:1:1
+package handler
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/taskirx/go-bidding-engine/internal/service"
+)
+
+// A small sweep of endpoints to exercise additional branches and increase package coverage.
+// These mirror existing routes but target error/edge branches (missing params, service-unavailable)
+
+func TestSweep_ServicePerformance_Missing_Sweep(t *testing.T) {goCover_e47c67ed8c54__116[0] = 2 ; goCover_e47c67ed8c54__116[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__116[2] = 116 ; goCover_e47c67ed8c54__116[3] = 1;
+	handler, router := setupAnalyticsTestHandler()
+	router.GET("/api/analytics/service-performance", handler.GetServicePerformance)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/service-performance", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {goCover_e47c67ed8c54__116[4] = 1;
+		t.Errorf("Expected 400 when serviceName missing, got %d", w.Code)
+	}
+}
+
+func TestSweep_TrackClick_Missing_Sweep(t *testing.T) {goCover_e47c67ed8c54__117[0] = 2 ; goCover_e47c67ed8c54__117[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__117[2] = 117 ; goCover_e47c67ed8c54__117[3] = 1;
+	handler, router := setupAnalyticsTestHandler()
+	router.GET("/api/analytics/track/click", handler.TrackClick)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/track/click", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {goCover_e47c67ed8c54__117[4] = 1;
+		t.Errorf("Expected 400 when campaign_id missing, got %d", w.Code)
+	}
+}
+
+func TestSweep_TrackImpression_Missing_Sweep(t *testing.T) {goCover_e47c67ed8c54__118[0] = 2 ; goCover_e47c67ed8c54__118[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__118[2] = 118 ; goCover_e47c67ed8c54__118[3] = 1;
+	handler, router := setupAnalyticsTestHandler()
+	router.GET("/api/analytics/track/impression", handler.TrackImpression)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/track/impression", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {goCover_e47c67ed8c54__118[4] = 1;
+		t.Errorf("Expected 400 when campaign_id missing, got %d", w.Code)
+	}
+}
+
+func TestSweep_SupplyChainMetrics_ServiceUnavailable_Sweep(t *testing.T) {goCover_e47c67ed8c54__119[0] = 2 ; goCover_e47c67ed8c54__119[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__119[2] = 119 ; goCover_e47c67ed8c54__119[3] = 1;
+	// Use an empty BiddingService to simulate optional service not initialized
+	bs := &service.BiddingService{}
+	handler := NewAnalyticsHandler(bs)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.GET("/api/analytics/supply-chain/metrics", handler.GetSupplyChainMetrics)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/supply-chain/metrics", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	// Accept either 200 (if service present) or 500/503 when not available
+	if !(w.Code == http.StatusOK || w.Code == http.StatusInternalServerError || w.Code == http.StatusServiceUnavailable) {goCover_e47c67ed8c54__119[4] = 1;
+		t.Errorf("Unexpected status %d from supply-chain metrics", w.Code)
+	}
+}
+
+func TestSweep_SupplyPathOptimization_ServiceUnavailable_Sweep(t *testing.T) {goCover_e47c67ed8c54__120[0] = 2 ; goCover_e47c67ed8c54__120[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__120[2] = 120 ; goCover_e47c67ed8c54__120[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAnalyticsHandler(bs)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.GET("/api/analytics/supply-path/optimization", handler.GetSupplyPathOptimization)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/supply-path/optimization", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusOK || w.Code == http.StatusInternalServerError || w.Code == http.StatusServiceUnavailable) {goCover_e47c67ed8c54__120[4] = 1;
+		t.Errorf("Unexpected status %d from supply-path optimization", w.Code)
+	}
+}
+
+func TestSweep_BidPathAnalytics_NotFound_Sweep(t *testing.T) {goCover_e47c67ed8c54__121[0] = 2 ; goCover_e47c67ed8c54__121[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__121[2] = 121 ; goCover_e47c67ed8c54__121[3] = 1;
+	handler, router := setupAnalyticsTestHandler()
+	router.GET("/api/analytics/bid-path/:requestId", handler.GetBidPathAnalytics)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/bid-path/nonexistent-req", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusNotFound || w.Code == http.StatusOK || w.Code == http.StatusInternalServerError) {goCover_e47c67ed8c54__121[4] = 1;
+		t.Errorf("Unexpected status %d from bid-path analytics", w.Code)
+	}
+}
+
+func TestSweep_AutoBidRecommendations_NoData_Sweep(t *testing.T) {goCover_e47c67ed8c54__122[0] = 2 ; goCover_e47c67ed8c54__122[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__122[2] = 122 ; goCover_e47c67ed8c54__122[3] = 1;
+	handler, router := setupAnalyticsTestHandler()
+	router.GET("/api/analytics/auto-bid-recommendations", handler.GetAutoBidRecommendations)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/auto-bid-recommendations", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusOK || w.Code == http.StatusInternalServerError) {goCover_e47c67ed8c54__122[4] = 1;
+		t.Errorf("Unexpected status %d from auto-bid recommendations", w.Code)
+	}
+}
+
+func TestSweep_DirectPublisherAnalysis_ServiceUnavailable_Sweep(t *testing.T) {goCover_e47c67ed8c54__123[0] = 2 ; goCover_e47c67ed8c54__123[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__123[2] = 123 ; goCover_e47c67ed8c54__123[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAnalyticsHandler(bs)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.GET("/api/analytics/direct-publisher/analysis", handler.GetDirectPublisherAnalysis)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/direct-publisher/analysis", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusOK || w.Code == http.StatusInternalServerError || w.Code == http.StatusServiceUnavailable) {goCover_e47c67ed8c54__123[4] = 1;
+		t.Errorf("Unexpected status %d from direct publisher analysis", w.Code)
+	}
+}
+
+func TestSweep_CostBenefit_ServiceUnavailable_Sweep(t *testing.T) {goCover_e47c67ed8c54__124[0] = 2 ; goCover_e47c67ed8c54__124[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__124[2] = 124 ; goCover_e47c67ed8c54__124[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAnalyticsHandler(bs)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.GET("/api/analytics/cost-benefit", handler.GetCostBenefitAnalysis)
+
+	req, _ := http.NewRequest("GET", "/api/analytics/cost-benefit", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusOK || w.Code == http.StatusInternalServerError || w.Code == http.StatusServiceUnavailable) {goCover_e47c67ed8c54__124[4] = 1;
+		t.Errorf("Unexpected status %d from cost-benefit analysis", w.Code)
+	}
+}

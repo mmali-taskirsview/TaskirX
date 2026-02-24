@@ -1,0 +1,11 @@
+covervars.go
+advanced.cover.go
+analytics.cover.go
+bid.cover.go
+./advanced_service_unavailable_batch2_test.go
+./advanced_service_unavailable_batch3_test.go
+./advanced_service_unavailable_test.go
+./advanced_test.go
+./analytics_test.go
+./bid_handlers_test.go
+./bid_test.go

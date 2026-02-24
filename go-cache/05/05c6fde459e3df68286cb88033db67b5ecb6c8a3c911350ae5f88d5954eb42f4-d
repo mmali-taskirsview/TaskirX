@@ -1,0 +1,11 @@
+{
+	"github.com/taskirx/go-bidding-engine/internal/model": {
+		"structtag": [
+			{
+				"posn": "C:\\TaskirX\\go-bidding-engine\\internal\\model\\bid.go:1450:2",
+				"end": "C:\\TaskirX\\go-bidding-engine\\internal\\model\\bid.go:1450:7",
+				"message": "struct field iROAS has json tag but is not exported"
+			}
+		]
+	}
+}

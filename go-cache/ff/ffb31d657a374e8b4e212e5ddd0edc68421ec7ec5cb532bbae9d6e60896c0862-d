@@ -1,0 +1,7 @@
+//line C:\TaskirX\go-bidding-engine\internal\handler\coverage_targeted_tests.go:1:1
+﻿package handler
+
+import "testing"
+
+// Minimal placeholder test to restore build while we add focused tests.
+func TestCoverageTargetPlaceholder(t *testing.T) {goCover_e47c67ed8c54__125[0] = 1 ; goCover_e47c67ed8c54__125[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__125[2] = 125 ; goCover_e47c67ed8c54__125[3] = 1;}

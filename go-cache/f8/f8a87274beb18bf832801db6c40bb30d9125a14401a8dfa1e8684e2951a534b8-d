@@ -1,0 +1,259 @@
+=== RUN   TestGetActiveCampaigns_Success
+--- PASS: TestGetActiveCampaigns_Success (0.00s)
+=== RUN   TestGetActiveCampaigns_CacheMiss
+--- PASS: TestGetActiveCampaigns_CacheMiss (0.00s)
+=== RUN   TestGetActiveCampaigns_UnmarshalError
+--- PASS: TestGetActiveCampaigns_UnmarshalError (0.00s)
+=== RUN   TestSetActiveCampaigns_Success
+--- PASS: TestSetActiveCampaigns_Success (0.00s)
+=== RUN   TestGetCampaign_Success
+--- PASS: TestGetCampaign_Success (0.00s)
+=== RUN   TestGetCampaign_CacheMiss
+--- PASS: TestGetCampaign_CacheMiss (0.00s)
+=== RUN   TestSetCampaign_Success
+--- PASS: TestSetCampaign_Success (0.00s)
+=== RUN   TestIncrementBidCount_Success
+--- PASS: TestIncrementBidCount_Success (0.00s)
+=== RUN   TestIncrementWinCount_Success
+--- PASS: TestIncrementWinCount_Success (0.00s)
+=== RUN   TestGetBidCount_Success
+--- PASS: TestGetBidCount_Success (0.00s)
+=== RUN   TestGetWinCount_Success
+--- PASS: TestGetWinCount_Success (0.00s)
+=== RUN   TestRecordLatency_Success
+--- PASS: TestRecordLatency_Success (0.00s)
+=== RUN   TestGetAverageLatency_Success
+--- PASS: TestGetAverageLatency_Success (0.00s)
+=== RUN   TestGetAverageLatency_Empty
+--- PASS: TestGetAverageLatency_Empty (0.00s)
+=== RUN   TestSetUserSegments_Success
+--- PASS: TestSetUserSegments_Success (0.00s)
+=== RUN   TestGetUserSegments_Success
+--- PASS: TestGetUserSegments_Success (0.00s)
+=== RUN   TestGetUserSegments_CacheMiss
+--- PASS: TestGetUserSegments_CacheMiss (0.00s)
+=== RUN   TestSetGeoRules_Success
+--- PASS: TestSetGeoRules_Success (0.00s)
+=== RUN   TestGetGeoRules_Success
+--- PASS: TestGetGeoRules_Success (0.00s)
+=== RUN   TestIncrementCampaignSpend_Success
+failed to set expiry for spend key: all expectations were already fulfilled, call to cmd '[expire campaign:spend:camp-123:2026-02-23 172800]' was not expected
+--- PASS: TestIncrementCampaignSpend_Success (0.00s)
+=== RUN   TestGetCampaignSpend_Success
+--- PASS: TestGetCampaignSpend_Success (0.00s)
+=== RUN   TestGetCampaignSpend_CacheMiss
+--- PASS: TestGetCampaignSpend_CacheMiss (0.00s)
+=== RUN   TestIncrementBidFormat_Success
+--- PASS: TestIncrementBidFormat_Success (0.00s)
+=== RUN   TestGet_Success
+--- PASS: TestGet_Success (0.00s)
+=== RUN   TestGet_CacheMiss
+--- PASS: TestGet_CacheMiss (0.00s)
+=== RUN   TestSet_Success
+--- PASS: TestSet_Success (0.00s)
+=== RUN   TestIncrementPublisherFraud_Success
+--- PASS: TestIncrementPublisherFraud_Success (0.00s)
+=== RUN   TestIsRequestDuplicate_NewRequest
+--- PASS: TestIsRequestDuplicate_NewRequest (0.00s)
+=== RUN   TestIsRequestDuplicate_DuplicateRequest
+--- PASS: TestIsRequestDuplicate_DuplicateRequest (0.00s)
+=== RUN   TestIncrementUserFrequency_Success
+--- PASS: TestIncrementUserFrequency_Success (0.00s)
+=== RUN   TestGetUserFrequency_Success
+--- PASS: TestGetUserFrequency_Success (0.00s)
+=== RUN   TestGetUserFrequency_CacheMiss
+--- PASS: TestGetUserFrequency_CacheMiss (0.00s)
+=== RUN   TestIncrementCampaignClicks_Success
+--- PASS: TestIncrementCampaignClicks_Success (0.00s)
+=== RUN   TestIncrementCampaignImpressions_Success
+--- PASS: TestIncrementCampaignImpressions_Success (0.00s)
+=== RUN   TestIncrementCampaignBids_Success
+--- PASS: TestIncrementCampaignBids_Success (0.00s)
+=== RUN   TestIncrementCampaignWins_Success
+--- PASS: TestIncrementCampaignWins_Success (0.00s)
+=== RUN   TestGetCampaignCTR_Success
+--- PASS: TestGetCampaignCTR_Success (0.00s)
+=== RUN   TestGetCampaignCTR_NoImpressions
+--- PASS: TestGetCampaignCTR_NoImpressions (0.00s)
+=== RUN   TestGetCampaignWinRate_Success
+--- PASS: TestGetCampaignWinRate_Success (0.00s)
+=== RUN   TestGetCampaignWinRate_NoBids
+--- PASS: TestGetCampaignWinRate_NoBids (0.00s)
+=== RUN   TestHealth_Success
+--- PASS: TestHealth_Success (0.00s)
+=== RUN   TestStoreBidPathAnalytics_Success
+--- PASS: TestStoreBidPathAnalytics_Success (0.00s)
+=== RUN   TestGetBidPathAnalytics_Success
+--- PASS: TestGetBidPathAnalytics_Success (0.00s)
+=== RUN   TestGetBidPathAnalytics_NotFound
+--- PASS: TestGetBidPathAnalytics_NotFound (0.00s)
+=== RUN   TestGetBidFormats_Success
+--- PASS: TestGetBidFormats_Success (0.00s)
+=== RUN   TestGetBidFormats_WithCacheMisses
+--- PASS: TestGetBidFormats_WithCacheMisses (0.00s)
+=== RUN   TestIncrementSegmentImpressions_Success
+--- PASS: TestIncrementSegmentImpressions_Success (0.00s)
+=== RUN   TestIncrementSegmentClicks_Success
+--- PASS: TestIncrementSegmentClicks_Success (0.00s)
+=== RUN   TestRecordBidInBucket_Success
+--- PASS: TestRecordBidInBucket_Success (0.00s)
+=== RUN   TestRecordWinInBucket_Success
+--- PASS: TestRecordWinInBucket_Success (0.00s)
+=== RUN   TestGetAttribution_ClickFound
+--- PASS: TestGetAttribution_ClickFound (0.00s)
+=== RUN   TestGetAttribution_ImpressionFound
+--- PASS: TestGetAttribution_ImpressionFound (0.00s)
+=== RUN   TestGetAttribution_NoneFound
+--- PASS: TestGetAttribution_NoneFound (0.00s)
+=== RUN   TestHasUserEvent_Success
+--- PASS: TestHasUserEvent_Success (0.00s)
+=== RUN   TestHasUserEvent_NotFound
+--- PASS: TestHasUserEvent_NotFound (0.00s)
+=== RUN   TestGetLinkedDevices_Success
+--- PASS: TestGetLinkedDevices_Success (0.00s)
+=== RUN   TestGetPrimaryUserID_Success
+--- PASS: TestGetPrimaryUserID_Success (0.00s)
+=== RUN   TestGetPrimaryUserID_NotLinked
+--- PASS: TestGetPrimaryUserID_NotLinked (0.00s)
+=== RUN   TestGetCrossDeviceFrequency_Success
+--- PASS: TestGetCrossDeviceFrequency_Success (0.00s)
+=== RUN   TestGetServiceMetrics_Success
+    redis_test.go:1260: Requires implementation-specific key patterns
+--- SKIP: TestGetServiceMetrics_Success (0.00s)
+=== RUN   TestGetBidLandscape_Success
+    redis_test.go:1270: Requires implementation-specific key patterns
+--- SKIP: TestGetBidLandscape_Success (0.00s)
+=== RUN   TestRecordImpression_Success
+--- PASS: TestRecordImpression_Success (0.00s)
+=== RUN   TestRecordClick_Success
+--- PASS: TestRecordClick_Success (0.00s)
+=== RUN   TestRecordUserEvent_Success
+--- PASS: TestRecordUserEvent_Success (0.00s)
+=== RUN   TestGetUserEvents_Success
+--- PASS: TestGetUserEvents_Success (0.00s)
+=== RUN   TestSet_Error
+--- PASS: TestSet_Error (0.00s)
+=== RUN   TestGet_Error
+--- PASS: TestGet_Error (0.00s)
+=== RUN   TestIncrementCampaignSpend_Error
+--- PASS: TestIncrementCampaignSpend_Error (0.00s)
+=== RUN   TestGetCampaignSpend_Error
+--- PASS: TestGetCampaignSpend_Error (0.00s)
+=== RUN   TestIncrementUserFrequency_Error
+--- PASS: TestIncrementUserFrequency_Error (0.00s)
+=== RUN   TestGetUserFrequency_Error
+--- PASS: TestGetUserFrequency_Error (0.00s)
+=== RUN   TestGetCampaignCTR_Error
+--- PASS: TestGetCampaignCTR_Error (0.00s)
+=== RUN   TestGetCampaignWinRate_Error
+--- PASS: TestGetCampaignWinRate_Error (0.00s)
+=== RUN   TestHasUserEvent_Error
+--- PASS: TestHasUserEvent_Error (0.00s)
+=== RUN   TestGetLinkedDevices_NoPrimaryUser
+--- PASS: TestGetLinkedDevices_NoPrimaryUser (0.00s)
+=== RUN   TestGetPrimaryUserID_Error
+--- PASS: TestGetPrimaryUserID_Error (0.00s)
+=== RUN   TestGetCrossDeviceFrequency_Error
+--- PASS: TestGetCrossDeviceFrequency_Error (0.00s)
+=== RUN   TestLinkDevices_Success
+--- PASS: TestLinkDevices_Success (0.00s)
+=== RUN   TestLinkDevices_WithCustomTTL
+--- PASS: TestLinkDevices_WithCustomTTL (0.00s)
+=== RUN   TestLinkDevices_EmptyPrimaryUserID
+--- PASS: TestLinkDevices_EmptyPrimaryUserID (0.00s)
+=== RUN   TestLinkDevices_EmptyDevices
+--- PASS: TestLinkDevices_EmptyDevices (0.00s)
+=== RUN   TestRecordTouchpoint_Success
+--- PASS: TestRecordTouchpoint_Success (0.00s)
+=== RUN   TestRecordTouchpoint_EmptyUserID
+--- PASS: TestRecordTouchpoint_EmptyUserID (0.00s)
+=== RUN   TestRecordTouchpoint_EmptyCampaignID
+--- PASS: TestRecordTouchpoint_EmptyCampaignID (0.00s)
+=== RUN   TestRecordTouchpoint_EmptyType
+--- PASS: TestRecordTouchpoint_EmptyType (0.00s)
+=== RUN   TestGetTouchpoints_Success
+--- PASS: TestGetTouchpoints_Success (0.00s)
+=== RUN   TestGetTouchpoints_Empty
+--- PASS: TestGetTouchpoints_Empty (0.00s)
+=== RUN   TestGetTouchpoints_Error
+--- PASS: TestGetTouchpoints_Error (0.00s)
+=== RUN   TestGetMultiTouchAttribution_LinearModel
+--- PASS: TestGetMultiTouchAttribution_LinearModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_FirstTouchModel
+--- PASS: TestGetMultiTouchAttribution_FirstTouchModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_LastTouchModel
+--- PASS: TestGetMultiTouchAttribution_LastTouchModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_PositionBasedModel
+--- PASS: TestGetMultiTouchAttribution_PositionBasedModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_TimeDecayModel
+--- PASS: TestGetMultiTouchAttribution_TimeDecayModel (0.00s)
+=== RUN   TestGetMultiTouchAttribution_EmptyTouchpoints
+--- PASS: TestGetMultiTouchAttribution_EmptyTouchpoints (0.00s)
+=== RUN   TestGetSupplyChainMetrics_Success
+--- PASS: TestGetSupplyChainMetrics_Success (0.00s)
+=== RUN   TestGetSupplyChainMetrics_NoData
+--- PASS: TestGetSupplyChainMetrics_NoData (0.00s)
+=== RUN   TestGetSupplyChainMetrics_Error
+--- PASS: TestGetSupplyChainMetrics_Error (0.00s)
+=== RUN   TestGetBidLandscape_Error
+--- PASS: TestGetBidLandscape_Error (0.00s)
+=== RUN   TestGetSegmentPerformance_Success
+--- PASS: TestGetSegmentPerformance_Success (0.00s)
+=== RUN   TestGetSegmentPerformance_Error
+--- PASS: TestGetSegmentPerformance_Error (0.00s)
+=== RUN   TestRecordPublisherBidAttempt_Won
+--- PASS: TestRecordPublisherBidAttempt_Won (0.00s)
+=== RUN   TestRecordPublisherBidAttempt_Lost
+--- PASS: TestRecordPublisherBidAttempt_Lost (0.00s)
+=== RUN   TestGetOptimalBidFloor_Success
+--- PASS: TestGetOptimalBidFloor_Success (0.00s)
+=== RUN   TestGetOptimalBidFloor_NoData
+--- PASS: TestGetOptimalBidFloor_NoData (0.00s)
+=== RUN   TestGetOptimalBidFloor_Error
+--- PASS: TestGetOptimalBidFloor_Error (0.00s)
+=== RUN   TestRecordUserEvent_EmptyUserID
+--- PASS: TestRecordUserEvent_EmptyUserID (0.00s)
+=== RUN   TestRecordUserEvent_EmptyCampaignID
+--- PASS: TestRecordUserEvent_EmptyCampaignID (0.00s)
+=== RUN   TestRecordUserEvent_EmptyEventType
+--- PASS: TestRecordUserEvent_EmptyEventType (0.00s)
+=== RUN   TestGetPriceBucketForFloor
+--- PASS: TestGetPriceBucketForFloor (0.00s)
+=== RUN   TestGetServiceMetrics_FoundInAnalytics
+--- PASS: TestGetServiceMetrics_FoundInAnalytics (0.00s)
+=== RUN   TestGetServiceMetrics_NotFound
+--- PASS: TestGetServiceMetrics_NotFound (0.00s)
+=== RUN   TestStoreBidPathAnalytics_WithMock
+--- PASS: TestStoreBidPathAnalytics_WithMock (0.00s)
+=== RUN   TestStoreBidPathAnalytics_Error
+--- PASS: TestStoreBidPathAnalytics_Error (0.00s)
+=== RUN   TestGetBidPathAnalytics_WithMock
+--- PASS: TestGetBidPathAnalytics_WithMock (0.00s)
+=== RUN   TestGetBidPathAnalytics_CacheMiss
+--- PASS: TestGetBidPathAnalytics_CacheMiss (0.00s)
+=== RUN   TestGetBidPathAnalytics_Error
+--- PASS: TestGetBidPathAnalytics_Error (0.00s)
+=== RUN   TestGetBidLandscape_WithData
+--- PASS: TestGetBidLandscape_WithData (0.00s)
+=== RUN   TestSetUserSegments_WithMock
+--- PASS: TestSetUserSegments_WithMock (0.00s)
+=== RUN   TestSetUserSegments_Error
+--- PASS: TestSetUserSegments_Error (0.00s)
+=== RUN   TestGetUserSegments_WithMock
+--- PASS: TestGetUserSegments_WithMock (0.00s)
+=== RUN   TestGetUserSegments_NotFound
+--- PASS: TestGetUserSegments_NotFound (0.00s)
+=== RUN   TestGetUserSegments_Error
+--- PASS: TestGetUserSegments_Error (0.00s)
+=== RUN   TestSetGeoRules_WithMock
+--- PASS: TestSetGeoRules_WithMock (0.00s)
+=== RUN   TestSetGeoRules_Error
+--- PASS: TestSetGeoRules_Error (0.00s)
+=== RUN   TestGetGeoRules_WithMock
+--- PASS: TestGetGeoRules_WithMock (0.00s)
+=== RUN   TestGetGeoRules_NotFound
+--- PASS: TestGetGeoRules_NotFound (0.00s)
+=== RUN   TestGetGeoRules_Error
+--- PASS: TestGetGeoRules_Error (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/cache	0.069s

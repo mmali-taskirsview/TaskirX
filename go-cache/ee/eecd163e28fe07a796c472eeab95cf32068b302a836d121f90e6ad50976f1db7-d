@@ -1,0 +1,1193 @@
+//line C:\TaskirX\go-bidding-engine\internal\cache\redis.go:1:1
+package cache
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"math"
+	"strings"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"github.com/taskirx/go-bidding-engine/internal/model"
+)
+
+// RedisCache handles Redis operations
+type RedisCache struct {
+	client *redis.Client
+	ctx    context.Context
+	ttl    time.Duration
+}
+
+// NewRedisCache creates a new Redis cache instance
+func NewRedisCache(redisURL string, password string, db int) (*RedisCache, error) {goCover_40ae6270e81c__0[0] = 7 ; goCover_40ae6270e81c__0[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__0[2] = 0 ; goCover_40ae6270e81c__0[3] = 1;
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {goCover_40ae6270e81c__0[7] = 1;
+		return nil, fmt.Errorf("failed to parse Redis URL: %w", err)
+	}
+
+	goCover_40ae6270e81c__0[4] = 1;if password != "" {goCover_40ae6270e81c__0[8] = 1;
+		opt.Password = password
+	}
+	goCover_40ae6270e81c__0[5] = 1;opt.DB = db
+	opt.PoolSize = 100
+	opt.MaxRetries = 3
+
+	client := redis.NewClient(opt)
+
+	ctx := context.Background()
+	if err := client.Ping(ctx).Err(); err != nil {goCover_40ae6270e81c__0[9] = 1;
+		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
+	}
+
+	goCover_40ae6270e81c__0[6] = 1;return &RedisCache{
+		client: client,
+		ctx:    ctx,
+		ttl:    5 * time.Minute,
+	}, nil
+}
+
+// GetActiveCampaigns retrieves all active campaigns from cache
+func (r *RedisCache) GetActiveCampaigns() ([]*model.Campaign, error) {goCover_40ae6270e81c__1[0] = 7 ; goCover_40ae6270e81c__1[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__1[2] = 1 ; goCover_40ae6270e81c__1[3] = 1;
+	key := "campaigns:active"
+
+	val, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__1[7] = 1;
+		return []*model.Campaign{}, nil // Cache miss
+	}
+	goCover_40ae6270e81c__1[4] = 1;if err != nil {goCover_40ae6270e81c__1[8] = 1;
+		return nil, fmt.Errorf("Redis GET error: %w", err)
+	}
+
+	goCover_40ae6270e81c__1[5] = 1;var campaigns []*model.Campaign
+	if err := json.Unmarshal([]byte(val), &campaigns); err != nil {goCover_40ae6270e81c__1[9] = 1;
+		return nil, fmt.Errorf("failed to unmarshal campaigns: %w", err)
+	}
+
+	goCover_40ae6270e81c__1[6] = 1;return campaigns, nil
+}
+
+// SetActiveCampaigns caches active campaigns
+func (r *RedisCache) SetActiveCampaigns(campaigns []*model.Campaign) error {goCover_40ae6270e81c__2[0] = 5 ; goCover_40ae6270e81c__2[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__2[2] = 2 ; goCover_40ae6270e81c__2[3] = 1;
+	key := "campaigns:active"
+
+	data, err := json.Marshal(campaigns)
+	if err != nil {goCover_40ae6270e81c__2[6] = 1;
+		return fmt.Errorf("failed to marshal campaigns: %w", err)
+	}
+
+	goCover_40ae6270e81c__2[4] = 1;if err := r.client.Set(r.ctx, key, data, r.ttl).Err(); err != nil {goCover_40ae6270e81c__2[7] = 1;
+		return fmt.Errorf("Redis SET error: %w", err)
+	}
+
+	goCover_40ae6270e81c__2[5] = 1;return nil
+}
+
+// GetCampaign retrieves a specific campaign by ID
+func (r *RedisCache) GetCampaign(campaignID string) (*model.Campaign, error) {goCover_40ae6270e81c__3[0] = 7 ; goCover_40ae6270e81c__3[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__3[2] = 3 ; goCover_40ae6270e81c__3[3] = 1;
+	key := fmt.Sprintf("campaign:%s", campaignID)
+
+	val, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__3[7] = 1;
+		return nil, nil // Cache miss
+	}
+	goCover_40ae6270e81c__3[4] = 1;if err != nil {goCover_40ae6270e81c__3[8] = 1;
+		return nil, fmt.Errorf("Redis GET error: %w", err)
+	}
+
+	goCover_40ae6270e81c__3[5] = 1;var campaign model.Campaign
+	if err := json.Unmarshal([]byte(val), &campaign); err != nil {goCover_40ae6270e81c__3[9] = 1;
+		return nil, fmt.Errorf("failed to unmarshal campaign: %w", err)
+	}
+
+	goCover_40ae6270e81c__3[6] = 1;return &campaign, nil
+}
+
+// SetCampaign caches a specific campaign
+func (r *RedisCache) SetCampaign(campaign *model.Campaign) error {goCover_40ae6270e81c__4[0] = 5 ; goCover_40ae6270e81c__4[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__4[2] = 4 ; goCover_40ae6270e81c__4[3] = 1;
+	key := fmt.Sprintf("campaign:%s", campaign.ID)
+
+	data, err := json.Marshal(campaign)
+	if err != nil {goCover_40ae6270e81c__4[6] = 1;
+		return fmt.Errorf("failed to marshal campaign: %w", err)
+	}
+
+	goCover_40ae6270e81c__4[4] = 1;if err := r.client.Set(r.ctx, key, data, r.ttl).Err(); err != nil {goCover_40ae6270e81c__4[7] = 1;
+		return fmt.Errorf("Redis SET error: %w", err)
+	}
+
+	goCover_40ae6270e81c__4[5] = 1;return nil
+}
+
+// IncrementBidCount increments the bid counter for metrics
+func (r *RedisCache) IncrementBidCount() error {goCover_40ae6270e81c__5[0] = 1 ; goCover_40ae6270e81c__5[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__5[2] = 5 ; goCover_40ae6270e81c__5[3] = 1;
+	key := "metrics:bids:total"
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// IncrementWinCount increments the win counter
+func (r *RedisCache) IncrementWinCount() error {goCover_40ae6270e81c__6[0] = 1 ; goCover_40ae6270e81c__6[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__6[2] = 6 ; goCover_40ae6270e81c__6[3] = 1;
+	key := "metrics:wins:total"
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// GetBidCount gets total bid count
+func (r *RedisCache) GetBidCount() (int64, error) {goCover_40ae6270e81c__7[0] = 1 ; goCover_40ae6270e81c__7[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__7[2] = 7 ; goCover_40ae6270e81c__7[3] = 1;
+	key := "metrics:bids:total"
+	return r.client.Get(r.ctx, key).Int64()
+}
+
+// GetWinCount gets total win count
+func (r *RedisCache) GetWinCount() (int64, error) {goCover_40ae6270e81c__8[0] = 1 ; goCover_40ae6270e81c__8[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__8[2] = 8 ; goCover_40ae6270e81c__8[3] = 1;
+	key := "metrics:wins:total"
+	return r.client.Get(r.ctx, key).Int64()
+}
+
+// RecordLatency records bid processing latency
+func (r *RedisCache) RecordLatency(latencyMs float64) error {goCover_40ae6270e81c__9[0] = 1 ; goCover_40ae6270e81c__9[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__9[2] = 9 ; goCover_40ae6270e81c__9[3] = 1;
+	key := "metrics:latency"
+	timestamp := time.Now().Unix()
+	score := float64(timestamp)
+
+	return r.client.ZAdd(r.ctx, key, redis.Z{
+		Score:  score,
+		Member: latencyMs,
+	}).Err()
+}
+
+// GetAverageLatency calculates average latency from last 1000 samples
+func (r *RedisCache) GetAverageLatency() (float64, error) {goCover_40ae6270e81c__10[0] = 10 ; goCover_40ae6270e81c__10[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__10[2] = 10 ; goCover_40ae6270e81c__10[3] = 1;
+	key := "metrics:latency"
+
+	vals, err := r.client.ZRevRange(r.ctx, key, 0, 999).Result()
+	if err != nil {goCover_40ae6270e81c__10[8] = 1;
+		return 0, err
+	}
+
+	goCover_40ae6270e81c__10[4] = 1;if len(vals) == 0 {goCover_40ae6270e81c__10[9] = 1;
+		return 0, nil
+	}
+
+	goCover_40ae6270e81c__10[5] = 1;var sum float64
+	var count int
+	for _, val := range vals {goCover_40ae6270e81c__10[10] = 1;
+		var latency float64
+		if _, err := fmt.Sscanf(val, "%f", &latency); err == nil {goCover_40ae6270e81c__10[11] = 1;
+			sum += latency
+			count++
+		}
+	}
+
+	goCover_40ae6270e81c__10[6] = 1;if count == 0 {goCover_40ae6270e81c__10[12] = 1;
+		return 0, nil
+	}
+
+	goCover_40ae6270e81c__10[7] = 1;return sum / float64(count), nil
+}
+
+// SetUserSegments caches user segments for a user
+func (r *RedisCache) SetUserSegments(userID string, segments []string) error {goCover_40ae6270e81c__11[0] = 3 ; goCover_40ae6270e81c__11[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__11[2] = 11 ; goCover_40ae6270e81c__11[3] = 1;
+	key := fmt.Sprintf("user:%s:segments", userID)
+	data, err := json.Marshal(segments)
+	if err != nil {goCover_40ae6270e81c__11[5] = 1;
+		return fmt.Errorf("failed to marshal segments: %w", err)
+	}
+	goCover_40ae6270e81c__11[4] = 1;return r.client.Set(r.ctx, key, data, r.ttl).Err()
+}
+
+// GetUserSegments retrieves cached user segments
+func (r *RedisCache) GetUserSegments(userID string) ([]string, error) {goCover_40ae6270e81c__12[0] = 7 ; goCover_40ae6270e81c__12[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__12[2] = 12 ; goCover_40ae6270e81c__12[3] = 1;
+	key := fmt.Sprintf("user:%s:segments", userID)
+	val, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__12[7] = 1;
+		return nil, nil // Cache miss
+	}
+	goCover_40ae6270e81c__12[4] = 1;if err != nil {goCover_40ae6270e81c__12[8] = 1;
+		return nil, fmt.Errorf("Redis GET error: %w", err)
+	}
+
+	goCover_40ae6270e81c__12[5] = 1;var segments []string
+	if err := json.Unmarshal([]byte(val), &segments); err != nil {goCover_40ae6270e81c__12[9] = 1;
+		return nil, fmt.Errorf("failed to unmarshal segments: %w", err)
+	}
+	goCover_40ae6270e81c__12[6] = 1;return segments, nil
+}
+
+// SetGeoRules caches geo-targeting rules
+func (r *RedisCache) SetGeoRules(countryCode string, rules map[string]interface{}) error {goCover_40ae6270e81c__13[0] = 3 ; goCover_40ae6270e81c__13[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__13[2] = 13 ; goCover_40ae6270e81c__13[3] = 1;
+	key := fmt.Sprintf("geo:%s:rules", countryCode)
+	data, err := json.Marshal(rules)
+	if err != nil {goCover_40ae6270e81c__13[5] = 1;
+		return fmt.Errorf("failed to marshal geo rules: %w", err)
+	}
+	goCover_40ae6270e81c__13[4] = 1;return r.client.Set(r.ctx, key, data, r.ttl).Err()
+}
+
+// GetGeoRules retrieves cached geo rules
+func (r *RedisCache) GetGeoRules(countryCode string) (map[string]interface{}, error) {goCover_40ae6270e81c__14[0] = 7 ; goCover_40ae6270e81c__14[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__14[2] = 14 ; goCover_40ae6270e81c__14[3] = 1;
+	key := fmt.Sprintf("geo:%s:rules", countryCode)
+	val, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__14[7] = 1;
+		return nil, nil // Cache miss
+	}
+	goCover_40ae6270e81c__14[4] = 1;if err != nil {goCover_40ae6270e81c__14[8] = 1;
+		return nil, fmt.Errorf("Redis GET error: %w", err)
+	}
+
+	goCover_40ae6270e81c__14[5] = 1;var rules map[string]interface{}
+	if err := json.Unmarshal([]byte(val), &rules); err != nil {goCover_40ae6270e81c__14[9] = 1;
+		return nil, fmt.Errorf("failed to unmarshal geo rules: %w", err)
+	}
+	goCover_40ae6270e81c__14[6] = 1;return rules, nil
+}
+
+// CampaignSpend represents daily spend tracking
+type CampaignSpend struct {
+	CampaignID string  `json:"campaign_id"`
+	Spend      float64 `json:"spend"`
+}
+
+// IncrementCampaignSpend atomically increments the spend for a campaign for the current day
+// Returns the new total spend for the day
+func (r *RedisCache) IncrementCampaignSpend(campaignID string, amount float64) (float64, error) {goCover_40ae6270e81c__15[0] = 5 ; goCover_40ae6270e81c__15[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__15[2] = 15 ; goCover_40ae6270e81c__15[3] = 1;
+	// Key format: campaign:spend:<campaign_id>:<YYYY-MM-DD>
+	dateStr := time.Now().Format("2006-01-02")
+	key := fmt.Sprintf("campaign:spend:%s:%s", campaignID, dateStr)
+
+	// Redis INCRBYFLOAT is atomic
+	newSpend, err := r.client.IncrByFloat(r.ctx, key, amount).Result()
+	if err != nil {goCover_40ae6270e81c__15[6] = 1;
+		return 0, fmt.Errorf("failed to increment campaign spend: %w", err)
+	}
+
+	// Set expiry for 48 hours (keep history for a bit)
+	goCover_40ae6270e81c__15[4] = 1;if err := r.client.Expire(r.ctx, key, 48*time.Hour).Err(); err != nil {goCover_40ae6270e81c__15[7] = 1;
+		// Log error but don't fail operation
+		fmt.Printf("failed to set expiry for spend key: %v\n", err)
+	}
+
+	goCover_40ae6270e81c__15[5] = 1;return newSpend, nil
+}
+
+// GetCampaignSpend retrieves the current day's spend for a campaign
+func (r *RedisCache) GetCampaignSpend(campaignID string) (float64, error) {goCover_40ae6270e81c__16[0] = 5 ; goCover_40ae6270e81c__16[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__16[2] = 16 ; goCover_40ae6270e81c__16[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	key := fmt.Sprintf("campaign:spend:%s:%s", campaignID, dateStr)
+
+	val, err := r.client.Get(r.ctx, key).Float64()
+	if err == redis.Nil {goCover_40ae6270e81c__16[6] = 1;
+		return 0.0, nil
+	}
+	goCover_40ae6270e81c__16[4] = 1;if err != nil {goCover_40ae6270e81c__16[7] = 1;
+		return 0.0, fmt.Errorf("failed to get campaign spend: %w", err)
+	}
+	goCover_40ae6270e81c__16[5] = 1;return val, nil
+}
+
+// Get retrieves a value by key
+func (r *RedisCache) Get(key string) (string, error) {goCover_40ae6270e81c__17[0] = 5 ; goCover_40ae6270e81c__17[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__17[2] = 17 ; goCover_40ae6270e81c__17[3] = 1;
+	val, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__17[6] = 1;
+		return "", nil // Cache miss
+	}
+	goCover_40ae6270e81c__17[4] = 1;if err != nil {goCover_40ae6270e81c__17[7] = 1;
+		return "", fmt.Errorf("Redis GET error: %w", err)
+	}
+	goCover_40ae6270e81c__17[5] = 1;return val, nil
+}
+
+// Set stores a key-value pair with TTL in seconds
+func (r *RedisCache) Set(key string, value interface{}, ttl int64) error {goCover_40ae6270e81c__18[0] = 3 ; goCover_40ae6270e81c__18[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__18[2] = 18 ; goCover_40ae6270e81c__18[3] = 1;
+	expiration := time.Duration(ttl) * time.Second
+	if err := r.client.Set(r.ctx, key, value, expiration).Err(); err != nil {goCover_40ae6270e81c__18[5] = 1;
+		return fmt.Errorf("Redis SET error: %w", err)
+	}
+	goCover_40ae6270e81c__18[4] = 1;return nil
+}
+
+// Close closes the Redis connection
+func (r *RedisCache) Close() error {goCover_40ae6270e81c__19[0] = 1 ; goCover_40ae6270e81c__19[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__19[2] = 19 ; goCover_40ae6270e81c__19[3] = 1;
+	return r.client.Close()
+}
+
+// Health checks Redis connection health
+func (r *RedisCache) Health() error {goCover_40ae6270e81c__20[0] = 1 ; goCover_40ae6270e81c__20[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__20[2] = 20 ; goCover_40ae6270e81c__20[3] = 1;
+	return r.client.Ping(r.ctx).Err()
+}
+
+// IncrementPublisherFraud increments the fraud count for a publisher
+func (r *RedisCache) IncrementPublisherFraud(publisherID string) error {goCover_40ae6270e81c__21[0] = 3 ; goCover_40ae6270e81c__21[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__21[2] = 21 ; goCover_40ae6270e81c__21[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	key := fmt.Sprintf("fraud:publisher:%s:%s:count", publisherID, dateStr)
+
+	// Increment
+	_, err := r.client.Incr(r.ctx, key).Result()
+	if err != nil {goCover_40ae6270e81c__21[5] = 1;
+		return fmt.Errorf("failed to increment fraud count: %w", err)
+	}
+
+	// Add to set of flagged publishers for easy scanning
+	goCover_40ae6270e81c__21[4] = 1;setKey := fmt.Sprintf("fraud:publishers:active:%s", dateStr)
+	r.client.SAdd(r.ctx, setKey, publisherID)
+
+	return nil
+}
+
+// IsRequestDuplicate checks if a request ID has been seen before within TTL window.
+// Returns true if duplicate (already exists), false if first time seeing it.
+// Uses SetNX (SET if Not eXists) for atomic check-and-set operation.
+func (r *RedisCache) IsRequestDuplicate(requestID string, ttlSeconds int) (bool, error) {goCover_40ae6270e81c__22[0] = 3 ; goCover_40ae6270e81c__22[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__22[2] = 22 ; goCover_40ae6270e81c__22[3] = 1;
+	key := fmt.Sprintf("dedup:req:%s", requestID)
+
+	// SetNX returns true if key was set (first time seeing it), false if already exists
+	wasSet, err := r.client.SetNX(r.ctx, key, "1", time.Duration(ttlSeconds)*time.Second).Result()
+	if err != nil {goCover_40ae6270e81c__22[5] = 1;
+		return false, fmt.Errorf("failed to check request deduplication: %w", err)
+	}
+
+	// If wasSet is true, this is NOT a duplicate (first time)
+	// If wasSet is false, this IS a duplicate (already seen)
+	goCover_40ae6270e81c__22[4] = 1;isDuplicate := !wasSet
+
+	return isDuplicate, nil
+}
+
+// IncrementBidFormat increments the bid count for a specific format
+func (r *RedisCache) IncrementBidFormat(format string) error {goCover_40ae6270e81c__23[0] = 3 ; goCover_40ae6270e81c__23[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__23[2] = 23 ; goCover_40ae6270e81c__23[3] = 1;
+	key := fmt.Sprintf("stats:bids:format:%s", format)
+	_, err := r.client.Incr(r.ctx, key).Result()
+	if err != nil {goCover_40ae6270e81c__23[5] = 1;
+		return fmt.Errorf("failed to increment bid format %s: %w", format, err)
+	}
+	goCover_40ae6270e81c__23[4] = 1;return nil
+}
+
+// GetBidFormats retrieves the bid counts for all formats
+func (r *RedisCache) GetBidFormats() (map[string]int64, error) {goCover_40ae6270e81c__24[0] = 7 ; goCover_40ae6270e81c__24[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__24[2] = 24 ; goCover_40ae6270e81c__24[3] = 1;
+	formats := []string{"banner", "video", "native", "audio"}
+	result := make(map[string]int64)
+
+	for _, format := range formats {goCover_40ae6270e81c__24[5] = 1;
+		key := fmt.Sprintf("stats:bids:format:%s", format)
+		val, err := r.client.Get(r.ctx, key).Int64()
+		if err == redis.Nil {goCover_40ae6270e81c__24[7] = 1;
+			val = 0
+		} else{ goCover_40ae6270e81c__24[8] = 1;if err != nil {goCover_40ae6270e81c__24[9] = 1;
+			// Log error but continue
+			fmt.Printf("Error getting format stats %s: %v\n", format, err)
+			continue
+		}}
+		goCover_40ae6270e81c__24[6] = 1;result[format] = val
+	}
+	goCover_40ae6270e81c__24[4] = 1;return result, nil
+}
+
+// StoreBidPathAnalytics stores SPO analytics for a bid request
+func (r *RedisCache) StoreBidPathAnalytics(analytics *model.BidPathAnalytics) error {goCover_40ae6270e81c__25[0] = 3 ; goCover_40ae6270e81c__25[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__25[2] = 25 ; goCover_40ae6270e81c__25[3] = 1;
+	key := fmt.Sprintf("spo:analytics:%s", analytics.RequestID)
+
+	jsonData, err := json.Marshal(analytics)
+	if err != nil {goCover_40ae6270e81c__25[5] = 1;
+		return fmt.Errorf("failed to marshal analytics: %w", err)
+	}
+
+	// Store with 24 hour TTL
+	goCover_40ae6270e81c__25[4] = 1;return r.client.Set(r.ctx, key, jsonData, 24*time.Hour).Err()
+}
+
+// GetBidPathAnalytics retrieves SPO analytics for a specific request
+func (r *RedisCache) GetBidPathAnalytics(requestID string) (*model.BidPathAnalytics, error) {goCover_40ae6270e81c__26[0] = 7 ; goCover_40ae6270e81c__26[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__26[2] = 26 ; goCover_40ae6270e81c__26[3] = 1;
+	key := fmt.Sprintf("spo:analytics:%s", requestID)
+
+	jsonData, err := r.client.Get(r.ctx, key).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__26[6] = 1;
+		return nil, fmt.Errorf("analytics not found for request %s", requestID)
+	} else{ goCover_40ae6270e81c__26[7] = 1;if err != nil {goCover_40ae6270e81c__26[8] = 1;
+		return nil, fmt.Errorf("failed to get analytics: %w", err)
+	}}
+
+	goCover_40ae6270e81c__26[4] = 1;var analytics model.BidPathAnalytics
+	if err := json.Unmarshal([]byte(jsonData), &analytics); err != nil {goCover_40ae6270e81c__26[9] = 1;
+		return nil, fmt.Errorf("failed to unmarshal analytics: %w", err)
+	}
+
+	goCover_40ae6270e81c__26[5] = 1;return &analytics, nil
+}
+
+// GetSupplyChainMetrics aggregates SPO metrics across time ranges
+func (r *RedisCache) GetSupplyChainMetrics(timeRange string) (*model.SupplyChainMetrics, error) {goCover_40ae6270e81c__27[0] = 23 ; goCover_40ae6270e81c__27[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__27[2] = 27 ; goCover_40ae6270e81c__27[3] = 1;
+	// For simplicity, we'll scan recent analytics and aggregate
+	// In production, you'd want proper time-series storage
+
+	pattern := "spo:analytics:*"
+	keys, err := r.client.Keys(r.ctx, pattern).Result()
+	if err != nil {goCover_40ae6270e81c__27[8] = 1;
+		return nil, fmt.Errorf("failed to scan analytics keys: %w", err)
+	}
+
+	goCover_40ae6270e81c__27[4] = 1;var totalRequests int64
+	var successfulBids int64
+	var totalLatency int64
+	var totalFees float64
+	serviceMetrics := make(map[string]*model.ServiceMetrics)
+
+	for _, key := range keys {goCover_40ae6270e81c__27[9] = 1;
+		jsonData, err := r.client.Get(r.ctx, key).Result()
+		if err != nil {goCover_40ae6270e81c__27[13] = 1;
+			continue // Skip if key expired or error
+		}
+
+		goCover_40ae6270e81c__27[10] = 1;var analytics model.BidPathAnalytics
+		if err := json.Unmarshal([]byte(jsonData), &analytics); err != nil {goCover_40ae6270e81c__27[14] = 1;
+			continue
+		}
+
+		goCover_40ae6270e81c__27[11] = 1;totalRequests++
+		if analytics.WonAuction {goCover_40ae6270e81c__27[15] = 1;
+			successfulBids++
+		}
+		goCover_40ae6270e81c__27[12] = 1;totalLatency += analytics.TotalLatencyMs
+		totalFees += analytics.TotalFees
+
+		// Aggregate service metrics
+		for _, hop := range analytics.Hops {goCover_40ae6270e81c__27[16] = 1;
+			if _, exists := serviceMetrics[hop.ServiceName]; !exists {goCover_40ae6270e81c__27[18] = 1;
+				serviceMetrics[hop.ServiceName] = &model.ServiceMetrics{
+					ServiceName: hop.ServiceName,
+				}
+			}
+
+			goCover_40ae6270e81c__27[17] = 1;metrics := serviceMetrics[hop.ServiceName]
+			metrics.TotalCalls++
+			metrics.TotalFees += hop.Fee
+			metrics.AvgLatencyMs += float64(hop.LatencyMs)
+
+			if hop.Success {goCover_40ae6270e81c__27[19] = 1;
+				metrics.SuccessRate = (metrics.SuccessRate*float64(metrics.TotalCalls-1) + 1.0) / float64(metrics.TotalCalls)
+			} else{ goCover_40ae6270e81c__27[20] = 1;{
+				metrics.SuccessRate = (metrics.SuccessRate*float64(metrics.TotalCalls-1) + 0.0) / float64(metrics.TotalCalls)
+				metrics.ErrorRate++
+			}}
+		}
+	}
+
+	// Convert service metrics map
+	goCover_40ae6270e81c__27[5] = 1;resultServiceMetrics := make(map[string]model.ServiceMetrics)
+	for name, metrics := range serviceMetrics {goCover_40ae6270e81c__27[21] = 1;
+		if metrics.TotalCalls > 0 {goCover_40ae6270e81c__27[23] = 1;
+			metrics.AvgLatencyMs /= float64(metrics.TotalCalls)
+		}
+		goCover_40ae6270e81c__27[22] = 1;resultServiceMetrics[name] = *metrics
+	}
+
+	// Calculate rates with division by zero protection
+	goCover_40ae6270e81c__27[6] = 1;var winRate, avgLatency, avgFees, pathEfficiency float64
+	if totalRequests > 0 {goCover_40ae6270e81c__27[24] = 1;
+		winRate = float64(successfulBids) / float64(totalRequests)
+		avgLatency = float64(totalLatency) / float64(totalRequests)
+		avgFees = totalFees / float64(totalRequests)
+		pathEfficiency = 1.0 - (float64(totalLatency) / float64(totalRequests) / 1000.0)
+	} else{ goCover_40ae6270e81c__27[25] = 1;{
+		winRate = 0.0
+		avgLatency = 0.0
+		avgFees = 0.0
+		pathEfficiency = 1.0
+	}}
+
+	goCover_40ae6270e81c__27[7] = 1;metrics := &model.SupplyChainMetrics{
+		TimeRange:      timeRange,
+		TotalRequests:  totalRequests,
+		SuccessfulBids: successfulBids,
+		WinRate:        winRate,
+		AvgLatencyMs:   avgLatency,
+		AvgTotalFees:   avgFees,
+		ServiceMetrics: resultServiceMetrics,
+		PathEfficiency: pathEfficiency,
+		Timestamp:      time.Now(),
+	}
+
+	return metrics, nil
+}
+
+// GetServiceMetrics returns metrics for a specific service
+func (r *RedisCache) GetServiceMetrics(serviceName string, timeRange string) (*model.ServiceMetrics, error) {goCover_40ae6270e81c__28[0] = 5 ; goCover_40ae6270e81c__28[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__28[2] = 28 ; goCover_40ae6270e81c__28[3] = 1;
+	// Get overall metrics and extract specific service
+	overall, err := r.GetSupplyChainMetrics(timeRange)
+	if err != nil {goCover_40ae6270e81c__28[6] = 1;
+		return nil, err
+	}
+
+	goCover_40ae6270e81c__28[4] = 1;if metrics, exists := overall.ServiceMetrics[serviceName]; exists {goCover_40ae6270e81c__28[7] = 1;
+		return &metrics, nil
+	}
+
+	goCover_40ae6270e81c__28[5] = 1;return nil, fmt.Errorf("service %s not found in metrics", serviceName)
+}
+
+// IncrementUserFrequency atomically increments the impression count for a user+campaign pair
+// and sets a TTL on first write to enforce the frequency window.
+func (r *RedisCache) IncrementUserFrequency(userID, campaignID string, windowSecs int) (int64, error) {goCover_40ae6270e81c__29[0] = 3 ; goCover_40ae6270e81c__29[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__29[2] = 29 ; goCover_40ae6270e81c__29[3] = 1;
+	key := fmt.Sprintf("freq:%s:%s", userID, campaignID)
+	pipe := r.client.Pipeline()
+	incr := pipe.Incr(r.ctx, key)
+	// Only set expiry on first increment (NX = only if not exists)
+	pipe.ExpireNX(r.ctx, key, time.Duration(windowSecs)*time.Second)
+	_, err := pipe.Exec(r.ctx)
+	if err != nil {goCover_40ae6270e81c__29[5] = 1;
+		return 0, err
+	}
+	goCover_40ae6270e81c__29[4] = 1;return incr.Val(), nil
+}
+
+// GetUserFrequency returns the current impression count for a user+campaign pair
+func (r *RedisCache) GetUserFrequency(userID, campaignID string) (int64, error) {goCover_40ae6270e81c__30[0] = 3 ; goCover_40ae6270e81c__30[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__30[2] = 30 ; goCover_40ae6270e81c__30[3] = 1;
+	key := fmt.Sprintf("freq:%s:%s", userID, campaignID)
+	val, err := r.client.Get(r.ctx, key).Int64()
+	if err == redis.Nil {goCover_40ae6270e81c__30[5] = 1;
+		return 0, nil
+	}
+	goCover_40ae6270e81c__30[4] = 1;return val, err
+}
+
+// IncrementCampaignClicks increments the click counter for a campaign (used for CTR calculation)
+func (r *RedisCache) IncrementCampaignClicks(campaignID string) error {goCover_40ae6270e81c__31[0] = 1 ; goCover_40ae6270e81c__31[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__31[2] = 31 ; goCover_40ae6270e81c__31[3] = 1;
+	key := fmt.Sprintf("campaign:clicks:%s:%s", campaignID, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// IncrementCampaignImpressions increments the impression counter for a campaign
+func (r *RedisCache) IncrementCampaignImpressions(campaignID string) error {goCover_40ae6270e81c__32[0] = 1 ; goCover_40ae6270e81c__32[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__32[2] = 32 ; goCover_40ae6270e81c__32[3] = 1;
+	key := fmt.Sprintf("campaign:imps:%s:%s", campaignID, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// GetCampaignCTR returns the click-through rate for a campaign based on today's data
+func (r *RedisCache) GetCampaignCTR(campaignID string) (float64, error) {goCover_40ae6270e81c__33[0] = 7 ; goCover_40ae6270e81c__33[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__33[2] = 33 ; goCover_40ae6270e81c__33[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	clicksKey := fmt.Sprintf("campaign:clicks:%s:%s", campaignID, dateStr)
+	impsKey := fmt.Sprintf("campaign:imps:%s:%s", campaignID, dateStr)
+
+	clicks, err := r.client.Get(r.ctx, clicksKey).Int64()
+	if err != nil && err != redis.Nil {goCover_40ae6270e81c__33[7] = 1;
+		return 0, err
+	}
+	goCover_40ae6270e81c__33[4] = 1;imps, err := r.client.Get(r.ctx, impsKey).Int64()
+	if err != nil && err != redis.Nil {goCover_40ae6270e81c__33[8] = 1;
+		return 0, err
+	}
+	goCover_40ae6270e81c__33[5] = 1;if imps == 0 {goCover_40ae6270e81c__33[9] = 1;
+		return 0, nil
+	}
+	goCover_40ae6270e81c__33[6] = 1;return float64(clicks) / float64(imps), nil
+}
+
+// GetCampaignWinRate returns the win rate based on bids vs wins stored per campaign
+func (r *RedisCache) GetCampaignWinRate(campaignID string) (float64, error) {goCover_40ae6270e81c__34[0] = 7 ; goCover_40ae6270e81c__34[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__34[2] = 34 ; goCover_40ae6270e81c__34[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	bidsKey := fmt.Sprintf("campaign:bids:%s:%s", campaignID, dateStr)
+	winsKey := fmt.Sprintf("campaign:wins:%s:%s", campaignID, dateStr)
+
+	bids, err := r.client.Get(r.ctx, bidsKey).Int64()
+	if err != nil && err != redis.Nil {goCover_40ae6270e81c__34[7] = 1;
+		return 0, err
+	}
+	goCover_40ae6270e81c__34[4] = 1;wins, err := r.client.Get(r.ctx, winsKey).Int64()
+	if err != nil && err != redis.Nil {goCover_40ae6270e81c__34[8] = 1;
+		return 0, err
+	}
+	goCover_40ae6270e81c__34[5] = 1;if bids == 0 {goCover_40ae6270e81c__34[9] = 1;
+		return 0.5, nil // Default 50% win rate when no data
+	}
+	goCover_40ae6270e81c__34[6] = 1;return float64(wins) / float64(bids), nil
+}
+
+// IncrementCampaignBids increments the daily bid-participation counter for a campaign.
+// This is the denominator in win-rate = wins / bids.
+func (r *RedisCache) IncrementCampaignBids(campaignID string) error {goCover_40ae6270e81c__35[0] = 1 ; goCover_40ae6270e81c__35[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__35[2] = 35 ; goCover_40ae6270e81c__35[3] = 1;
+	key := fmt.Sprintf("campaign:bids:%s:%s", campaignID, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// IncrementCampaignWins increments the daily win counter for a campaign.
+// This is the numerator in win-rate = wins / bids.
+func (r *RedisCache) IncrementCampaignWins(campaignID string) error {goCover_40ae6270e81c__36[0] = 1 ; goCover_40ae6270e81c__36[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__36[2] = 36 ; goCover_40ae6270e81c__36[3] = 1;
+	key := fmt.Sprintf("campaign:wins:%s:%s", campaignID, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// RecordBidInBucket tracks a bid in the appropriate price bucket
+func (r *RedisCache) RecordBidInBucket(priceBucket string) error {goCover_40ae6270e81c__37[0] = 1 ; goCover_40ae6270e81c__37[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__37[2] = 37 ; goCover_40ae6270e81c__37[3] = 1;
+	key := fmt.Sprintf("landscape:bids:%s:%s", priceBucket, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// RecordWinInBucket tracks a win in the appropriate price bucket
+func (r *RedisCache) RecordWinInBucket(priceBucket string) error {goCover_40ae6270e81c__38[0] = 1 ; goCover_40ae6270e81c__38[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__38[2] = 38 ; goCover_40ae6270e81c__38[3] = 1;
+	key := fmt.Sprintf("landscape:wins:%s:%s", priceBucket, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// GetBidLandscape returns bid and win counts across all price buckets for today
+func (r *RedisCache) GetBidLandscape() (map[string]map[string]int64, error) {goCover_40ae6270e81c__39[0] = 11 ; goCover_40ae6270e81c__39[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__39[2] = 39 ; goCover_40ae6270e81c__39[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	pattern := fmt.Sprintf("landscape:*:%s", dateStr)
+
+	keys, err := r.client.Keys(r.ctx, pattern).Result()
+	if err != nil {goCover_40ae6270e81c__39[6] = 1;
+		return nil, err
+	}
+
+	goCover_40ae6270e81c__39[4] = 1;landscape := make(map[string]map[string]int64)
+
+	for _, key := range keys {goCover_40ae6270e81c__39[7] = 1;
+		// Key format: landscape:{bids|wins}:{bucket}:{date}
+		parts := strings.Split(key, ":")
+		if len(parts) != 4 {goCover_40ae6270e81c__39[11] = 1;
+			continue
+		}
+		goCover_40ae6270e81c__39[8] = 1;metricType := parts[1] // "bids" or "wins"
+		bucket := parts[2]
+
+		val, err := r.client.Get(r.ctx, key).Int64()
+		if err != nil {goCover_40ae6270e81c__39[12] = 1;
+			continue
+		}
+
+		goCover_40ae6270e81c__39[9] = 1;if _, exists := landscape[bucket]; !exists {goCover_40ae6270e81c__39[13] = 1;
+			landscape[bucket] = make(map[string]int64)
+		}
+		goCover_40ae6270e81c__39[10] = 1;landscape[bucket][metricType] = val
+	}
+
+	goCover_40ae6270e81c__39[5] = 1;return landscape, nil
+}
+
+// IncrementSegmentImpressions tracks impressions by segment (device/os/geo)
+func (r *RedisCache) IncrementSegmentImpressions(segmentType, segmentValue string) error {goCover_40ae6270e81c__40[0] = 1 ; goCover_40ae6270e81c__40[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__40[2] = 40 ; goCover_40ae6270e81c__40[3] = 1;
+	key := fmt.Sprintf("segment:%s:imps:%s:%s", segmentType, segmentValue, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// IncrementSegmentClicks tracks clicks by segment (device/os/geo)
+func (r *RedisCache) IncrementSegmentClicks(segmentType, segmentValue string) error {goCover_40ae6270e81c__41[0] = 1 ; goCover_40ae6270e81c__41[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__41[2] = 41 ; goCover_40ae6270e81c__41[3] = 1;
+	key := fmt.Sprintf("segment:%s:clicks:%s:%s", segmentType, segmentValue, time.Now().Format("2006-01-02"))
+	return r.client.Incr(r.ctx, key).Err()
+}
+
+// GetSegmentPerformance returns impression and click counts for all segments of a given type
+func (r *RedisCache) GetSegmentPerformance(segmentType string) (map[string]map[string]int64, error) {goCover_40ae6270e81c__42[0] = 11 ; goCover_40ae6270e81c__42[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__42[2] = 42 ; goCover_40ae6270e81c__42[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	pattern := fmt.Sprintf("segment:%s:*:%s", segmentType, dateStr)
+
+	keys, err := r.client.Keys(r.ctx, pattern).Result()
+	if err != nil {goCover_40ae6270e81c__42[6] = 1;
+		return nil, err
+	}
+
+	goCover_40ae6270e81c__42[4] = 1;performance := make(map[string]map[string]int64)
+
+	for _, key := range keys {goCover_40ae6270e81c__42[7] = 1;
+		// Key format: segment:{type}:{imps|clicks}:{value}:{date}
+		parts := strings.Split(key, ":")
+		if len(parts) != 5 {goCover_40ae6270e81c__42[11] = 1;
+			continue
+		}
+		goCover_40ae6270e81c__42[8] = 1;metricType := parts[2] // "imps" or "clicks"
+		segmentValue := parts[3]
+
+		val, err := r.client.Get(r.ctx, key).Int64()
+		if err != nil {goCover_40ae6270e81c__42[12] = 1;
+			continue
+		}
+
+		goCover_40ae6270e81c__42[9] = 1;if _, exists := performance[segmentValue]; !exists {goCover_40ae6270e81c__42[13] = 1;
+			performance[segmentValue] = make(map[string]int64)
+		}
+		goCover_40ae6270e81c__42[10] = 1;performance[segmentValue][metricType] = val
+	}
+
+	goCover_40ae6270e81c__42[5] = 1;return performance, nil
+}
+
+// RecordPublisherBidAttempt tracks bid attempts per publisher in price buckets
+func (r *RedisCache) RecordPublisherBidAttempt(publisherID string, bidPrice float64, won bool) error {goCover_40ae6270e81c__43[0] = 6 ; goCover_40ae6270e81c__43[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__43[2] = 43 ; goCover_40ae6270e81c__43[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+
+	// Determine price bucket (same as bid landscape buckets)
+	bucket := getPriceBucketForFloor(bidPrice)
+
+	// Increment total bids in this bucket for this publisher
+	bidsKey := fmt.Sprintf("floor:pub:%s:bids:%s:%s", publisherID, bucket, dateStr)
+	if err := r.client.Incr(r.ctx, bidsKey).Err(); err != nil {goCover_40ae6270e81c__43[6] = 1;
+		return err
+	}
+
+	// Increment wins if auction was won
+	goCover_40ae6270e81c__43[4] = 1;if won {goCover_40ae6270e81c__43[7] = 1;
+		winsKey := fmt.Sprintf("floor:pub:%s:wins:%s:%s", publisherID, bucket, dateStr)
+		if err := r.client.Incr(r.ctx, winsKey).Err(); err != nil {goCover_40ae6270e81c__43[8] = 1;
+			return err
+		}
+	}
+
+	goCover_40ae6270e81c__43[5] = 1;return nil
+}
+
+// GetOptimalBidFloor calculates the optimal bid floor for a publisher based on historical win rates
+// Algorithm: Find the highest price bucket where win rate >= targetWinRate
+func (r *RedisCache) GetOptimalBidFloor(publisherID string, targetWinRate float64) (float64, error) {goCover_40ae6270e81c__44[0] = 20 ; goCover_40ae6270e81c__44[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__44[2] = 44 ; goCover_40ae6270e81c__44[3] = 1;
+	dateStr := time.Now().Format("2006-01-02")
+	pattern := fmt.Sprintf("floor:pub:%s:*:%s", publisherID, dateStr)
+
+	keys, err := r.client.Keys(r.ctx, pattern).Result()
+	if err != nil {goCover_40ae6270e81c__44[8] = 1;
+		return 0, err
+	}
+
+	goCover_40ae6270e81c__44[4] = 1;if len(keys) == 0 {goCover_40ae6270e81c__44[9] = 1;
+		return 0.5, nil // Default floor if no data
+	}
+
+	// Collect win rates per bucket
+	goCover_40ae6270e81c__44[5] = 1;bucketStats := make(map[string]struct {
+		bids int64
+		wins int64
+	})
+
+	for _, key := range keys {goCover_40ae6270e81c__44[10] = 1;
+		// Key format: floor:pub:{id}:{bids|wins}:{bucket}:{date}
+		parts := strings.Split(key, ":")
+		if len(parts) != 6 {goCover_40ae6270e81c__44[14] = 1;
+			continue
+		}
+		goCover_40ae6270e81c__44[11] = 1;metricType := parts[3] // "bids" or "wins"
+		bucket := parts[4]
+
+		val, err := r.client.Get(r.ctx, key).Int64()
+		if err != nil {goCover_40ae6270e81c__44[15] = 1;
+			continue
+		}
+
+		goCover_40ae6270e81c__44[12] = 1;stats := bucketStats[bucket]
+		if metricType == "bids" {goCover_40ae6270e81c__44[16] = 1;
+			stats.bids = val
+		} else{ goCover_40ae6270e81c__44[17] = 1;if metricType == "wins" {goCover_40ae6270e81c__44[18] = 1;
+			stats.wins = val
+		}}
+		goCover_40ae6270e81c__44[13] = 1;bucketStats[bucket] = stats
+	}
+
+	// Find highest bucket where win rate >= target
+	goCover_40ae6270e81c__44[6] = 1;buckets := []string{"0.00-0.50", "0.50-1.00", "1.00-2.00", "2.00-5.00", "5.00-10.00", "10.00+"}
+	bucketFloors := map[string]float64{
+		"0.00-0.50":  0.25,
+		"0.50-1.00":  0.75,
+		"1.00-2.00":  1.50,
+		"2.00-5.00":  3.50,
+		"5.00-10.00": 7.50,
+		"10.00+":     10.00,
+	}
+
+	optimalFloor := 0.5 // Default
+
+	for i := len(buckets) - 1; i >= 0; i-- {goCover_40ae6270e81c__44[19] = 1;
+		bucket := buckets[i]
+		stats := bucketStats[bucket]
+
+		if stats.bids < 10 {goCover_40ae6270e81c__44[21] = 1;
+			continue // Need at least 10 bids for statistical significance
+		}
+
+		goCover_40ae6270e81c__44[20] = 1;winRate := float64(stats.wins) / float64(stats.bids)
+		if winRate >= targetWinRate {goCover_40ae6270e81c__44[22] = 1;
+			optimalFloor = bucketFloors[bucket]
+			break
+		}
+	}
+
+	goCover_40ae6270e81c__44[7] = 1;return optimalFloor, nil
+}
+
+// Helper function for price bucketing (same logic as in bidding service)
+func getPriceBucketForFloor(price float64) string {goCover_40ae6270e81c__45[0] = 7 ; goCover_40ae6270e81c__45[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__45[2] = 45 ; goCover_40ae6270e81c__45[3] = 1;
+	switch {
+	case price < 0.50:goCover_40ae6270e81c__45[4] = 1;
+		return "0.00-0.50"
+	case price < 1.00:goCover_40ae6270e81c__45[5] = 1;
+		return "0.50-1.00"
+	case price < 2.00:goCover_40ae6270e81c__45[6] = 1;
+		return "1.00-2.00"
+	case price < 5.00:goCover_40ae6270e81c__45[7] = 1;
+		return "2.00-5.00"
+	case price < 10.00:goCover_40ae6270e81c__45[8] = 1;
+		return "5.00-10.00"
+	default:goCover_40ae6270e81c__45[9] = 1;
+		return "10.00+"
+	}
+}
+
+// RecordImpression stores an impression event for view-through attribution (VTA)
+func (r *RedisCache) RecordImpression(userID, campaignID, requestID string, ttlHours int) error {goCover_40ae6270e81c__46[0] = 1 ; goCover_40ae6270e81c__46[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__46[2] = 46 ; goCover_40ae6270e81c__46[3] = 1;
+	key := fmt.Sprintf("attr:imp:%s:%s", userID, campaignID)
+	value := fmt.Sprintf("%s:%d", requestID, time.Now().Unix())
+	return r.client.Set(r.ctx, key, value, time.Duration(ttlHours)*time.Hour).Err()
+}
+
+// RecordClick stores a click event for click-through attribution (CTA)
+// Clicks take priority over impressions for attribution
+func (r *RedisCache) RecordClick(userID, campaignID, requestID string, ttlHours int) error {goCover_40ae6270e81c__47[0] = 1 ; goCover_40ae6270e81c__47[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__47[2] = 47 ; goCover_40ae6270e81c__47[3] = 1;
+	key := fmt.Sprintf("attr:click:%s:%s", userID, campaignID)
+	value := fmt.Sprintf("%s:%d", requestID, time.Now().Unix())
+	return r.client.Set(r.ctx, key, value, time.Duration(ttlHours)*time.Hour).Err()
+}
+
+// GetAttribution checks for click-through (CTA) or view-through (VTA) attribution
+// Returns attributionType ("cta", "vta", or "none") and the requestID
+func (r *RedisCache) GetAttribution(userID, campaignID string) (string, string, error) {goCover_40ae6270e81c__48[0] = 7 ; goCover_40ae6270e81c__48[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__48[2] = 48 ; goCover_40ae6270e81c__48[3] = 1;
+	// Check for click first (CTA takes priority)
+	clickKey := fmt.Sprintf("attr:click:%s:%s", userID, campaignID)
+	clickVal, err := r.client.Get(r.ctx, clickKey).Result()
+	if err == nil && clickVal != "" {goCover_40ae6270e81c__48[6] = 1;
+		parts := strings.Split(clickVal, ":")
+		if len(parts) >= 1 {goCover_40ae6270e81c__48[7] = 1;
+			return "cta", parts[0], nil
+		}
+	}
+
+	// Check for impression (VTA)
+	goCover_40ae6270e81c__48[4] = 1;impKey := fmt.Sprintf("attr:imp:%s:%s", userID, campaignID)
+	impVal, err := r.client.Get(r.ctx, impKey).Result()
+	if err == nil && impVal != "" {goCover_40ae6270e81c__48[8] = 1;
+		parts := strings.Split(impVal, ":")
+		if len(parts) >= 1 {goCover_40ae6270e81c__48[9] = 1;
+			return "vta", parts[0], nil
+		}
+	}
+
+	goCover_40ae6270e81c__48[5] = 1;return "none", "", nil
+}
+
+// RecordUserEvent stores a user engagement event for retargeting
+// Key format: retarget:{eventType}:{userID}:{campaignID}
+// This allows querying all campaigns a user has engaged with by event type
+func (r *RedisCache) RecordUserEvent(userID, campaignID, eventType string, ttlDays int) error {goCover_40ae6270e81c__49[0] = 5 ; goCover_40ae6270e81c__49[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__49[2] = 49 ; goCover_40ae6270e81c__49[3] = 1;
+	if userID == "" || campaignID == "" || eventType == "" {goCover_40ae6270e81c__49[6] = 1;
+		return fmt.Errorf("userID, campaignID, and eventType are required")
+	}
+
+	// Store event with TTL
+	goCover_40ae6270e81c__49[4] = 1;key := fmt.Sprintf("retarget:%s:%s:%s", eventType, userID, campaignID)
+	ttl := time.Duration(ttlDays) * 24 * time.Hour
+	if ttlDays <= 0 {goCover_40ae6270e81c__49[7] = 1;
+		ttl = 30 * 24 * time.Hour // Default 30 day window
+	}
+
+	goCover_40ae6270e81c__49[5] = 1;return r.client.Set(r.ctx, key, time.Now().Unix(), ttl).Err()
+}
+
+// GetUserEvents returns all campaigns a user has engaged with by event type
+// Returns map[eventType][]campaignIDs
+func (r *RedisCache) GetUserEvents(userID string, eventTypes []string) (map[string][]string, error) {goCover_40ae6270e81c__50[0] = 8 ; goCover_40ae6270e81c__50[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__50[2] = 50 ; goCover_40ae6270e81c__50[3] = 1;
+	result := make(map[string][]string)
+
+	for _, eventType := range eventTypes {goCover_40ae6270e81c__50[5] = 1;
+		pattern := fmt.Sprintf("retarget:%s:%s:*", eventType, userID)
+		keys, err := r.client.Keys(r.ctx, pattern).Result()
+		if err != nil {goCover_40ae6270e81c__50[8] = 1;
+			continue
+		}
+
+		goCover_40ae6270e81c__50[6] = 1;campaignIDs := make([]string, 0, len(keys))
+		for _, key := range keys {goCover_40ae6270e81c__50[9] = 1;
+			// Key format: retarget:{eventType}:{userID}:{campaignID}
+			parts := strings.Split(key, ":")
+			if len(parts) >= 4 {goCover_40ae6270e81c__50[10] = 1;
+				campaignIDs = append(campaignIDs, parts[3])
+			}
+		}
+		goCover_40ae6270e81c__50[7] = 1;result[eventType] = campaignIDs
+	}
+
+	goCover_40ae6270e81c__50[4] = 1;return result, nil
+}
+
+// HasUserEvent checks if a user has a specific engagement event for a campaign
+func (r *RedisCache) HasUserEvent(userID, campaignID, eventType string) (bool, error) {goCover_40ae6270e81c__51[0] = 3 ; goCover_40ae6270e81c__51[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__51[2] = 51 ; goCover_40ae6270e81c__51[3] = 1;
+	key := fmt.Sprintf("retarget:%s:%s:%s", eventType, userID, campaignID)
+	exists, err := r.client.Exists(r.ctx, key).Result()
+	if err != nil {goCover_40ae6270e81c__51[5] = 1;
+		return false, err
+	}
+	goCover_40ae6270e81c__51[4] = 1;return exists > 0, nil
+}
+
+// RecordTouchpoint stores a touchpoint in a user's conversion journey
+// Uses a sorted set with timestamp as score for chronological ordering
+// Key format: mta:journey:{userID}:{campaignID}
+func (r *RedisCache) RecordTouchpoint(userID, campaignID, touchpointType, requestID string, ttlDays int) error {goCover_40ae6270e81c__52[0] = 7 ; goCover_40ae6270e81c__52[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__52[2] = 52 ; goCover_40ae6270e81c__52[3] = 1;
+	if userID == "" || campaignID == "" || touchpointType == "" {goCover_40ae6270e81c__52[7] = 1;
+		return fmt.Errorf("userID, campaignID, and touchpointType are required")
+	}
+
+	goCover_40ae6270e81c__52[4] = 1;key := fmt.Sprintf("mta:journey:%s:%s", userID, campaignID)
+	timestamp := time.Now().Unix()
+
+	// Store as "type:requestID:timestamp"
+	member := fmt.Sprintf("%s:%s:%d", touchpointType, requestID, timestamp)
+
+	// Add to sorted set with timestamp as score
+	err := r.client.ZAdd(r.ctx, key, redis.Z{
+		Score:  float64(timestamp),
+		Member: member,
+	}).Err()
+	if err != nil {goCover_40ae6270e81c__52[8] = 1;
+		return err
+	}
+
+	// Set TTL
+	goCover_40ae6270e81c__52[5] = 1;ttl := time.Duration(ttlDays) * 24 * time.Hour
+	if ttlDays <= 0 {goCover_40ae6270e81c__52[9] = 1;
+		ttl = 30 * 24 * time.Hour // Default 30 day window
+	}
+	goCover_40ae6270e81c__52[6] = 1;return r.client.Expire(r.ctx, key, ttl).Err()
+}
+
+// GetTouchpoints retrieves all touchpoints for a user/campaign journey
+func (r *RedisCache) GetTouchpoints(userID, campaignID string) ([]model.Touchpoint, error) {goCover_40ae6270e81c__53[0] = 9 ; goCover_40ae6270e81c__53[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__53[2] = 53 ; goCover_40ae6270e81c__53[3] = 1;
+	key := fmt.Sprintf("mta:journey:%s:%s", userID, campaignID)
+
+	// Get all members ordered by timestamp
+	members, err := r.client.ZRangeWithScores(r.ctx, key, 0, -1).Result()
+	if err != nil {goCover_40ae6270e81c__53[7] = 1;
+		return nil, err
+	}
+
+	goCover_40ae6270e81c__53[4] = 1;touchpoints := make([]model.Touchpoint, 0, len(members))
+	for i, member := range members {goCover_40ae6270e81c__53[8] = 1;
+		// Parse "type:requestID:timestamp"
+		parts := strings.SplitN(member.Member.(string), ":", 3)
+		if len(parts) < 2 {goCover_40ae6270e81c__53[10] = 1;
+			continue
+		}
+
+		goCover_40ae6270e81c__53[9] = 1;tp := model.Touchpoint{
+			Type:       parts[0],
+			RequestID:  parts[1],
+			CampaignID: campaignID,
+			Timestamp:  time.Unix(int64(member.Score), 0),
+			Position:   i + 1, // 1-indexed position
+		}
+		touchpoints = append(touchpoints, tp)
+	}
+
+	// Mark last position
+	goCover_40ae6270e81c__53[5] = 1;if len(touchpoints) > 0 {goCover_40ae6270e81c__53[11] = 1;
+		touchpoints[len(touchpoints)-1].Position = -1
+	}
+
+	goCover_40ae6270e81c__53[6] = 1;return touchpoints, nil
+}
+
+// GetMultiTouchAttribution calculates attribution credit using the specified model
+// Supported models: "linear", "time_decay", "position_based", "last_touch", "first_touch"
+func (r *RedisCache) GetMultiTouchAttribution(userID, campaignID, modelType string) ([]model.AttributionCredit, error) {goCover_40ae6270e81c__54[0] = 32 ; goCover_40ae6270e81c__54[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__54[2] = 54 ; goCover_40ae6270e81c__54[3] = 1;
+	touchpoints, err := r.GetTouchpoints(userID, campaignID)
+	if err != nil {goCover_40ae6270e81c__54[7] = 1;
+		return nil, err
+	}
+
+	goCover_40ae6270e81c__54[4] = 1;if len(touchpoints) == 0 {goCover_40ae6270e81c__54[8] = 1;
+		return []model.AttributionCredit{}, nil
+	}
+
+	goCover_40ae6270e81c__54[5] = 1;credits := make([]model.AttributionCredit, len(touchpoints))
+
+	switch modelType {
+	case "first_touch":goCover_40ae6270e81c__54[9] = 1;
+		// 100% credit to first touchpoint
+		for i, tp := range touchpoints {goCover_40ae6270e81c__54[16] = 1;
+			credit := 0.0
+			if i == 0 {goCover_40ae6270e81c__54[18] = 1;
+				credit = 1.0
+			}
+			goCover_40ae6270e81c__54[17] = 1;credits[i] = model.AttributionCredit{
+				Touchpoint: tp,
+				Credit:     credit,
+				Model:      modelType,
+			}
+		}
+
+	case "last_touch":goCover_40ae6270e81c__54[10] = 1;
+		// 100% credit to last touchpoint
+		for i, tp := range touchpoints {goCover_40ae6270e81c__54[19] = 1;
+			credit := 0.0
+			if i == len(touchpoints)-1 {goCover_40ae6270e81c__54[21] = 1;
+				credit = 1.0
+			}
+			goCover_40ae6270e81c__54[20] = 1;credits[i] = model.AttributionCredit{
+				Touchpoint: tp,
+				Credit:     credit,
+				Model:      modelType,
+			}
+		}
+
+	case "linear":goCover_40ae6270e81c__54[11] = 1;
+		// Equal credit to all touchpoints
+		equalCredit := 1.0 / float64(len(touchpoints))
+		for i, tp := range touchpoints {goCover_40ae6270e81c__54[22] = 1;
+			credits[i] = model.AttributionCredit{
+				Touchpoint: tp,
+				Credit:     equalCredit,
+				Model:      modelType,
+			}
+		}
+
+	case "time_decay":goCover_40ae6270e81c__54[12] = 1;
+		// More credit to recent touchpoints (exponential decay)
+		// Half-life of 7 days
+		halfLife := 7.0 * 24.0 * 3600.0 // 7 days in seconds
+		now := time.Now()
+		totalWeight := 0.0
+		weights := make([]float64, len(touchpoints))
+
+		for i, tp := range touchpoints {goCover_40ae6270e81c__54[23] = 1;
+			age := now.Sub(tp.Timestamp).Seconds()
+			weight := math.Pow(0.5, age/halfLife)
+			weights[i] = weight
+			totalWeight += weight
+		}
+
+		goCover_40ae6270e81c__54[13] = 1;for i, tp := range touchpoints {goCover_40ae6270e81c__54[24] = 1;
+			credits[i] = model.AttributionCredit{
+				Touchpoint: tp,
+				Credit:     weights[i] / totalWeight,
+				Model:      modelType,
+			}
+		}
+
+	case "position_based":goCover_40ae6270e81c__54[14] = 1;
+		// 40% first, 40% last, 20% distributed among middle
+		n := len(touchpoints)
+		for i, tp := range touchpoints {goCover_40ae6270e81c__54[25] = 1;
+			var credit float64
+			if n == 1 {goCover_40ae6270e81c__54[27] = 1;
+				credit = 1.0
+			} else{ goCover_40ae6270e81c__54[28] = 1;if n == 2 {goCover_40ae6270e81c__54[29] = 1;
+				credit = 0.5
+			} else{ goCover_40ae6270e81c__54[30] = 1;{
+				if i == 0 {goCover_40ae6270e81c__54[31] = 1;
+					credit = 0.4
+				} else{ goCover_40ae6270e81c__54[32] = 1;if i == n-1 {goCover_40ae6270e81c__54[33] = 1;
+					credit = 0.4
+				} else{ goCover_40ae6270e81c__54[34] = 1;{
+					credit = 0.2 / float64(n-2)
+				}}}
+			}}}
+			goCover_40ae6270e81c__54[26] = 1;credits[i] = model.AttributionCredit{
+				Touchpoint: tp,
+				Credit:     credit,
+				Model:      modelType,
+			}
+		}
+
+	default:goCover_40ae6270e81c__54[15] = 1;
+		// Default to last touch
+		return r.GetMultiTouchAttribution(userID, campaignID, "last_touch")
+	}
+
+	goCover_40ae6270e81c__54[6] = 1;return credits, nil
+}
+
+// LinkDevices links multiple device IDs to a primary user ID for cross-device targeting
+// Key format: xdev:primary:{deviceID} -> primaryUserID
+// Key format: xdev:devices:{primaryUserID} -> set of deviceIDs
+func (r *RedisCache) LinkDevices(primaryUserID string, deviceIDs []string, ttlDays int) error {goCover_40ae6270e81c__55[0] = 9 ; goCover_40ae6270e81c__55[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__55[2] = 55 ; goCover_40ae6270e81c__55[3] = 1;
+	if primaryUserID == "" || len(deviceIDs) == 0 {goCover_40ae6270e81c__55[8] = 1;
+		return fmt.Errorf("primaryUserID and deviceIDs are required")
+	}
+
+	goCover_40ae6270e81c__55[4] = 1;ttl := time.Duration(ttlDays) * 24 * time.Hour
+	if ttlDays <= 0 {goCover_40ae6270e81c__55[9] = 1;
+		ttl = 90 * 24 * time.Hour // Default 90 day device graph TTL
+	}
+
+	goCover_40ae6270e81c__55[5] = 1;pipe := r.client.Pipeline()
+
+	// Store primary user ID for each device
+	for _, deviceID := range deviceIDs {goCover_40ae6270e81c__55[10] = 1;
+		primaryKey := fmt.Sprintf("xdev:primary:%s", deviceID)
+		pipe.Set(r.ctx, primaryKey, primaryUserID, ttl)
+	}
+
+	// Store all devices under primary user
+	goCover_40ae6270e81c__55[6] = 1;devicesKey := fmt.Sprintf("xdev:devices:%s", primaryUserID)
+	for _, deviceID := range deviceIDs {goCover_40ae6270e81c__55[11] = 1;
+		pipe.SAdd(r.ctx, devicesKey, deviceID)
+	}
+	goCover_40ae6270e81c__55[7] = 1;pipe.Expire(r.ctx, devicesKey, ttl)
+
+	_, err := pipe.Exec(r.ctx)
+	return err
+}
+
+// GetLinkedDevices returns all devices linked to the same user as this device
+func (r *RedisCache) GetLinkedDevices(deviceID string) ([]string, error) {goCover_40ae6270e81c__56[0] = 7 ; goCover_40ae6270e81c__56[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__56[2] = 56 ; goCover_40ae6270e81c__56[3] = 1;
+	// First get the primary user ID
+	primaryUserID, err := r.GetPrimaryUserID(deviceID)
+	if err != nil || primaryUserID == "" {goCover_40ae6270e81c__56[7] = 1;
+		return []string{deviceID}, nil // Return just this device if no graph
+	}
+
+	// Get all devices for this primary user
+	goCover_40ae6270e81c__56[4] = 1;devicesKey := fmt.Sprintf("xdev:devices:%s", primaryUserID)
+	devices, err := r.client.SMembers(r.ctx, devicesKey).Result()
+	if err != nil {goCover_40ae6270e81c__56[8] = 1;
+		return []string{deviceID}, nil
+	}
+
+	goCover_40ae6270e81c__56[5] = 1;if len(devices) == 0 {goCover_40ae6270e81c__56[9] = 1;
+		return []string{deviceID}, nil
+	}
+
+	goCover_40ae6270e81c__56[6] = 1;return devices, nil
+}
+
+// GetPrimaryUserID resolves a device ID to its primary user ID
+func (r *RedisCache) GetPrimaryUserID(deviceID string) (string, error) {goCover_40ae6270e81c__57[0] = 5 ; goCover_40ae6270e81c__57[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__57[2] = 57 ; goCover_40ae6270e81c__57[3] = 1;
+	primaryKey := fmt.Sprintf("xdev:primary:%s", deviceID)
+	primaryUserID, err := r.client.Get(r.ctx, primaryKey).Result()
+	if err == redis.Nil {goCover_40ae6270e81c__57[6] = 1;
+		return "", nil // No primary user ID found
+	}
+	goCover_40ae6270e81c__57[4] = 1;if err != nil {goCover_40ae6270e81c__57[7] = 1;
+		return "", err
+	}
+	goCover_40ae6270e81c__57[5] = 1;return primaryUserID, nil
+}
+
+// GetCrossDeviceFrequency returns total impression frequency across all linked devices
+func (r *RedisCache) GetCrossDeviceFrequency(primaryUserID, campaignID string) (int64, error) {goCover_40ae6270e81c__58[0] = 8 ; goCover_40ae6270e81c__58[1] = goCover_40ae6270e81c_P ; goCover_40ae6270e81c__58[2] = 58 ; goCover_40ae6270e81c__58[3] = 1;
+	// Get all devices for this primary user
+	devicesKey := fmt.Sprintf("xdev:devices:%s", primaryUserID)
+	devices, err := r.client.SMembers(r.ctx, devicesKey).Result()
+	if err != nil {goCover_40ae6270e81c__58[7] = 1;
+		return 0, err
+	}
+
+	goCover_40ae6270e81c__58[4] = 1;if len(devices) == 0 {goCover_40ae6270e81c__58[8] = 1;
+		// No device graph, get frequency for primary user ID directly
+		return r.GetUserFrequency(primaryUserID, campaignID)
+	}
+
+	// Sum frequency across all devices
+	goCover_40ae6270e81c__58[5] = 1;var totalFreq int64
+	for _, deviceID := range devices {goCover_40ae6270e81c__58[9] = 1;
+		freq, err := r.GetUserFrequency(deviceID, campaignID)
+		if err == nil {goCover_40ae6270e81c__58[10] = 1;
+			totalFreq += freq
+		}
+	}
+
+	goCover_40ae6270e81c__58[6] = 1;return totalFreq, nil
+}

@@ -1,0 +1,7 @@
+covervars.go
+advanced.cover.go
+analytics.cover.go
+bid.cover.go
+./advanced_test.go
+./analytics_test.go
+./bid_test.go

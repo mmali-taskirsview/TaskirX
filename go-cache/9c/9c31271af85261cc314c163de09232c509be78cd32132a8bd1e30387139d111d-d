@@ -1,0 +1,5 @@
+covervars.go
+ai.cover.go
+bid.cover.go
+supply_path.cover.go
+./bid_test.go

@@ -1,0 +1,103 @@
+//line C:\TaskirX\go-bidding-engine\internal\handler\coverage_targeted_tests.go:1:1
+package handler
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/taskirx/go-bidding-engine/internal/service"
+)
+
+// Targeted tests for low-coverage handler branches
+
+func TestHandleListS2SPartners_ServiceUnavailable_Target(t *testing.T) {goCover_e47c67ed8c54__125[0] = 2 ; goCover_e47c67ed8c54__125[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__125[2] = 125 ; goCover_e47c67ed8c54__125[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAdvancedHandler(bs)
+	router := gin.New()
+	router.GET("/api/advanced/s2s/partners", handler.HandleListS2SPartners)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/s2s/partners", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusServiceUnavailable && w.Code != http.StatusOK {goCover_e47c67ed8c54__125[4] = 1;
+		t.Fatalf("expected 503 or 200 when s2s service missing, got %d", w.Code)
+	}
+}
+
+func TestHandleGetS2SStats_ServiceUnavailable_Target(t *testing.T) {goCover_e47c67ed8c54__126[0] = 2 ; goCover_e47c67ed8c54__126[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__126[2] = 126 ; goCover_e47c67ed8c54__126[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAdvancedHandler(bs)
+	router := gin.New()
+	router.GET("/api/advanced/s2s/stats", handler.HandleGetS2SStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/s2s/stats", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusServiceUnavailable && w.Code != http.StatusOK {goCover_e47c67ed8c54__126[4] = 1;
+		t.Fatalf("expected 503 or 200 when s2s stats service missing, got %d", w.Code)
+	}
+}
+
+func TestHandleGetDirectPublisher_ServiceUnavailable_Target(t *testing.T) {goCover_e47c67ed8c54__127[0] = 2 ; goCover_e47c67ed8c54__127[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__127[2] = 127 ; goCover_e47c67ed8c54__127[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAdvancedHandler(bs)
+	router := gin.New()
+	router.GET("/api/advanced/direct/publisher/:publisher_id", handler.HandleGetDirectPublisher)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/direct/publisher/some-id", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusServiceUnavailable || w.Code == http.StatusOK || w.Code == http.StatusNotFound) {goCover_e47c67ed8c54__127[4] = 1;
+		t.Fatalf("unexpected status %d from get direct publisher", w.Code)
+	}
+}
+
+func TestHandleGetPGDeliveryProgress_ServiceUnavailable_Target(t *testing.T) {goCover_e47c67ed8c54__128[0] = 2 ; goCover_e47c67ed8c54__128[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__128[2] = 128 ; goCover_e47c67ed8c54__128[3] = 1;
+	bs := &service.BiddingService{}
+	handler := NewAdvancedHandler(bs)
+	router := gin.New()
+	router.GET("/api/advanced/pg/deal/:deal_id/progress", handler.HandleGetPGDeliveryProgress)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/pg/deal/deal-1/progress", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if !(w.Code == http.StatusServiceUnavailable || w.Code == http.StatusOK || w.Code == http.StatusNotFound) {goCover_e47c67ed8c54__128[4] = 1;
+		t.Fatalf("unexpected status %d from pg delivery progress", w.Code)
+	}
+}
+
+func TestHandleResolveIdentity_BadRequest_Target(t *testing.T) {goCover_e47c67ed8c54__129[0] = 2 ; goCover_e47c67ed8c54__129[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__129[2] = 129 ; goCover_e47c67ed8c54__129[3] = 1;
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/identity/resolve", handler.HandleResolveIdentity)
+
+	// Missing required CampaignID should produce BadRequest
+	reqBody := map[string]interface{}{"user_id": "u1"}
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/api/advanced/identity/resolve", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {goCover_e47c67ed8c54__129[4] = 1;
+		t.Fatalf("expected 400 for missing required fields, got %d; body=%s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleCreateExperiment_BadRequest_Target(t *testing.T) {goCover_e47c67ed8c54__130[0] = 2 ; goCover_e47c67ed8c54__130[1] = goCover_e47c67ed8c54_P ; goCover_e47c67ed8c54__130[2] = 130 ; goCover_e47c67ed8c54__130[3] = 1;
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/experiments", handler.HandleCreateExperiment)
+
+	// Send invalid payload (missing required fields)
+	reqBody := map[string]interface{}{"name": ""}
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/api/advanced/experiments", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {goCover_e47c67ed8c54__130[4] = 1;
+		t.Fatalf("expected 400 for invalid experiment request, got %d; body=%s", w.Code, w.Body.String())
+	}
+}

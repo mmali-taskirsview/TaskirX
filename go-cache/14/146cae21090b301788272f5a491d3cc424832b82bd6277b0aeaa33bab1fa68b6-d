@@ -1,0 +1,4 @@
+=== RUN   TestHandleBid_EmptyBody
+--- PASS: TestHandleBid_EmptyBody (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/handler	0.085s

@@ -1,0 +1,4 @@
+=== RUN   TestGetBidPathAnalytics_WithMock
+--- PASS: TestGetBidPathAnalytics_WithMock (0.00s)
+PASS
+ok  	github.com/taskirx/go-bidding-engine/internal/cache	0.056s

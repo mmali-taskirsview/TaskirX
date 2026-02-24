@@ -1,0 +1,84 @@
+=== RUN   TestGetActiveCampaigns_Success
+--- PASS: TestGetActiveCampaigns_Success (0.00s)
+=== RUN   TestGetActiveCampaigns_CacheMiss
+--- PASS: TestGetActiveCampaigns_CacheMiss (0.00s)
+=== RUN   TestGetActiveCampaigns_UnmarshalError
+--- PASS: TestGetActiveCampaigns_UnmarshalError (0.00s)
+=== RUN   TestSetActiveCampaigns_Success
+--- PASS: TestSetActiveCampaigns_Success (0.00s)
+=== RUN   TestGetCampaign_Success
+--- PASS: TestGetCampaign_Success (0.00s)
+=== RUN   TestGetCampaign_CacheMiss
+--- PASS: TestGetCampaign_CacheMiss (0.00s)
+=== RUN   TestSetCampaign_Success
+--- PASS: TestSetCampaign_Success (0.00s)
+=== RUN   TestIncrementBidCount_Success
+--- PASS: TestIncrementBidCount_Success (0.00s)
+=== RUN   TestIncrementWinCount_Success
+--- PASS: TestIncrementWinCount_Success (0.00s)
+=== RUN   TestGetBidCount_Success
+--- PASS: TestGetBidCount_Success (0.00s)
+=== RUN   TestGetWinCount_Success
+--- PASS: TestGetWinCount_Success (0.00s)
+=== RUN   TestRecordLatency_Success
+--- PASS: TestRecordLatency_Success (0.00s)
+=== RUN   TestGetAverageLatency_Success
+--- PASS: TestGetAverageLatency_Success (0.00s)
+=== RUN   TestGetAverageLatency_Empty
+--- PASS: TestGetAverageLatency_Empty (0.00s)
+=== RUN   TestSetUserSegments_Success
+--- PASS: TestSetUserSegments_Success (0.00s)
+=== RUN   TestGetUserSegments_Success
+--- PASS: TestGetUserSegments_Success (0.00s)
+=== RUN   TestGetUserSegments_CacheMiss
+--- PASS: TestGetUserSegments_CacheMiss (0.00s)
+=== RUN   TestSetGeoRules_Success
+--- PASS: TestSetGeoRules_Success (0.00s)
+=== RUN   TestGetGeoRules_Success
+--- PASS: TestGetGeoRules_Success (0.00s)
+=== RUN   TestIncrementCampaignSpend_Success
+failed to set expiry for spend key: all expectations were already fulfilled, call to cmd '[expire campaign:spend:camp-123:2026-02-22 172800]' was not expected
+--- PASS: TestIncrementCampaignSpend_Success (0.00s)
+=== RUN   TestGetCampaignSpend_Success
+--- PASS: TestGetCampaignSpend_Success (0.00s)
+=== RUN   TestGetCampaignSpend_CacheMiss
+--- PASS: TestGetCampaignSpend_CacheMiss (0.00s)
+=== RUN   TestIncrementBidFormat_Success
+--- PASS: TestIncrementBidFormat_Success (0.00s)
+=== RUN   TestGet_Success
+--- PASS: TestGet_Success (0.00s)
+=== RUN   TestGet_CacheMiss
+--- PASS: TestGet_CacheMiss (0.00s)
+=== RUN   TestSet_Success
+--- PASS: TestSet_Success (0.00s)
+=== RUN   TestIncrementPublisherFraud_Success
+--- PASS: TestIncrementPublisherFraud_Success (0.00s)
+=== RUN   TestIsRequestDuplicate_NewRequest
+--- PASS: TestIsRequestDuplicate_NewRequest (0.00s)
+=== RUN   TestIsRequestDuplicate_DuplicateRequest
+--- PASS: TestIsRequestDuplicate_DuplicateRequest (0.00s)
+=== RUN   TestIncrementUserFrequency_Success
+--- PASS: TestIncrementUserFrequency_Success (0.00s)
+=== RUN   TestGetUserFrequency_Success
+--- PASS: TestGetUserFrequency_Success (0.00s)
+=== RUN   TestGetUserFrequency_CacheMiss
+--- PASS: TestGetUserFrequency_CacheMiss (0.00s)
+=== RUN   TestIncrementCampaignClicks_Success
+--- PASS: TestIncrementCampaignClicks_Success (0.00s)
+=== RUN   TestIncrementCampaignImpressions_Success
+--- PASS: TestIncrementCampaignImpressions_Success (0.00s)
+=== RUN   TestIncrementCampaignBids_Success
+--- PASS: TestIncrementCampaignBids_Success (0.00s)
+=== RUN   TestIncrementCampaignWins_Success
+--- PASS: TestIncrementCampaignWins_Success (0.00s)
+=== RUN   TestGetCampaignCTR_Success
+--- PASS: TestGetCampaignCTR_Success (0.00s)
+=== RUN   TestGetCampaignCTR_NoImpressions
+--- PASS: TestGetCampaignCTR_NoImpressions (0.00s)
+=== RUN   TestGetCampaignWinRate_Success
+--- PASS: TestGetCampaignWinRate_Success (0.00s)
+=== RUN   TestGetCampaignWinRate_NoBids
+--- PASS: TestGetCampaignWinRate_NoBids (0.00s)
+PASS
+coverage: 28.6% of statements
+ok  	github.com/taskirx/go-bidding-engine/internal/cache	0.073s	coverage: 28.6% of statements
