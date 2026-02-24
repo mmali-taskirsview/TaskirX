@@ -13,29 +13,35 @@ import (
 
 // MockCache implements cache.Cache for testing
 type MockCache struct {
-	campaigns    []*model.Campaign
-	userSegments map[string][]string
-	geoRules     map[string]map[string]interface{}
-	spend        map[string]float64
-	kv           map[string]string
-	touchpoints  map[string][]model.Touchpoint
-	userEvents   map[string]bool // key: "userID:campaignID:eventType"
-	frequencies  map[string]int64
-	ctr          map[string]float64
-	winRate      map[string]float64
+	campaigns       []*model.Campaign
+	userSegments    map[string][]string
+	geoRules        map[string]map[string]interface{}
+	spend           map[string]float64
+	kv              map[string]string
+	touchpoints     map[string][]model.Touchpoint
+	userEvents      map[string]bool // key: "userID:campaignID:eventType"
+	frequencies     map[string]int64
+	ctr             map[string]float64
+	winRate         map[string]float64
+	primaryUserID   map[string]string   // deviceID -> primaryUserID mapping
+	linkedDevices   map[string][]string // primaryUserID -> []deviceIDs mapping
+	crossDeviceFreq map[string]int64    // "primaryUserID:campaignID" -> frequency
 }
 
 func NewMockCache() *MockCache {
 	return &MockCache{
-		userSegments: make(map[string][]string),
-		geoRules:     make(map[string]map[string]interface{}),
-		spend:        make(map[string]float64),
-		kv:           make(map[string]string),
-		touchpoints:  make(map[string][]model.Touchpoint),
-		userEvents:   make(map[string]bool),
-		frequencies:  make(map[string]int64),
-		ctr:          make(map[string]float64),
-		winRate:      make(map[string]float64),
+		userSegments:    make(map[string][]string),
+		geoRules:        make(map[string]map[string]interface{}),
+		spend:           make(map[string]float64),
+		kv:              make(map[string]string),
+		touchpoints:     make(map[string][]model.Touchpoint),
+		userEvents:      make(map[string]bool),
+		frequencies:     make(map[string]int64),
+		ctr:             make(map[string]float64),
+		winRate:         make(map[string]float64),
+		primaryUserID:   make(map[string]string),
+		linkedDevices:   make(map[string][]string),
+		crossDeviceFreq: make(map[string]int64),
 	}
 }
 
@@ -196,12 +202,36 @@ func (m *MockCache) HasUserEvent(userID, campaignID, eventType string) (bool, er
 
 // Cross-Device Graph
 func (m *MockCache) LinkDevices(primaryUserID string, deviceIDs []string, ttlDays int) error {
+	if m.linkedDevices == nil {
+		m.linkedDevices = make(map[string][]string)
+	}
+	if m.primaryUserID == nil {
+		m.primaryUserID = make(map[string]string)
+	}
+	m.linkedDevices[primaryUserID] = append(m.linkedDevices[primaryUserID], deviceIDs...)
+	for _, deviceID := range deviceIDs {
+		m.primaryUserID[deviceID] = primaryUserID
+	}
 	return nil
 }
-func (m *MockCache) GetLinkedDevices(deviceID string) ([]string, error) { return nil, nil }
-func (m *MockCache) GetPrimaryUserID(deviceID string) (string, error)   { return "", nil }
+func (m *MockCache) GetLinkedDevices(primaryUserID string) ([]string, error) {
+	if m.linkedDevices == nil {
+		return nil, nil
+	}
+	return m.linkedDevices[primaryUserID], nil
+}
+func (m *MockCache) GetPrimaryUserID(deviceID string) (string, error) {
+	if m.primaryUserID == nil {
+		return "", nil
+	}
+	return m.primaryUserID[deviceID], nil
+}
 func (m *MockCache) GetCrossDeviceFrequency(primaryUserID, campaignID string) (int64, error) {
-	return 0, nil
+	if m.crossDeviceFreq == nil {
+		return 0, nil
+	}
+	key := primaryUserID + ":" + campaignID
+	return m.crossDeviceFreq[key], nil
 }
 
 // Supply Path Optimization Analytics

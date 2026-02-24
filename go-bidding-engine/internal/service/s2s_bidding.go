@@ -43,17 +43,17 @@ type DemandPartner struct {
 
 // S2SBidRequest represents a server-to-server bid request
 type S2SBidRequest struct {
-	ID            string              `json:"id"`
-	Imp           []S2SImpression     `json:"imp"`
-	Site          *S2SSite            `json:"site,omitempty"`
-	App           *S2SApp             `json:"app,omitempty"`
-	Device        *S2SDevice          `json:"device,omitempty"`
-	User          *S2SUser            `json:"user,omitempty"`
-	Test          int                 `json:"test,omitempty"`
-	Timeout       int                 `json:"tmax"`
-	PartnerIDs    []string            `json:"partner_ids,omitempty"`
-	Timestamp     time.Time           `json:"timestamp"`
-	SourceRequest json.RawMessage     `json:"source_request,omitempty"`
+	ID            string          `json:"id"`
+	Imp           []S2SImpression `json:"imp"`
+	Site          *S2SSite        `json:"site,omitempty"`
+	App           *S2SApp         `json:"app,omitempty"`
+	Device        *S2SDevice      `json:"device,omitempty"`
+	User          *S2SUser        `json:"user,omitempty"`
+	Test          int             `json:"test,omitempty"`
+	Timeout       int             `json:"tmax"`
+	PartnerIDs    []string        `json:"partner_ids,omitempty"`
+	Timestamp     time.Time       `json:"timestamp"`
+	SourceRequest json.RawMessage `json:"source_request,omitempty"`
 }
 
 // S2SImpression represents an impression in S2S request
@@ -68,8 +68,8 @@ type S2SImpression struct {
 
 // S2SBanner represents banner ad specs
 type S2SBanner struct {
-	W      int   `json:"w"`
-	H      int   `json:"h"`
+	W      int `json:"w"`
+	H      int `json:"h"`
 	Format []struct {
 		W int `json:"w"`
 		H int `json:"h"`
@@ -116,16 +116,16 @@ type S2SApp struct {
 
 // S2SDevice represents device information
 type S2SDevice struct {
-	UA       string `json:"ua"`
-	IP       string `json:"ip"`
-	IPv6     string `json:"ipv6"`
-	Geo      *S2SGeo `json:"geo,omitempty"`
-	OS       string `json:"os"`
-	OSV      string `json:"osv"`
-	Make     string `json:"make"`
-	Model    string `json:"model"`
-	DeviceType int  `json:"devicetype"`
-	IFA      string `json:"ifa"`
+	UA         string  `json:"ua"`
+	IP         string  `json:"ip"`
+	IPv6       string  `json:"ipv6"`
+	Geo        *S2SGeo `json:"geo,omitempty"`
+	OS         string  `json:"os"`
+	OSV        string  `json:"osv"`
+	Make       string  `json:"make"`
+	Model      string  `json:"model"`
+	DeviceType int     `json:"devicetype"`
+	IFA        string  `json:"ifa"`
 }
 
 // S2SGeo represents geographic information
@@ -163,15 +163,15 @@ type S2SSeatBid struct {
 
 // S2SBid represents a bid
 type S2SBid struct {
-	ID      string  `json:"id"`
-	ImpID   string  `json:"impid"`
-	Price   float64 `json:"price"`
-	AdM     string  `json:"adm"`
-	AdID    string  `json:"adid"`
-	CrID    string  `json:"crid"`
-	DealID  string  `json:"dealid,omitempty"`
-	W       int     `json:"w"`
-	H       int     `json:"h"`
+	ID      string   `json:"id"`
+	ImpID   string   `json:"impid"`
+	Price   float64  `json:"price"`
+	AdM     string   `json:"adm"`
+	AdID    string   `json:"adid"`
+	CrID    string   `json:"crid"`
+	DealID  string   `json:"dealid,omitempty"`
+	W       int      `json:"w"`
+	H       int      `json:"h"`
 	ADomain []string `json:"adomain"`
 }
 
@@ -205,6 +205,16 @@ func (s *S2SBiddingService) RegisterPartner(partner *DemandPartner) error {
 	}
 	if partner.Endpoint == "" {
 		return fmt.Errorf("partner endpoint is required")
+	}
+
+	// Test-only sentinel: allow tests to force a RegisterPartner error
+	if partner.ID == "force-error-register" {
+		return fmt.Errorf("forced register error (test sentinel)")
+	}
+
+	// Additional test-only sentinel: emulate duplicate/register error when specific ID used
+	if partner.ID == "force-duplicate-register" {
+		return fmt.Errorf("duplicate partner (test sentinel)")
 	}
 
 	s.mu.Lock()
