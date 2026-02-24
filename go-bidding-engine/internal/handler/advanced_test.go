@@ -1263,3 +1263,378 @@ func TestHandleGetBidCacheHitRate(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 }
+
+// ============================================================================
+// CHURN PREDICTION TESTS
+// ============================================================================
+
+func TestHandleRecordChurnActivity(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/churn/activity", handler.HandleRecordChurnActivity)
+
+	reqBody := ChurnActivityRequest{
+		UserID:    "user-123",
+		EventType: "login",
+		Metadata:  map[string]interface{}{"device": "mobile"},
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/churn/activity", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Service should be available in test handler
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleRecordChurnActivity_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/churn/activity", handler.HandleRecordChurnActivity)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/churn/activity", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandlePredictChurn(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/churn/predict/:user_id", handler.HandlePredictChurn)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/churn/predict/user-123", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 or 404 depending on whether user exists
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 200 or 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleBatchPredictChurn(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/churn/batch-predict", handler.HandleBatchPredictChurn)
+
+	reqBody := map[string][]string{
+		"user_ids": {"user-1", "user-2", "user-3"},
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/churn/batch-predict", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleBatchPredictChurn_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/churn/batch-predict", handler.HandleBatchPredictChurn)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/churn/batch-predict", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleGetHighRiskUsers(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/churn/high-risk", handler.HandleGetHighRiskUsers)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/churn/high-risk", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetHighRiskUsers_WithLimit(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/churn/high-risk", handler.HandleGetHighRiskUsers)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/churn/high-risk?limit=50", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ============================================================================
+// A/B TESTING - ADDITIONAL TESTS
+// ============================================================================
+
+func TestHandleAnalyzeExperiment(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/experiment/:experiment_id/analyze", handler.HandleAnalyzeExperiment)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/experiment/exp-123/analyze", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 or 404 depending on experiment existence
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 200 or 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetBanditRecommendation(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/bandit/:experiment_id/:user_id", handler.HandleGetBanditRecommendation)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/bandit/exp-123/user-456", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 or 400 depending on experiment existence
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetBanditRecommendation_MissingParams(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/bandit/:experiment_id/:user_id", handler.HandleGetBanditRecommendation)
+
+	// Test with empty params (missing user_id)
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/bandit//", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Should redirect or return 400 due to missing params
+	if w.Code != http.StatusMovedPermanently && w.Code != http.StatusBadRequest && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 301, 400, or 404, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// DYNAMIC CREATIVE OPTIMIZATION (DCO) TESTS
+// ============================================================================
+
+func TestHandleCreateTemplate(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/template", handler.HandleCreateTemplate)
+
+	reqBody := service.CreativeTemplate{
+		ID:          "template-1",
+		Name:        "Test Template",
+		Description: "A test template",
+		Format:      "banner",
+		BaseHTML:    "<div>{{headline}}</div>",
+		Slots: map[string]*service.TemplateSlot{
+			"headline": {ID: "slot-1", Name: "headline", Type: "text"},
+		},
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/template", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 201 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleCreateTemplate_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/template", handler.HandleCreateTemplate)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/template", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleCreateElement(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/element", handler.HandleCreateElement)
+
+	reqBody := service.CreativeElement{
+		ID:      "element-1",
+		Type:    "text",
+		Content: "Click Here!",
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/element", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 201 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleCreateElement_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/element", handler.HandleCreateElement)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/element", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleGenerateOptimizedCreative(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/generate", handler.HandleGenerateOptimizedCreative)
+
+	reqBody := GenerateCreativeRequest{
+		TemplateID: "template-1",
+		UserID:     "user-123",
+		Context: service.DCOContext{
+			DeviceType:  "mobile",
+			GeoLocation: "US",
+			TimeOfDay:   "12",
+		},
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/generate", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 or 400 depending on template existence
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGenerateOptimizedCreative_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/generate", handler.HandleGenerateOptimizedCreative)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/generate", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleRecordDCOImpression(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/impression/:combination_id", handler.HandleRecordDCOImpression)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/impression/combo-123", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200 or 400 depending on combination existence
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ============================================================================
+// PERFORMANCE PREDICTION TESTS
+// ============================================================================
+
+func TestHandleRecordPerformance(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/performance/record", handler.HandleRecordPerformance)
+
+	reqBody := map[string]interface{}{
+		"campaign_id": "camp-123",
+		"impressions": 1000,
+		"clicks":      50,
+		"conversions": 10,
+		"spend":       500.0,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/performance/record", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleForecastPerformance(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/performance/forecast", handler.HandleForecastPerformance)
+
+	reqBody := map[string]interface{}{
+		"campaign_id": "camp-123",
+		"days":        7,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/performance/forecast", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// May return 200, 400 or 404 depending on campaign existence
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 200, 400, or 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleForecastPerformance_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/performance/forecast", handler.HandleForecastPerformance)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/performance/forecast", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
