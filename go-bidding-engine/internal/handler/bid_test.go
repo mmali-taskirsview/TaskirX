@@ -1688,3 +1688,218 @@ func TestHandleOpenRTB_WithBidFloorEUR(t *testing.T) {
 		t.Errorf("Expected status 200 or 204, got %d", w.Code)
 	}
 }
+
+// ============================================================================
+// NORMALIZE OPENRTB EDGE CASES
+// ============================================================================
+
+func TestNormalizeOpenRTB_AllDeviceTypes(t *testing.T) {
+	handler, _ := setupBidTestHandler()
+
+	testCases := []struct {
+		name         string
+		deviceType   int
+		expectedType string
+	}{
+		{"Desktop", 2, "desktop"},
+		{"Mobile", 1, "mobile"},
+		{"Phone", 4, "mobile"},
+		{"Tablet", 5, "tablet"},
+		{"TV", 3, "ctv"},
+		{"SetTopBox", 7, "ctv"},
+		{"ConnectedDevice", 6, "connected_device"},
+		{"Unknown", 99, "mobile"}, // fallback
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := &model.OpenRTBRequest{
+				ID: "test-" + tc.name,
+				Imp: []model.Imp{
+					{ID: "imp-1", Banner: &model.Banner{W: 300, H: 250}},
+				},
+				Device: &model.Device{
+					DeviceType: tc.deviceType,
+					IP:         "1.2.3.4",
+					UA:         "TestUA",
+				},
+			}
+
+			internal := handler.normalizeOpenRTB(req)
+
+			if internal.Device.Type != tc.expectedType {
+				t.Errorf("DeviceType %d: expected %s, got %s", tc.deviceType, tc.expectedType, internal.Device.Type)
+			}
+		})
+	}
+}
+
+func TestNormalizeOpenRTB_WithUserData(t *testing.T) {
+	handler, _ := setupBidTestHandler()
+
+	req := &model.OpenRTBRequest{
+		ID: "test-user-data",
+		Imp: []model.Imp{
+			{ID: "imp-1", Banner: &model.Banner{W: 300, H: 250}},
+		},
+		User: &model.User{
+			ID:       "user-123",
+			Gender:   "M",
+			Yob:      1990,
+			Keywords: "tech, gaming, sports",
+			Data: []model.Data{
+				{
+					ID:   "dmp-1",
+					Name: "Test DMP",
+					Segment: []model.Segment{
+						{ID: "seg-001"},
+						{ID: "seg-002"},
+					},
+				},
+			},
+		},
+	}
+
+	internal := handler.normalizeOpenRTB(req)
+
+	if internal.User.ID != "user-123" {
+		t.Errorf("Expected user ID 'user-123', got '%s'", internal.User.ID)
+	}
+	if internal.User.Gender != "M" {
+		t.Errorf("Expected gender 'M', got '%s'", internal.User.Gender)
+	}
+	if internal.User.Age <= 0 {
+		t.Error("Expected positive age from Yob")
+	}
+	// Check keywords parsed
+	if len(internal.User.Categories) < 3 {
+		t.Errorf("Expected at least 3 categories from keywords, got %d", len(internal.User.Categories))
+	}
+}
+
+func TestNormalizeOpenRTB_WithGeo(t *testing.T) {
+	handler, _ := setupBidTestHandler()
+
+	req := &model.OpenRTBRequest{
+		ID: "test-geo",
+		Imp: []model.Imp{
+			{ID: "imp-1", Banner: &model.Banner{W: 300, H: 250}},
+		},
+		Device: &model.Device{
+			IP: "8.8.8.8",
+			Geo: &model.Geo{
+				Country: "US",
+				City:    "New York",
+				Lat:     40.7128,
+				Lon:     -74.0060,
+			},
+		},
+	}
+
+	internal := handler.normalizeOpenRTB(req)
+
+	if internal.Device.Geo.Country != "US" {
+		t.Errorf("Expected country 'US', got '%s'", internal.Device.Geo.Country)
+	}
+	if internal.Device.Geo.City != "New York" {
+		t.Errorf("Expected city 'New York', got '%s'", internal.Device.Geo.City)
+	}
+	if internal.User.Country != "US" {
+		t.Errorf("Expected user country to be set from geo, got '%s'", internal.User.Country)
+	}
+}
+
+func TestNormalizeOpenRTB_Interstitial(t *testing.T) {
+	handler, _ := setupBidTestHandler()
+
+	req := &model.OpenRTBRequest{
+		ID: "test-interstitial",
+		Imp: []model.Imp{
+			{
+				ID:     "imp-1",
+				Instl:  1,
+				Banner: &model.Banner{W: 320, H: 480},
+			},
+		},
+		App: &model.App{ID: "app-001"},
+	}
+
+	internal := handler.normalizeOpenRTB(req)
+
+	// Should have interstitial and rich_media formats
+	hasInterstitial := false
+	hasRichMedia := false
+	for _, f := range internal.AdSlot.Formats {
+		if f == "interstitial" {
+			hasInterstitial = true
+		}
+		if f == "rich_media" {
+			hasRichMedia = true
+		}
+	}
+
+	if !hasInterstitial {
+		t.Error("Expected 'interstitial' format for instl=1")
+	}
+	if !hasRichMedia {
+		t.Error("Expected 'rich_media' format for interstitial")
+	}
+}
+
+func TestNormalizeOpenRTB_AudioImpression(t *testing.T) {
+	handler, _ := setupBidTestHandler()
+
+	req := &model.OpenRTBRequest{
+		ID: "test-audio",
+		Imp: []model.Imp{
+			{
+				ID:    "imp-1",
+				Audio: &model.Audio{MinDuration: 15, MaxDuration: 30},
+			},
+		},
+		Site: &model.Site{ID: "site-001"},
+	}
+
+	internal := handler.normalizeOpenRTB(req)
+
+	hasAudio := false
+	for _, f := range internal.AdSlot.Formats {
+		if f == "audio" {
+			hasAudio = true
+		}
+	}
+
+	if !hasAudio {
+		t.Error("Expected 'audio' format")
+	}
+}
+
+func TestNormalizeOpenRTB_WithPMP(t *testing.T) {
+	handler, _ := setupBidTestHandler()
+
+	req := &model.OpenRTBRequest{
+		ID: "test-pmp",
+		Imp: []model.Imp{
+			{
+				ID:     "imp-1",
+				Banner: &model.Banner{W: 300, H: 250},
+				Pmp: &model.Pmp{
+					PrivateAuction: 1,
+					Deals: []model.Deal{
+						{ID: "deal-001", BidFloor: 5.0},
+					},
+				},
+			},
+		},
+		Site: &model.Site{ID: "site-001"},
+	}
+
+	internal := handler.normalizeOpenRTB(req)
+
+	if internal.Pmp == nil {
+		t.Error("Expected PMP to be set")
+	}
+	if internal.Pmp.PrivateAuction != 1 {
+		t.Error("Expected private auction = 1")
+	}
+}
