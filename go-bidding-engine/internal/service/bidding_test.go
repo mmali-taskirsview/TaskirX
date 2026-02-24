@@ -737,3 +737,66 @@ func setupMockServices(s *BiddingService) {
 	}))
 	s.SetOptimizationServiceURL(opt.URL)
 }
+
+// ============================================================================
+// ADDITIONAL COVERAGE TESTS
+// ============================================================================
+
+func TestBiddingService_GetProgrammaticGuaranteedService(t *testing.T) {
+	mockCache := NewMockCache()
+	service := NewBiddingService(mockCache, "http://localhost:8080")
+
+	pgService := service.GetProgrammaticGuaranteedService()
+	if pgService == nil {
+		t.Error("Expected ProgrammaticGuaranteedService, got nil")
+	}
+}
+
+func TestBiddingService_CountOverlap(t *testing.T) {
+	tests := []struct {
+		name     string
+		a        []string
+		b        []string
+		expected int
+	}{
+		{
+			name:     "Empty slices",
+			a:        []string{},
+			b:        []string{},
+			expected: 0,
+		},
+		{
+			name:     "No overlap",
+			a:        []string{"a", "b", "c"},
+			b:        []string{"x", "y", "z"},
+			expected: 0,
+		},
+		{
+			name:     "Full overlap",
+			a:        []string{"a", "b", "c"},
+			b:        []string{"a", "b", "c"},
+			expected: 3,
+		},
+		{
+			name:     "Partial overlap",
+			a:        []string{"a", "b", "c"},
+			b:        []string{"b", "c", "d"},
+			expected: 2,
+		},
+		{
+			name:     "One element overlap",
+			a:        []string{"a", "b", "c"},
+			b:        []string{"c", "d", "e"},
+			expected: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := countOverlap(tt.a, tt.b)
+			if result != tt.expected {
+				t.Errorf("countOverlap(%v, %v) = %d, expected %d", tt.a, tt.b, result, tt.expected)
+			}
+		})
+	}
+}
