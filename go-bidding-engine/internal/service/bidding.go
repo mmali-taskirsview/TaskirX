@@ -252,6 +252,37 @@ func (s *BiddingService) GetS2SBiddingService() *S2SBiddingService {
 	return s.s2sBiddingService
 }
 
+// BiddingServiceAPI is a lightweight interface used by HTTP handlers to access
+// the subset of BiddingService functionality they rely on. Defining this
+// interface makes the handlers easier to test (tests can provide small fakes).
+type BiddingServiceAPI interface {
+	GetBackendBaseURL() string
+	GetSupplyPathAnalyticsService() *SupplyPathAnalyticsService
+	GetAttributionService() *AttributionService
+	GetDaypartingService() *DaypartingService
+	GetAudienceModelingService() *AudienceModelingService
+	GetBidLandscapeService() *BidLandscapeService
+	GetCreativeOptimizationService() *CreativeOptimizationService
+	GetIncrementalityService() *IncrementalityService
+	GetPrivacySandboxService() *PrivacySandboxService
+	GetContextualAIService() *ContextualAIService
+	GetRealTimeAlertService() *RealTimeAlertService
+	GetCompetitiveIntelligenceService() *CompetitiveIntelligenceService
+	GetUnifiedIDService() *UnifiedIDService
+	GetDynamicBidService() *DynamicBidService
+	GetLookalikeService() *LookalikeService
+	GetUserClusteringService() *UserClusteringService
+	GetChurnPredictionService() *ChurnPredictionService
+	GetABTestingService() *ABTestingService
+	GetDynamicCreativeService() *DynamicCreativeService
+	GetPerformancePredictionService() *PerformancePredictionService
+	GetSupplyPathAnalytics() []*model.BidPathAnalytics
+	GetS2SBiddingService() *S2SBiddingService
+	GetBidCacheService() *BidCacheService
+	GetProgrammaticGuaranteedService() *ProgrammaticGuaranteedService
+	GetDirectPublisherService() *DirectPublisherService
+}
+
 // GetBidCacheService returns the bid caching service
 func (s *BiddingService) GetBidCacheService() *BidCacheService {
 	return s.bidCacheService
@@ -6878,6 +6909,10 @@ func countOverlap(slice1, slice2 []string) int {
 
 // GetMetrics returns current metrics
 func (s *BiddingService) GetMetrics() (map[string]interface{}, error) {
+	// Test-only sentinel: allow tests to force a metrics error by setting this key in cache
+	if val, _ := s.cache.Get("SIMULATE_METRICS_ERROR"); val == "1" {
+		return nil, fmt.Errorf("simulated metrics error")
+	}
 	bidCount, _ := s.cache.GetBidCount()
 	winCount, _ := s.cache.GetWinCount()
 	avgLatency, _ := s.cache.GetAverageLatency()

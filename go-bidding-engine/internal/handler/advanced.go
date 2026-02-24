@@ -12,11 +12,11 @@ import (
 
 // AdvancedHandler handles HTTP requests for advanced services
 type AdvancedHandler struct {
-	biddingService *service.BiddingService
+	biddingService service.BiddingServiceAPI
 }
 
 // NewAdvancedHandler creates a new advanced handler
-func NewAdvancedHandler(biddingService *service.BiddingService) *AdvancedHandler {
+func NewAdvancedHandler(biddingService service.BiddingServiceAPI) *AdvancedHandler {
 	return &AdvancedHandler{
 		biddingService: biddingService,
 	}
