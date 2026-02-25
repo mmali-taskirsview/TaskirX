@@ -18,8 +18,8 @@ type mockCacheWithLandscape struct{ mockCache }
 
 func (m *mockCacheWithLandscape) GetBidLandscape() (map[string]map[string]int64, error) {
 	return map[string]map[string]int64{
-		"0.50-1.00": map[string]int64{"bids": 100, "wins": 25},
-		"1.00-2.00": map[string]int64{"bids": 0, "wins": 0},
+		"0.50-1.00": {"bids": 100, "wins": 25},
+		"1.00-2.00": {"bids": 0, "wins": 0},
 	}, nil
 }
 

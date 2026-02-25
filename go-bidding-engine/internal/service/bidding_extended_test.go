@@ -59,7 +59,7 @@ func TestBiddingService_GetBidLandscape(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 	// Can be nil from mock cache - that's expected
-	if landscape != nil && len(landscape) > 0 {
+	if len(landscape) > 0 {
 		t.Log("Got bid landscape data")
 	}
 }
@@ -73,7 +73,7 @@ func TestBiddingService_GetSegmentPerformance(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 	// Can be nil from mock cache - that's expected
-	if perf != nil && len(perf) > 0 {
+	if len(perf) > 0 {
 		t.Log("Got segment performance data")
 	}
 }
@@ -145,7 +145,7 @@ func TestBiddingService_GetUserEvents(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 	// Nil from mock cache
-	if events != nil && len(events) > 0 {
+	if len(events) > 0 {
 		t.Log("Got user events data")
 	}
 }
@@ -169,7 +169,7 @@ func TestBiddingService_GetMultiTouchAttribution(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 	// Nil from mock cache
-	if credits != nil && len(credits) > 0 {
+	if len(credits) > 0 {
 		t.Log("Got MTA credits data")
 	}
 }

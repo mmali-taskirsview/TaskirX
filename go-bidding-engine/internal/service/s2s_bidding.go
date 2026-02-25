@@ -367,7 +367,7 @@ type partnerResponse struct {
 }
 
 // queryPartner sends bid request to a single partner
-func (s *S2SBiddingService) queryPartner(ctx context.Context, partner *DemandPartner, req *S2SBidRequest) *partnerResponse {
+func (s *S2SBiddingService) queryPartner(_ context.Context, partner *DemandPartner, req *S2SBidRequest) *partnerResponse {
 	start := time.Now()
 	info := PartnerBidInfo{
 		PartnerID: partner.ID,

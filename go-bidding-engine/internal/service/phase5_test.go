@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -737,9 +738,9 @@ func TestBidCacheSetGet(t *testing.T) {
 		CampaignID: "campaign-001",
 	}
 
-	svc.Set(nil, "test-key", bid)
+	svc.Set(context.Background(), "test-key", bid)
 
-	retrieved, found := svc.Get(nil, "test-key")
+	retrieved, found := svc.Get(context.Background(), "test-key")
 	if !found {
 		t.Fatal("Expected to find cached bid")
 	}
@@ -760,12 +761,12 @@ func TestBidCacheExpiration(t *testing.T) {
 		Price: 2.50,
 	}
 
-	svc.Set(nil, "expire-key", bid)
+	svc.Set(context.Background(), "expire-key", bid)
 
 	// Wait for expiration
 	time.Sleep(100 * time.Millisecond)
 
-	_, found := svc.Get(nil, "expire-key")
+	_, found := svc.Get(context.Background(), "expire-key")
 	if found {
 		t.Error("Expected bid to be expired")
 	}
@@ -776,14 +777,14 @@ func TestBidCacheHitRate(t *testing.T) {
 
 	// Set a bid
 	bid := &CachedBid{Price: 2.50}
-	svc.Set(nil, "hit-key", bid)
+	svc.Set(context.Background(), "hit-key", bid)
 
 	// Hit
-	svc.Get(nil, "hit-key")
-	svc.Get(nil, "hit-key")
+	svc.Get(context.Background(), "hit-key")
+	svc.Get(context.Background(), "hit-key")
 
 	// Miss
-	svc.Get(nil, "miss-key")
+	svc.Get(context.Background(), "miss-key")
 
 	hitRate := svc.GetHitRate()
 	if hitRate < 0.5 {
@@ -796,7 +797,7 @@ func TestBidCacheClear(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		bid := &CachedBid{Price: float64(i)}
-		svc.Set(nil, "key-"+string(rune('0'+i)), bid)
+		svc.Set(context.Background(), "key-"+string(rune('0'+i)), bid)
 	}
 
 	if svc.Size() < 10 {
@@ -814,8 +815,8 @@ func TestBidCacheStats(t *testing.T) {
 	svc := NewBidCacheService(nil)
 
 	bid := &CachedBid{Price: 2.50}
-	svc.Set(nil, "stats-key", bid)
-	svc.Get(nil, "stats-key")
+	svc.Set(context.Background(), "stats-key", bid)
+	svc.Get(context.Background(), "stats-key")
 
 	stats := svc.GetStats()
 

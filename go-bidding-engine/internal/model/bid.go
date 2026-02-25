@@ -1447,7 +1447,7 @@ type IncrementalityResult struct {
 	IncrementalConv    int           `json:"incrementalConv"`    // Additional conversions from ads
 	IncrementalRevenue float64       `json:"incrementalRevenue"` // Additional revenue
 	ROAS               float64       `json:"roas"`               // Incremental ROAS
-	iROAS              float64       `json:"iroas"`              // Incremental ROAS
+	IROAS              float64       `json:"iroas"`              // Incremental ROAS
 	SegmentLifts       []SegmentLift `json:"segmentLifts,omitempty"`
 	Recommendation     string        `json:"recommendation,omitempty"`
 	UserInControlGroup bool          `json:"userInControlGroup"` // For bid-time decisions

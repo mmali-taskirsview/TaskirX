@@ -145,7 +145,7 @@ func (s *CreativeOptimizationService) detectPlacementType(req *model.BidRequest)
 	return "banner"
 }
 
-func (s *CreativeOptimizationService) exploreCreative(creatives []model.CreativeVariant, config *model.CreativeOptimization) *model.CreativeOptimizationResult {
+func (s *CreativeOptimizationService) exploreCreative(creatives []model.CreativeVariant, _ *model.CreativeOptimization) *model.CreativeOptimizationResult {
 	// Weight-based random selection for exploration
 	var totalWeight float64
 	for _, cv := range creatives {
@@ -183,7 +183,7 @@ func (s *CreativeOptimizationService) exploreCreative(creatives []model.Creative
 	}
 }
 
-func (s *CreativeOptimizationService) exploitBestCreative(creatives []model.CreativeVariant, config *model.CreativeOptimization, req *model.BidRequest) *model.CreativeOptimizationResult {
+func (s *CreativeOptimizationService) exploitBestCreative(creatives []model.CreativeVariant, config *model.CreativeOptimization, _ *model.BidRequest) *model.CreativeOptimizationResult {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

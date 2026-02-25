@@ -349,7 +349,7 @@ func (s *UserClusteringService) euclideanDistance(a, b []float64) float64 {
 	return math.Sqrt(sum)
 }
 
-func (s *UserClusteringService) extractClusterFeatures(userIDs []string, centroid []float64) clusterFeatures {
+func (s *UserClusteringService) extractClusterFeatures(_ []string, centroid []float64) clusterFeatures {
 	features := clusterFeatures{}
 
 	interestCounts := make(map[string]int)

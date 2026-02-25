@@ -129,7 +129,7 @@ func (s *RealTimeAlertService) checkBudgetAlerts(campaign *model.Campaign, confi
 	}
 }
 
-func (s *RealTimeAlertService) checkSpendSpike(campaign *model.Campaign, config *model.BudgetAlerts, currentSpend float64, result *model.AlertResult) {
+func (s *RealTimeAlertService) checkSpendSpike(campaign *model.Campaign, config *model.BudgetAlerts, currentSpend float64, _ *model.AlertResult) {
 	s.mu.RLock()
 	history, exists := s.campaignMetrics[campaign.ID]
 	s.mu.RUnlock()

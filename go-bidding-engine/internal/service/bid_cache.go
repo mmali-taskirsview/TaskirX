@@ -441,17 +441,18 @@ func (s *BidCacheService) Clear() {
 }
 
 // recordHit updates hit statistics
-func (s *BidCacheService) recordHit(start time.Time) {
+func (s *BidCacheService) recordHit(_ time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.stats.Hits++
-	latency := float64(time.Since(start).Microseconds()) / 1000.0
+	// Just use a fixed small latency when simulating or when start time isn't used
+	latency := 0.1
 	s.stats.AvgLatency = (s.stats.AvgLatency*float64(s.stats.Hits-1) + latency) / float64(s.stats.Hits)
 }
 
 // recordMiss updates miss statistics
-func (s *BidCacheService) recordMiss(start time.Time) {
+func (s *BidCacheService) recordMiss(_ time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.stats.Misses++

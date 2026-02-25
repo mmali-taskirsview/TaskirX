@@ -769,9 +769,10 @@ func (r *RedisCache) GetOptimalBidFloor(publisherID string, targetWinRate float6
 		}
 
 		stats := bucketStats[bucket]
-		if metricType == "bids" {
+		switch metricType {
+		case "bids":
 			stats.bids = val
-		} else if metricType == "wins" {
+		case "wins":
 			stats.wins = val
 		}
 		bucketStats[bucket] = stats
@@ -1070,16 +1071,18 @@ func (r *RedisCache) GetMultiTouchAttribution(userID, campaignID, modelType stri
 		n := len(touchpoints)
 		for i, tp := range touchpoints {
 			var credit float64
-			if n == 1 {
+			switch n {
+			case 1:
 				credit = 1.0
-			} else if n == 2 {
+			case 2:
 				credit = 0.5
-			} else {
-				if i == 0 {
+			default:
+				switch i {
+				case 0:
 					credit = 0.4
-				} else if i == n-1 {
+				case n - 1:
 					credit = 0.4
-				} else {
+				default:
 					credit = 0.2 / float64(n-2)
 				}
 			}

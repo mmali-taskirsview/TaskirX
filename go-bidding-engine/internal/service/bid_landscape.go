@@ -193,7 +193,7 @@ func (s *BidLandscapeService) calculatePercentiles(bids []bidRecord) []model.Bid
 	return result
 }
 
-func (s *BidLandscapeService) findOptimalRange(bids []bidRecord, percentiles []model.BidPercentile) *model.OptimalBidRange {
+func (s *BidLandscapeService) findOptimalRange(_ []bidRecord, percentiles []model.BidPercentile) *model.OptimalBidRange {
 	if len(percentiles) < 3 {
 		return nil
 	}

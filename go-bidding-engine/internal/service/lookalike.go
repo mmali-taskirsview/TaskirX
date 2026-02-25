@@ -444,7 +444,7 @@ func (s *LookalikeService) calculateAudienceQuality(seedProfile *segmentProfile,
 	return avgSimilarity*0.5 + avgFeatureCoverage*0.3 + sizeQuality*0.2
 }
 
-func (s *LookalikeService) calculateFeatureOverlap(seedProfile *segmentProfile, users []lookalikeUser) map[string]float64 {
+func (s *LookalikeService) calculateFeatureOverlap(_ *segmentProfile, users []lookalikeUser) map[string]float64 {
 	featureCounts := make(map[string]int)
 	totalUsers := len(users)
 

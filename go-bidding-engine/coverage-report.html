@@ -1,0 +1,3130 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>handler: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/taskirx/go-bidding-engine/internal/handler/advanced.go (68.1%)</option>
+				
+				<option value="file1">github.com/taskirx/go-bidding-engine/internal/handler/analytics.go (76.4%)</option>
+				
+				<option value="file2">github.com/taskirx/go-bidding-engine/internal/handler/bid.go (94.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handler
+
+import (
+        "fmt"
+        "net/http"
+        "strconv"
+
+        "github.com/gin-gonic/gin"
+        "github.com/taskirx/go-bidding-engine/internal/model"
+        "github.com/taskirx/go-bidding-engine/internal/service"
+)
+
+// AdvancedHandler handles HTTP requests for advanced services
+type AdvancedHandler struct {
+        biddingService service.BiddingServiceAPI
+}
+
+// NewAdvancedHandler creates a new advanced handler
+func NewAdvancedHandler(biddingService service.BiddingServiceAPI) *AdvancedHandle<span class="cov8" title="1">r {
+        return &amp;AdvancedHandler{
+                biddingService: biddingService,
+        }
+}</span>
+
+// ============================================================================
+// BID LANDSCAPE ENDPOINTS
+// ============================================================================
+
+// BidLandscapeRequest represents a request to analyze bid landscape
+type BidLandscapeRequest struct {
+        CampaignID  string `json:"campaign_id" binding:"required"`
+        PublisherID string `json:"publisher_id"`
+        DeviceType  string `json:"device_type"`
+}
+
+// HandleBidLandscapeAnalysis analyzes the bid landscape for a campaign
+func (h *AdvancedHandler) HandleBidLandscapeAnalysis(c *gin.Context) <span class="cov8" title="1">{
+        var req BidLandscapeRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetBidLandscapeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid landscape service not available"})
+                return
+        }</span>
+
+        // Create a mock campaign and request for analysis
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID: req.CampaignID,
+                Targeting: model.Targeting{
+                        BidLandscape: &amp;model.BidLandscape{
+                                Enabled: true,
+                        },
+                },
+        }
+
+        bidReq := &amp;model.BidRequest{
+                PublisherID: req.PublisherID,
+                Device:      model.InternalDevice{Type: req.DeviceType},
+        }
+
+        result := svc.AnalyzeLandscape(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// RecordBidRequest represents a request to record a bid outcome
+type RecordBidRequest struct {
+        PublisherID string  `json:"publisher_id" binding:"required"`
+        DeviceType  string  `json:"device_type"`
+        BidPrice    float64 `json:"bid_price" binding:"required"`
+        WinPrice    float64 `json:"win_price"`
+        Won         bool    `json:"won"`
+}
+
+// HandleRecordBid records a bid outcome for landscape analysis
+func (h *AdvancedHandler) HandleRecordBid(c *gin.Context) <span class="cov8" title="1">{
+        var req RecordBidRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetBidLandscapeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid landscape service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">bidReq := &amp;model.BidRequest{
+                PublisherID: req.PublisherID,
+                Device:      model.InternalDevice{Type: req.DeviceType},
+        }
+
+        svc.RecordBid(bidReq, req.BidPrice, req.WinPrice, req.Won)
+        c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// ============================================================================
+// CREATIVE OPTIMIZATION ENDPOINTS
+// ============================================================================
+
+// CreativeSelectRequest represents a request to select a creative
+type CreativeSelectRequest struct {
+        CampaignID string   `json:"campaign_id" binding:"required"`
+        Formats    []string `json:"formats"`
+        UserID     string   `json:"user_id"`
+}
+
+// HandleCreativeSelect selects the optimal creative for a request
+func (h *AdvancedHandler) HandleCreativeSelect(c *gin.Context) <span class="cov8" title="1">{
+        var req CreativeSelectRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetCreativeOptimizationService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Creative optimization service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID: req.CampaignID,
+                Targeting: model.Targeting{
+                        CreativeOptimization: &amp;model.CreativeOptimization{
+                                Enabled: true,
+                        },
+                },
+        }
+
+        bidReq := &amp;model.BidRequest{
+                AdSlot: model.AdSlot{Formats: req.Formats},
+                User:   model.InternalUser{ID: req.UserID},
+        }
+
+        result := svc.SelectCreative(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// ============================================================================
+// INCREMENTALITY ENDPOINTS
+// ============================================================================
+
+// IncrementalityEvalRequest represents a request to evaluate incrementality
+type IncrementalityEvalRequest struct {
+        CampaignID     string  `json:"campaign_id" binding:"required"`
+        ExperimentID   string  `json:"experiment_id"`
+        UserID         string  `json:"user_id" binding:"required"`
+        ControlPercent float64 `json:"control_percent"`
+}
+
+// HandleIncrementalityEval evaluates if a user should be in control/test group
+func (h *AdvancedHandler) HandleIncrementalityEval(c *gin.Context) <span class="cov8" title="1">{
+        var req IncrementalityEvalRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetIncrementalityService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Incrementality service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">controlPercent := req.ControlPercent
+        if controlPercent &lt;= 0 </span><span class="cov0" title="0">{
+                controlPercent = 10.0
+        }</span>
+
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID: req.CampaignID,
+                Targeting: model.Targeting{
+                        IncrementalityConfig: &amp;model.IncrementalityConfig{
+                                Enabled:        true,
+                                ExperimentID:   req.ExperimentID,
+                                ControlPercent: controlPercent,
+                        },
+                },
+        }
+
+        bidReq := &amp;model.BidRequest{
+                User: model.InternalUser{ID: req.UserID},
+        }
+
+        result := svc.EvaluateUser(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// HandleGetExperimentResults returns incrementality experiment results
+func (h *AdvancedHandler) HandleGetExperimentResults(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        if experimentID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetIncrementalityService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Incrementality service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result := svc.GetExperimentResults(experimentID)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// RecordConversionRequest represents a request to record a conversion
+type RecordConversionRequest struct {
+        ExperimentID string  `json:"experiment_id" binding:"required"`
+        UserID       string  `json:"user_id" binding:"required"`
+        IsControl    bool    `json:"is_control"`
+        Revenue      float64 `json:"revenue"`
+}
+
+// HandleRecordConversion records a conversion for incrementality tracking
+func (h *AdvancedHandler) HandleRecordConversion(c *gin.Context) <span class="cov8" title="1">{
+        var req RecordConversionRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetIncrementalityService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Incrementality service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.RecordConversion(req.ExperimentID, req.UserID, req.IsControl, req.Revenue)
+        c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// ============================================================================
+// PRIVACY SANDBOX ENDPOINTS
+// ============================================================================
+
+// TopicRegistrationRequest represents a request to register user topics
+type TopicRegistrationRequest struct {
+        UserID  string `json:"user_id" binding:"required"`
+        TopicID int    `json:"topic_id" binding:"required"`
+}
+
+// HandleRegisterTopic registers a topic for a user
+func (h *AdvancedHandler) HandleRegisterTopic(c *gin.Context) <span class="cov8" title="1">{
+        var req TopicRegistrationRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetPrivacySandboxService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Privacy sandbox service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.RegisterUserTopic(req.UserID, req.TopicID)
+        c.JSON(http.StatusOK, gin.H{"status": "registered"})</span>
+}
+
+// InterestGroupRequest represents a request to add user to interest group
+type InterestGroupRequest struct {
+        UserID  string `json:"user_id" binding:"required"`
+        GroupID string `json:"group_id" binding:"required"`
+}
+
+// HandleAddToInterestGroup adds a user to an interest group
+func (h *AdvancedHandler) HandleAddToInterestGroup(c *gin.Context) <span class="cov8" title="1">{
+        var req InterestGroupRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetPrivacySandboxService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Privacy sandbox service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.AddToInterestGroup(req.UserID, req.GroupID)
+        c.JSON(http.StatusOK, gin.H{"status": "added"})</span>
+}
+
+// HandleGetInterestGroups returns user's interest groups
+func (h *AdvancedHandler) HandleGetInterestGroups(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Param("user_id")
+        if userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetPrivacySandboxService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Privacy sandbox service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">groups := svc.GetUserInterestGroups(userID)
+        c.JSON(http.StatusOK, gin.H{"user_id": userID, "interest_groups": groups})</span>
+}
+
+// ============================================================================
+// CONTEXTUAL AI ENDPOINTS
+// ============================================================================
+
+// ContextAnalysisRequest represents a request to analyze content context
+type ContextAnalysisRequest struct {
+        CampaignID       string                 `json:"campaign_id" binding:"required"`
+        PublisherID      string                 `json:"publisher_id"`
+        Context          map[string]interface{} `json:"context"`
+        BrandSafetyLevel string                 `json:"brand_safety_level"`
+}
+
+// HandleContextAnalysis analyzes content context for brand safety and targeting
+func (h *AdvancedHandler) HandleContextAnalysis(c *gin.Context) <span class="cov8" title="1">{
+        var req ContextAnalysisRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetContextualAIService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Contextual AI service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID:               req.CampaignID,
+                BrandSafetyLevel: req.BrandSafetyLevel,
+                Targeting: model.Targeting{
+                        ContextualAI: &amp;model.ContextualAI{
+                                Enabled:          true,
+                                AnalyzeContent:   true,
+                                AnalyzeSentiment: true,
+                        },
+                },
+        }
+
+        bidReq := &amp;model.BidRequest{
+                PublisherID: req.PublisherID,
+                Context:     req.Context,
+        }
+
+        result := svc.AnalyzeContext(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// ============================================================================
+// REAL-TIME ALERTS ENDPOINTS
+// ============================================================================
+
+// AlertCheckRequest represents a request to check alerts
+type AlertCheckRequest struct {
+        CampaignID   string  `json:"campaign_id" binding:"required"`
+        CurrentSpend float64 `json:"current_spend"`
+        Budget       float64 `json:"budget"`
+}
+
+// HandleCheckAlerts checks real-time alerts for a campaign
+func (h *AdvancedHandler) HandleCheckAlerts(c *gin.Context) <span class="cov8" title="1">{
+        var req AlertCheckRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetRealTimeAlertService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Real-time alert service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID: req.CampaignID,
+                Targeting: model.Targeting{
+                        AlertConfig: &amp;model.AlertConfig{
+                                Enabled: true,
+                                BudgetAlerts: &amp;model.BudgetAlerts{
+                                        Enabled:           true,
+                                        WarnAtPercent:     80.0,
+                                        CriticalAtPercent: 95.0,
+                                },
+                        },
+                },
+        }
+
+        result := svc.CheckAlerts(campaign, req.CurrentSpend, req.Budget)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// RecordMetricsRequest represents a request to record campaign metrics
+type RecordMetricsRequest struct {
+        CampaignID string  `json:"campaign_id" binding:"required"`
+        Spend      float64 `json:"spend"`
+        CTR        float64 `json:"ctr"`
+        CVR        float64 `json:"cvr"`
+        WinRate    float64 `json:"win_rate"`
+}
+
+// HandleRecordMetrics records metrics for anomaly detection
+func (h *AdvancedHandler) HandleRecordMetrics(c *gin.Context) <span class="cov8" title="1">{
+        var req RecordMetricsRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetRealTimeAlertService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Real-time alert service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.RecordMetrics(req.CampaignID, req.Spend, req.CTR, req.CVR, req.WinRate)
+        c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// ============================================================================
+// COMPETITIVE INTELLIGENCE ENDPOINTS
+// ============================================================================
+
+// CompetitiveAnalysisRequest represents a request for competitive analysis
+type CompetitiveAnalysisRequest struct {
+        CampaignID      string   `json:"campaign_id" binding:"required"`
+        PublisherID     string   `json:"publisher_id"`
+        AdSlotID        string   `json:"ad_slot_id"`
+        CompetitiveMode string   `json:"competitive_mode"`
+        Competitors     []string `json:"competitors"`
+}
+
+// HandleCompetitiveAnalysis analyzes competitive landscape
+func (h *AdvancedHandler) HandleCompetitiveAnalysis(c *gin.Context) <span class="cov8" title="1">{
+        var req CompetitiveAnalysisRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetCompetitiveIntelligenceService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Competitive intelligence service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID: req.CampaignID,
+                Targeting: model.Targeting{
+                        CompetitiveIntelligence: &amp;model.CompetitiveIntelligence{
+                                Enabled:          true,
+                                TrackCompetitors: req.Competitors,
+                                CompetitiveMode:  req.CompetitiveMode,
+                        },
+                },
+        }
+
+        bidReq := &amp;model.BidRequest{
+                PublisherID: req.PublisherID,
+                AdSlot:      model.AdSlot{ID: req.AdSlotID},
+        }
+
+        result := svc.AnalyzeCompetition(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// AuctionOutcomeRequest represents a request to record auction outcome
+type AuctionOutcomeRequest struct {
+        PublisherID  string  `json:"publisher_id" binding:"required"`
+        AdSlotID     string  `json:"ad_slot_id"`
+        BidPrice     float64 `json:"bid_price" binding:"required"`
+        WinningPrice float64 `json:"winning_price"`
+        Won          bool    `json:"won"`
+        WinnerID     string  `json:"winner_id"`
+}
+
+// HandleRecordAuctionOutcome records an auction outcome
+func (h *AdvancedHandler) HandleRecordAuctionOutcome(c *gin.Context) <span class="cov8" title="1">{
+        var req AuctionOutcomeRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetCompetitiveIntelligenceService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Competitive intelligence service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">bidReq := &amp;model.BidRequest{
+                PublisherID: req.PublisherID,
+                AdSlot:      model.AdSlot{ID: req.AdSlotID},
+        }
+
+        svc.RecordAuctionOutcome(bidReq, req.BidPrice, req.WinningPrice, req.Won, req.WinnerID)
+        c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// HandleGetMarketReport returns competitive market report
+func (h *AdvancedHandler) HandleGetMarketReport(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetCompetitiveIntelligenceService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Competitive intelligence service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">report := svc.GetMarketReport()
+        c.JSON(http.StatusOK, report)</span>
+}
+
+// ============================================================================
+// UNIFIED ID ENDPOINTS
+// ============================================================================
+
+// IdentityResolveRequest represents a request to resolve user identity
+type IdentityResolveRequest struct {
+        CampaignID      string   `json:"campaign_id" binding:"required"`
+        UserID          string   `json:"user_id"`
+        DeviceID        string   `json:"device_id"`
+        Providers       []string `json:"providers"`
+        ConsentRequired bool     `json:"consent_required"`
+        HasConsent      bool     `json:"has_consent"`
+}
+
+// HandleResolveIdentity resolves user identity across providers
+func (h *AdvancedHandler) HandleResolveIdentity(c *gin.Context) <span class="cov8" title="1">{
+        var req IdentityResolveRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetUnifiedIDService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Unified ID service not available"})
+                return
+        }</span>
+
+        // Build providers list
+        <span class="cov8" title="1">providers := make([]model.IDProvider, len(req.Providers))
+        for i, p := range req.Providers </span><span class="cov8" title="1">{
+                providers[i] = model.IDProvider{Name: p, Enabled: true, Priority: i + 1}
+        }</span>
+
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID: req.CampaignID,
+                Targeting: model.Targeting{
+                        UnifiedIDConfig: &amp;model.UnifiedIDConfig{
+                                Enabled:         true,
+                                Providers:       providers,
+                                ConsentRequired: req.ConsentRequired,
+                        },
+                },
+        }
+
+        context := map[string]interface{}{}
+        if req.HasConsent </span><span class="cov8" title="1">{
+                context["gdpr_consent"] = true
+        }</span>
+
+        <span class="cov8" title="1">bidReq := &amp;model.BidRequest{
+                User:    model.InternalUser{ID: req.UserID},
+                Device:  model.InternalDevice{DeviceID: req.DeviceID},
+                Context: context,
+        }
+
+        result := svc.ResolveIdentity(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// LinkIdentitiesRequest represents a request to link identities
+type LinkIdentitiesRequest struct {
+        ID1        string  `json:"id1" binding:"required"`
+        Provider1  string  `json:"provider1" binding:"required"`
+        ID2        string  `json:"id2" binding:"required"`
+        Provider2  string  `json:"provider2" binding:"required"`
+        DeviceType string  `json:"device_type"`
+        Confidence float64 `json:"confidence"`
+}
+
+// HandleLinkIdentities links two identities
+func (h *AdvancedHandler) HandleLinkIdentities(c *gin.Context) <span class="cov8" title="1">{
+        var req LinkIdentitiesRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetUnifiedIDService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Unified ID service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">confidence := req.Confidence
+        if confidence &lt;= 0 </span><span class="cov0" title="0">{
+                confidence = 0.8
+        }</span>
+
+        <span class="cov8" title="1">svc.LinkIdentities(req.ID1, req.Provider1, req.ID2, req.Provider2, req.DeviceType, confidence)
+        c.JSON(http.StatusOK, gin.H{"status": "linked"})</span>
+}
+
+// HandleGetIdentityReport returns identity resolution report
+func (h *AdvancedHandler) HandleGetIdentityReport(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetUnifiedIDService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Unified ID service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">report := svc.GetIdentityReport()
+        c.JSON(http.StatusOK, report)</span>
+}
+
+// HandleGetCrossDeviceReach returns cross-device reach metrics
+func (h *AdvancedHandler) HandleGetCrossDeviceReach(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetUnifiedIDService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Unified ID service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">reach := svc.CalculateCrossDeviceReach()
+        c.JSON(http.StatusOK, gin.H{"cross_device_reach": reach})</span>
+}
+
+// ============================================================================
+// DYNAMIC BID ADJUSTMENT ENDPOINTS
+// ============================================================================
+
+// DynamicBidRequest represents a request for dynamic bid calculation
+type DynamicBidRequest struct {
+        CampaignID   string  `json:"campaign_id" binding:"required"`
+        PublisherID  string  `json:"publisher_id" binding:"required"`
+        DeviceType   string  `json:"device_type"`
+        Country      string  `json:"country"`
+        BaseBid      float64 `json:"base_bid" binding:"required"`
+        UserID       string  `json:"user_id"`
+        AdSlotWidth  int     `json:"ad_slot_width"`
+        AdSlotHeight int     `json:"ad_slot_height"`
+}
+
+// HandleCalculateDynamicBid calculates a dynamic bid price
+func (h *AdvancedHandler) HandleCalculateDynamicBid(c *gin.Context) <span class="cov8" title="1">{
+        var req DynamicBidRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetDynamicBidService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+                return
+        }</span>
+
+        // Build campaign model
+        <span class="cov8" title="1">campaign := &amp;model.Campaign{
+                ID:       req.CampaignID,
+                BidPrice: req.BaseBid,
+        }
+
+        // Build bid request model
+        bidReq := &amp;model.BidRequest{
+                ID:          "dynamic-" + req.CampaignID,
+                PublisherID: req.PublisherID,
+                User: model.InternalUser{
+                        ID: req.UserID,
+                },
+                Device: model.InternalDevice{
+                        Type: req.DeviceType,
+                        Geo: model.InternalGeo{
+                                Country: req.Country,
+                        },
+                },
+                AdSlot: model.AdSlot{
+                        Dimensions: []int{req.AdSlotWidth, req.AdSlotHeight},
+                },
+        }
+
+        result := svc.CalculateDynamicBid(campaign, bidReq)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// DynamicBidOutcomeRequest represents a bid outcome to record
+type DynamicBidOutcomeRequest struct {
+        CampaignID  string  `json:"campaign_id" binding:"required"`
+        PublisherID string  `json:"publisher_id" binding:"required"`
+        UserID      string  `json:"user_id"`
+        BidPrice    float64 `json:"bid_price" binding:"required"`
+        Won         bool    `json:"won"`
+        WinPrice    float64 `json:"win_price"`
+        Clicked     bool    `json:"clicked"`
+        Converted   bool    `json:"converted"`
+        Revenue     float64 `json:"revenue"`
+}
+
+// HandleRecordDynamicBidOutcome records a bid outcome for learning
+func (h *AdvancedHandler) HandleRecordDynamicBidOutcome(c *gin.Context) <span class="cov8" title="1">{
+        var req DynamicBidOutcomeRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetDynamicBidService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+                return
+        }</span>
+
+        // Build bid request for context
+        <span class="cov8" title="1">bidReq := &amp;model.BidRequest{
+                ID:          "outcome-" + req.CampaignID,
+                PublisherID: req.PublisherID,
+                User: model.InternalUser{
+                        ID: req.UserID,
+                },
+        }
+
+        svc.RecordOutcome(req.CampaignID, bidReq, req.BidPrice, req.WinPrice, req.Won, req.Clicked, req.Converted, req.Revenue)
+        c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// HandleGetDynamicBidAnalytics returns bid analytics
+func (h *AdvancedHandler) HandleGetDynamicBidAnalytics(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetDynamicBidService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">analytics := svc.GetBidAnalytics()
+        c.JSON(http.StatusOK, analytics)</span>
+}
+
+// HandleGetDynamicBidConfig returns the dynamic bid service configuration
+func (h *AdvancedHandler) HandleGetDynamicBidConfig(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetDynamicBidService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dynamic bid service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">config := svc.GetConfig()
+        c.JSON(http.StatusOK, config)</span>
+}
+
+// ============================================================================
+// LOOKALIKE AUDIENCE ENDPOINTS
+// ============================================================================
+
+// LookalikeGenerateRequest represents a request to generate a lookalike audience
+type LookalikeGenerateRequest struct {
+        SeedUserIDs     []string `json:"seed_user_ids" binding:"required"`
+        Name            string   `json:"name" binding:"required"`
+        ExpansionFactor float64  `json:"expansion_factor"`
+}
+
+// HandleGenerateLookalike generates a lookalike audience
+func (h *AdvancedHandler) HandleGenerateLookalike(c *gin.Context) <span class="cov8" title="1">{
+        var req LookalikeGenerateRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetLookalikeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">expansionFactor := req.ExpansionFactor
+        if expansionFactor == 0 </span><span class="cov0" title="0">{
+                expansionFactor = 2.0 // Default
+        }</span>
+
+        <span class="cov8" title="1">result := svc.GenerateLookalike(req.SeedUserIDs, req.Name, expansionFactor)
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// UserProfileRequest represents a user profile registration request
+type UserProfileRequest struct {
+        UserID      string   `json:"user_id" binding:"required"`
+        Segments    []string `json:"segments"`
+        Interests   []string `json:"interests"`
+        DeviceTypes []string `json:"device_types"`
+        Country     string   `json:"country"`
+        Region      string   `json:"region"`
+        City        string   `json:"city"`
+}
+
+// HandleRegisterUserProfile registers a user profile for lookalike modeling
+func (h *AdvancedHandler) HandleRegisterUserProfile(c *gin.Context) <span class="cov8" title="1">{
+        var req UserProfileRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetLookalikeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">profile := svc.CreateUserProfile(req.Segments, req.Interests, req.DeviceTypes, req.Country, req.Region, req.City)
+        svc.RegisterUserProfile(req.UserID, profile)
+        c.JSON(http.StatusOK, gin.H{"status": "registered"})</span>
+}
+
+// HandleGetLookalikeAudience retrieves a lookalike audience
+func (h *AdvancedHandler) HandleGetLookalikeAudience(c *gin.Context) <span class="cov8" title="1">{
+        audienceID := c.Param("audience_id")
+        if audienceID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "audience_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetLookalikeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">audience := svc.GetLookalikeAudience(audienceID)
+        if audience == nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Audience not found"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, audience)</span>
+}
+
+// HandleIsUserInLookalike checks if a user is in a lookalike audience
+func (h *AdvancedHandler) HandleIsUserInLookalike(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Query("user_id")
+        audienceID := c.Query("audience_id")
+        if userID == "" || audienceID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id and audience_id are required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetLookalikeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">isMember, score := svc.IsUserInLookalike(userID, audienceID)
+        c.JSON(http.StatusOK, gin.H{
+                "is_member":        isMember,
+                "similarity_score": score,
+        })</span>
+}
+
+// HandleGetLookalikeStats returns lookalike audience statistics
+func (h *AdvancedHandler) HandleGetLookalikeStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetLookalikeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Lookalike service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetLookalikeStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// USER CLUSTERING ENDPOINTS
+// ============================================================================
+
+// ClusterUserRequest represents a user clustering registration request
+type ClusterUserRequest struct {
+        UserID        string    `json:"user_id" binding:"required"`
+        FeatureVector []float64 `json:"feature_vector" binding:"required"`
+}
+
+// HandleRegisterClusterUser registers a user for clustering
+func (h *AdvancedHandler) HandleRegisterClusterUser(c *gin.Context) <span class="cov8" title="1">{
+        var req ClusterUserRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetUserClusteringService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.RegisterUser(req.UserID, req.FeatureVector)
+        c.JSON(http.StatusOK, gin.H{"status": "registered"})</span>
+}
+
+// HandleRunClustering triggers the clustering algorithm
+func (h *AdvancedHandler) HandleRunClustering(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetUserClusteringService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result := svc.RunClustering()
+        c.JSON(http.StatusOK, result)</span>
+}
+
+// HandleGetUserCluster returns the cluster for a specific user
+func (h *AdvancedHandler) HandleGetUserCluster(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Param("user_id")
+        if userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetUserClusteringService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">cluster, confidence := svc.GetUserCluster(userID)
+        if cluster == nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "User not found or not clustered"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "cluster":    cluster,
+                "confidence": confidence,
+        })</span>
+}
+
+// HandleGetClusterUsers returns users in a specific cluster
+func (h *AdvancedHandler) HandleGetClusterUsers(c *gin.Context) <span class="cov8" title="1">{
+        clusterID := c.Param("cluster_id")
+        if clusterID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "cluster_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetUserClusteringService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">users := svc.GetClusterUsers(clusterID)
+        c.JSON(http.StatusOK, gin.H{
+                "cluster_id": clusterID,
+                "user_count": len(users),
+                "users":      users,
+        })</span>
+}
+
+// HandleGetClusteringStats returns clustering statistics
+func (h *AdvancedHandler) HandleGetClusteringStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetUserClusteringService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "User clustering service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetClusteringStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// CHURN PREDICTION ENDPOINTS
+// ============================================================================
+
+// ChurnActivityRequest represents a request to record user activity
+type ChurnActivityRequest struct {
+        UserID    string                 `json:"user_id" binding:"required"`
+        EventType string                 `json:"event_type" binding:"required"`
+        Metadata  map[string]interface{} `json:"metadata"`
+}
+
+// HandleRecordChurnActivity records user activity for churn prediction
+func (h *AdvancedHandler) HandleRecordChurnActivity(c *gin.Context) <span class="cov8" title="1">{
+        var req ChurnActivityRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetChurnPredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.RecordUserActivity(req.UserID, req.EventType, req.Metadata)
+        c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// HandlePredictChurn predicts churn probability for a user
+func (h *AdvancedHandler) HandlePredictChurn(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Param("user_id")
+        if userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetChurnPredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result := svc.PredictChurn(userID)
+        if result == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, result)</span>
+}
+
+// HandleBatchPredictChurn predicts churn for multiple users
+func (h *AdvancedHandler) HandleBatchPredictChurn(c *gin.Context) <span class="cov8" title="1">{
+        var req struct {
+                UserIDs []string `json:"user_ids" binding:"required"`
+        }
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetChurnPredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">results := svc.BatchPredict(req.UserIDs)
+        c.JSON(http.StatusOK, gin.H{
+                "predictions": results,
+                "count":       len(results),
+        })</span>
+}
+
+// HandleGetHighRiskUsers returns users with high churn risk
+func (h *AdvancedHandler) HandleGetHighRiskUsers(c *gin.Context) <span class="cov8" title="1">{
+        limit := 100
+        if limitStr := c.Query("limit"); limitStr != "" </span><span class="cov8" title="1">{
+                if l, err := strconv.Atoi(limitStr); err == nil &amp;&amp; l &gt; 0 </span><span class="cov8" title="1">{
+                        limit = l
+                }</span>
+        }
+
+        <span class="cov8" title="1">svc := h.biddingService.GetChurnPredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">users := svc.GetHighRiskUsers(limit)
+        c.JSON(http.StatusOK, gin.H{
+                "high_risk_users": users,
+                "count":           len(users),
+        })</span>
+}
+
+// HandleGetChurnStats returns churn prediction statistics
+func (h *AdvancedHandler) HandleGetChurnStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetChurnPredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Churn prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetChurnStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// A/B TESTING ENDPOINTS
+// ============================================================================
+
+// HandleCreateExperiment creates a new A/B test experiment
+func (h *AdvancedHandler) HandleCreateExperiment(c *gin.Context) <span class="cov8" title="1">{
+        var req service.CreateExperimentRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">exp, err := svc.CreateExperiment(req)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusCreated, exp)</span>
+}
+
+// HandleStartExperiment starts an experiment
+func (h *AdvancedHandler) HandleStartExperiment(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        if experimentID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.StartExperiment(experimentID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"status": "started", "experiment_id": experimentID})</span>
+}
+
+// HandleStopExperiment stops an experiment
+func (h *AdvancedHandler) HandleStopExperiment(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        if experimentID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.StopExperiment(experimentID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"status": "stopped", "experiment_id": experimentID})</span>
+}
+
+// HandleGetExperiment retrieves an experiment by ID
+func (h *AdvancedHandler) HandleGetExperiment(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        if experimentID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">exp, err := svc.GetExperiment(experimentID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, exp)</span>
+}
+
+// HandleListExperiments lists all experiments
+func (h *AdvancedHandler) HandleListExperiments(c *gin.Context) <span class="cov8" title="1">{
+        status := c.Query("status")
+
+        svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">experiments := svc.ListExperiments(status)
+        c.JSON(http.StatusOK, gin.H{
+                "experiments": experiments,
+                "count":       len(experiments),
+        })</span>
+}
+
+// HandleGetVariantForUser assigns and returns a variant for a user
+func (h *AdvancedHandler) HandleGetVariantForUser(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        userID := c.Param("user_id")
+
+        if experimentID == "" || userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id and user_id are required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">variant, err := svc.GetVariantForUser(experimentID, userID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, variant)</span>
+}
+
+// ABEventRequest represents a request to record an A/B test event
+type ABEventRequest struct {
+        VariantID string  `json:"variant_id" binding:"required"`
+        EventType string  `json:"event_type" binding:"required"`
+        Value     float64 `json:"value"`
+}
+
+// HandleRecordABEvent records an event for an experiment variant
+func (h *AdvancedHandler) HandleRecordABEvent(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        if experimentID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">var req ABEventRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.RecordEvent(experimentID, req.VariantID, req.EventType, req.Value); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"status": "recorded"})</span>
+}
+
+// HandleAnalyzeExperiment performs statistical analysis on an experiment
+func (h *AdvancedHandler) HandleAnalyzeExperiment(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        if experimentID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result, err := svc.AnalyzeExperiment(experimentID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, result)</span>
+}
+
+// HandleGetBanditRecommendation gets Thompson Sampling recommendation
+func (h *AdvancedHandler) HandleGetBanditRecommendation(c *gin.Context) <span class="cov8" title="1">{
+        experimentID := c.Param("experiment_id")
+        userID := c.Param("user_id")
+
+        if experimentID == "" || userID == "" </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "experiment_id and user_id are required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">variant, err := svc.GetBanditRecommendation(experimentID, userID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, variant)</span>
+}
+
+// HandleGetABTestingStats returns A/B testing statistics
+func (h *AdvancedHandler) HandleGetABTestingStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetABTestingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "A/B testing service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// DYNAMIC CREATIVE OPTIMIZATION (DCO) ENDPOINTS
+// ============================================================================
+
+// HandleCreateTemplate creates a new DCO template
+func (h *AdvancedHandler) HandleCreateTemplate(c *gin.Context) <span class="cov8" title="1">{
+        var template service.CreativeTemplate
+        if err := c.ShouldBindJSON(&amp;template); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">result, err := svc.CreateTemplate(&amp;template)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusCreated, result)</span>
+}
+
+// HandleGetTemplate retrieves a DCO template
+func (h *AdvancedHandler) HandleGetTemplate(c *gin.Context) <span class="cov8" title="1">{
+        templateID := c.Param("id")
+
+        svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">template, err := svc.GetTemplate(templateID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, template)</span>
+}
+
+// HandleCreateElement creates a new DCO element
+func (h *AdvancedHandler) HandleCreateElement(c *gin.Context) <span class="cov8" title="1">{
+        var element service.CreativeElement
+        if err := c.ShouldBindJSON(&amp;element); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result, err := svc.CreateElement(&amp;element)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusCreated, result)</span>
+}
+
+// HandleGetElement retrieves a DCO element
+func (h *AdvancedHandler) HandleGetElement(c *gin.Context) <span class="cov8" title="1">{
+        elementID := c.Param("id")
+
+        svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">element, err := svc.GetElement(elementID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, element)</span>
+}
+
+// GenerateCreativeRequest represents request to generate optimized creative
+type GenerateCreativeRequest struct {
+        TemplateID string             `json:"template_id" binding:"required"`
+        UserID     string             `json:"user_id" binding:"required"`
+        Context    service.DCOContext `json:"context"`
+}
+
+// HandleGenerateOptimizedCreative generates optimized creative
+func (h *AdvancedHandler) HandleGenerateOptimizedCreative(c *gin.Context) <span class="cov8" title="1">{
+        var req GenerateCreativeRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">dcoReq := service.DCORequest{
+                TemplateID: req.TemplateID,
+                UserID:     req.UserID,
+                Context:    req.Context,
+        }
+
+        result, err := svc.GenerateOptimizedCreative(dcoReq)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, result)</span>
+}
+
+// HandleRecordDCOImpression records an impression for a combination
+func (h *AdvancedHandler) HandleRecordDCOImpression(c *gin.Context) <span class="cov8" title="1">{
+        combinationID := c.Param("combination_id")
+
+        svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.RecordImpression(combinationID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Impression recorded"})</span>
+}
+
+// HandleRecordDCOClick records a click for a combination
+func (h *AdvancedHandler) HandleRecordDCOClick(c *gin.Context) <span class="cov8" title="1">{
+        combinationID := c.Param("combination_id")
+
+        var req struct {
+                UserID string `json:"user_id"`
+        }
+        c.ShouldBindJSON(&amp;req)
+
+        svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.RecordClick(combinationID, req.UserID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Click recorded"})</span>
+}
+
+// HandleRecordDCOConversion records a conversion for a combination
+func (h *AdvancedHandler) HandleRecordDCOConversion(c *gin.Context) <span class="cov8" title="1">{
+        combinationID := c.Param("combination_id")
+
+        var req struct {
+                Revenue float64 `json:"revenue"`
+        }
+        c.ShouldBindJSON(&amp;req)
+
+        svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.RecordConversion(combinationID, req.Revenue); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Conversion recorded"})</span>
+}
+
+// HandleGetTopCombinations returns top performing combinations
+func (h *AdvancedHandler) HandleGetTopCombinations(c *gin.Context) <span class="cov8" title="1">{
+        templateID := c.Param("template_id")
+
+        limitStr := c.DefaultQuery("limit", "10")
+        limit, _ := strconv.Atoi(limitStr)
+        if limit &lt;= 0 </span><span class="cov0" title="0">{
+                limit = 10
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">combinations := svc.GetTopCombinations(templateID, limit)
+        c.JSON(http.StatusOK, gin.H{"combinations": combinations, "count": len(combinations)})</span>
+}
+
+// HandleGetDCOStats returns DCO statistics
+func (h *AdvancedHandler) HandleGetDCOStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetDynamicCreativeService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "DCO service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetDCOStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// PERFORMANCE PREDICTION ENDPOINTS
+// ============================================================================
+
+// HandleRecordPerformance records performance data
+func (h *AdvancedHandler) HandleRecordPerformance(c *gin.Context) <span class="cov8" title="1">{
+        var record service.PerformanceRecord
+        if err := c.ShouldBindJSON(&amp;record); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetPerformancePredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.RecordPerformance(&amp;record)
+        c.JSON(http.StatusOK, gin.H{"message": "Performance recorded"})</span>
+}
+
+// HandlePredictPerformance predicts future performance
+func (h *AdvancedHandler) HandlePredictPerformance(c *gin.Context) <span class="cov8" title="1">{
+        var req service.PredictionRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetPerformancePredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">prediction, err := svc.Predict(req)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, prediction)</span>
+}
+
+// HandleForecastPerformance generates a forecast
+func (h *AdvancedHandler) HandleForecastPerformance(c *gin.Context) <span class="cov8" title="1">{
+        entityID := c.Query("entity_id")
+        entityType := c.Query("entity_type")
+        hoursStr := c.DefaultQuery("hours", "24")
+
+        if entityID == "" || entityType == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "entity_id and entity_type are required"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">hours, _ := strconv.Atoi(hoursStr)
+        if hours &lt;= 0 </span><span class="cov0" title="0">{
+                hours = 24
+        }</span>
+
+        <span class="cov0" title="0">svc := h.biddingService.GetPerformancePredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">forecast, err := svc.Forecast(entityID, entityType, hours)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, forecast)</span>
+}
+
+// HandleGetPredictionAccuracy returns prediction accuracy for an entity
+func (h *AdvancedHandler) HandleGetPredictionAccuracy(c *gin.Context) <span class="cov8" title="1">{
+        entityID := c.Param("entity_id")
+        lookbackStr := c.DefaultQuery("lookback_hours", "24")
+
+        lookbackHours, _ := strconv.Atoi(lookbackStr)
+        if lookbackHours &lt;= 0 </span><span class="cov0" title="0">{
+                lookbackHours = 24
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetPerformancePredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">accuracy := svc.GetPredictionAccuracy(entityID, lookbackHours)
+        c.JSON(http.StatusOK, gin.H{"entity_id": entityID, "lookback_hours": lookbackHours, "accuracy": accuracy})</span>
+}
+
+// HandleGetPredictionStats returns performance prediction statistics
+func (h *AdvancedHandler) HandleGetPredictionStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetPerformancePredictionService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Performance prediction service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// S2S BIDDING ENDPOINTS
+// ============================================================================
+
+// S2SPartnerRequest represents a request to register/update a demand partner
+type S2SPartnerRequest struct {
+        ID       string            `json:"id" binding:"required"`
+        Name     string            `json:"name" binding:"required"`
+        Endpoint string            `json:"endpoint" binding:"required"`
+        BidFloor float64           `json:"bid_floor"`
+        QPS      int               `json:"qps"`
+        Headers  map[string]string `json:"headers"`
+}
+
+// HandleRegisterS2SPartner registers a new demand partner
+func (h *AdvancedHandler) HandleRegisterS2SPartner(c *gin.Context) <span class="cov8" title="1">{
+        var req S2SPartnerRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetS2SBiddingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "S2S bidding service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">partner := &amp;service.DemandPartner{
+                ID:       req.ID,
+                Name:     req.Name,
+                Endpoint: req.Endpoint,
+                BidFloor: req.BidFloor,
+                QPS:      req.QPS,
+                Headers:  req.Headers,
+        }
+
+        if err := svc.RegisterPartner(partner); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusCreated, gin.H{"message": "Partner registered", "partner_id": req.ID})</span>
+}
+
+// HandleGetS2SPartner retrieves a demand partner
+func (h *AdvancedHandler) HandleGetS2SPartner(c *gin.Context) <span class="cov8" title="1">{
+        partnerID := c.Param("id")
+
+        svc := h.biddingService.GetS2SBiddingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "S2S bidding service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">partner, err := svc.GetPartner(partnerID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, partner)</span>
+}
+
+// HandleListS2SPartners lists all demand partners
+func (h *AdvancedHandler) HandleListS2SPartners(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetS2SBiddingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "S2S bidding service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">partners := svc.ListPartners()
+        c.JSON(http.StatusOK, gin.H{"partners": partners, "count": len(partners)})</span>
+}
+
+// HandleRemoveS2SPartner removes a demand partner
+func (h *AdvancedHandler) HandleRemoveS2SPartner(c *gin.Context) <span class="cov8" title="1">{
+        partnerID := c.Param("id")
+
+        svc := h.biddingService.GetS2SBiddingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "S2S bidding service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.RemovePartner(partnerID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Partner removed"})</span>
+}
+
+// HandleS2SBidRequest processes a server-to-server bid request
+func (h *AdvancedHandler) HandleS2SBidRequest(c *gin.Context) <span class="cov8" title="1">{
+        var req service.S2SBidRequest
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetS2SBiddingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "S2S bidding service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">resp, err := svc.ProcessBidRequest(c.Request.Context(), &amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, resp)</span>
+}
+
+// HandleGetS2SStats returns S2S bidding statistics
+func (h *AdvancedHandler) HandleGetS2SStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetS2SBiddingService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "S2S bidding service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// BID CACHE ENDPOINTS
+// ============================================================================
+
+// HandleGetBidCacheStats returns bid cache statistics
+func (h *AdvancedHandler) HandleGetBidCacheStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetBidCacheService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid cache service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// HandleGetBidCacheHitRate returns cache hit rate
+func (h *AdvancedHandler) HandleGetBidCacheHitRate(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetBidCacheService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid cache service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">hitRate := svc.GetHitRate()
+        c.JSON(http.StatusOK, gin.H{"hit_rate": hitRate, "hit_rate_percent": hitRate * 100})</span>
+}
+
+// HandleClearBidCache clears the bid cache
+func (h *AdvancedHandler) HandleClearBidCache(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetBidCacheService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid cache service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc.Clear()
+        c.JSON(http.StatusOK, gin.H{"message": "Cache cleared"})</span>
+}
+
+// HandleInvalidateBidCachePartner invalidates cache for a partner
+func (h *AdvancedHandler) HandleInvalidateBidCachePartner(c *gin.Context) <span class="cov8" title="1">{
+        partnerID := c.Param("partner_id")
+
+        svc := h.biddingService.GetBidCacheService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid cache service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">count := svc.InvalidatePartner(partnerID)
+        c.JSON(http.StatusOK, gin.H{"message": "Cache invalidated", "entries_removed": count})</span>
+}
+
+// HandleCleanExpiredBidCache removes expired entries
+func (h *AdvancedHandler) HandleCleanExpiredBidCache(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetBidCacheService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Bid cache service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">cleaned := svc.CleanExpired()
+        c.JSON(http.StatusOK, gin.H{"message": "Expired entries cleaned", "entries_removed": cleaned})</span>
+}
+
+// ============================================================================
+// PROGRAMMATIC GUARANTEED (PG) ENDPOINTS
+// ============================================================================
+
+// HandleCreatePGDeal creates a new programmatic guaranteed deal
+func (h *AdvancedHandler) HandleCreatePGDeal(c *gin.Context) <span class="cov8" title="1">{
+        var deal service.PGDeal
+        if err := c.ShouldBindJSON(&amp;deal); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result, err := svc.CreateDeal(&amp;deal)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusCreated, result)</span>
+}
+
+// HandleGetPGDeal retrieves a PG deal
+func (h *AdvancedHandler) HandleGetPGDeal(c *gin.Context) <span class="cov8" title="1">{
+        dealID := c.Param("id")
+
+        svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">deal, err := svc.GetDeal(dealID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, deal)</span>
+}
+
+// HandleListPGDeals lists all PG deals
+func (h *AdvancedHandler) HandleListPGDeals(c *gin.Context) <span class="cov8" title="1">{
+        buyerID := c.Query("buyer_id")
+        sellerID := c.Query("seller_id")
+        status := c.Query("status")
+
+        svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">deals := svc.ListDeals(buyerID, sellerID, status)
+        c.JSON(http.StatusOK, gin.H{"deals": deals, "count": len(deals)})</span>
+}
+
+// HandleActivatePGDeal activates a PG deal
+func (h *AdvancedHandler) HandleActivatePGDeal(c *gin.Context) <span class="cov8" title="1">{
+        dealID := c.Param("id")
+
+        svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.ActivateDeal(dealID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Deal activated"})</span>
+}
+
+// HandlePausePGDeal pauses a PG deal
+func (h *AdvancedHandler) HandlePausePGDeal(c *gin.Context) <span class="cov8" title="1">{
+        dealID := c.Param("id")
+
+        svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.PauseDeal(dealID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Deal paused"})</span>
+}
+
+// HandleGetPGDeliveryProgress returns delivery progress for a deal
+func (h *AdvancedHandler) HandleGetPGDeliveryProgress(c *gin.Context) <span class="cov8" title="1">{
+        dealID := c.Param("id")
+
+        svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">progress, err := svc.GetDeliveryProgress(dealID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, progress)</span>
+}
+
+// HandleGetPGStats returns PG service statistics
+func (h *AdvancedHandler) HandleGetPGStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetProgrammaticGuaranteedService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "PG service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// DIRECT PUBLISHER ENDPOINTS
+// ============================================================================
+
+// HandleRegisterDirectPublisher registers a new direct publisher
+func (h *AdvancedHandler) HandleRegisterDirectPublisher(c *gin.Context) <span class="cov8" title="1">{
+        var pub service.DirectPublisher
+        if err := c.ShouldBindJSON(&amp;pub); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">svc := h.biddingService.GetDirectPublisherService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result, err := svc.RegisterPublisher(&amp;pub)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusCreated, result)</span>
+}
+
+// HandleGetDirectPublisher retrieves a direct publisher
+func (h *AdvancedHandler) HandleGetDirectPublisher(c *gin.Context) <span class="cov8" title="1">{
+        publisherID := c.Param("id")
+
+        svc := h.biddingService.GetDirectPublisherService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">pub, err := svc.GetPublisher(publisherID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, pub)</span>
+}
+
+// HandleListDirectPublishers lists all direct publishers
+func (h *AdvancedHandler) HandleListDirectPublishers(c *gin.Context) <span class="cov8" title="1">{
+        status := c.Query("status")
+        minQualityStr := c.DefaultQuery("min_quality", "0")
+        minQuality := 0.0
+        fmt.Sscanf(minQualityStr, "%f", &amp;minQuality)
+
+        svc := h.biddingService.GetDirectPublisherService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">publishers := svc.ListPublishers(status, minQuality)
+        c.JSON(http.StatusOK, gin.H{"publishers": publishers, "count": len(publishers)})</span>
+}
+
+// HandleActivateDirectPublisher activates a publisher
+func (h *AdvancedHandler) HandleActivateDirectPublisher(c *gin.Context) <span class="cov8" title="1">{
+        publisherID := c.Param("id")
+
+        svc := h.biddingService.GetDirectPublisherService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := svc.ActivatePublisher(publisherID); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{"message": "Publisher activated"})</span>
+}
+
+// HandleAnalyzeSupplyPath analyzes supply path for optimization
+func (h *AdvancedHandler) HandleAnalyzeSupplyPath(c *gin.Context) <span class="cov8" title="1">{
+        publisherID := c.Param("id")
+
+        svc := h.biddingService.GetDirectPublisherService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">result, err := svc.AnalyzeSupplyPath(publisherID)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, result)</span>
+}
+
+// HandleGetDirectPublisherStats returns direct publisher statistics
+func (h *AdvancedHandler) HandleGetDirectPublisherStats(c *gin.Context) <span class="cov8" title="1">{
+        svc := h.biddingService.GetDirectPublisherService()
+        if svc == nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Direct publisher service not available"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">stats := svc.GetStats()
+        c.JSON(http.StatusOK, stats)</span>
+}
+
+// ============================================================================
+// HEALTH &amp; STATUS ENDPOINTS
+// ============================================================================
+
+// HandleAdvancedServicesStatus returns status of all advanced services
+func (h *AdvancedHandler) HandleAdvancedServicesStatus(c *gin.Context) <span class="cov8" title="1">{
+        status := map[string]bool{
+                "bid_landscape":            h.biddingService.GetBidLandscapeService() != nil,
+                "creative_optimization":    h.biddingService.GetCreativeOptimizationService() != nil,
+                "incrementality":           h.biddingService.GetIncrementalityService() != nil,
+                "privacy_sandbox":          h.biddingService.GetPrivacySandboxService() != nil,
+                "contextual_ai":            h.biddingService.GetContextualAIService() != nil,
+                "realtime_alerts":          h.biddingService.GetRealTimeAlertService() != nil,
+                "competitive_intelligence": h.biddingService.GetCompetitiveIntelligenceService() != nil,
+                "unified_id":               h.biddingService.GetUnifiedIDService() != nil,
+                "dynamic_bid":              h.biddingService.GetDynamicBidService() != nil,
+                "lookalike":                h.biddingService.GetLookalikeService() != nil,
+                "user_clustering":          h.biddingService.GetUserClusteringService() != nil,
+                "churn_prediction":         h.biddingService.GetChurnPredictionService() != nil,
+                "ab_testing":               h.biddingService.GetABTestingService() != nil,
+                "s2s_bidding":              h.biddingService.GetS2SBiddingService() != nil,
+                "bid_cache":                h.biddingService.GetBidCacheService() != nil,
+                "programmatic_guaranteed":  h.biddingService.GetProgrammaticGuaranteedService() != nil,
+                "direct_publisher":         h.biddingService.GetDirectPublisherService() != nil,
+        }
+
+        allHealthy := true
+        for _, v := range status </span><span class="cov8" title="1">{
+                if !v </span><span class="cov0" title="0">{
+                        allHealthy = false
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "healthy":  allHealthy,
+                "services": status,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handler
+
+import (
+        "fmt"
+        "net/http"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/taskirx/go-bidding-engine/internal/service"
+        "github.com/taskirx/go-bidding-engine/pkg/metrics"
+)
+
+// AnalyticsHandler handles analytics and SPO requests
+type AnalyticsHandler struct {
+        biddingService *service.BiddingService
+}
+
+// NewAnalyticsHandler creates a new analytics handler
+func NewAnalyticsHandler(biddingService *service.BiddingService) *AnalyticsHandler <span class="cov8" title="1">{
+        return &amp;AnalyticsHandler{
+                biddingService: biddingService,
+        }
+}</span>
+
+// GetSupplyChainMetrics returns aggregated supply chain metrics
+func (h *AnalyticsHandler) GetSupplyChainMetrics(c *gin.Context) <span class="cov8" title="1">{
+        timeRange := c.DefaultQuery("timeRange", "1h")
+
+        metrics, err := h.biddingService.GetSupplyPathAnalyticsService().GetSupplyChainMetrics(timeRange)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get supply chain metrics",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, metrics)</span>
+}
+
+// GetSupplyPathOptimization returns optimization recommendations
+func (h *AnalyticsHandler) GetSupplyPathOptimization(c *gin.Context) <span class="cov8" title="1">{
+        timeRange := c.DefaultQuery("timeRange", "1h")
+
+        optimization, err := h.biddingService.GetSupplyPathAnalyticsService().AnalyzeSupplyPathEfficiency(timeRange)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get supply path optimization",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, optimization)</span>
+}
+
+// GetBidPathAnalytics returns detailed analytics for a specific bid request
+func (h *AnalyticsHandler) GetBidPathAnalytics(c *gin.Context) <span class="cov8" title="1">{
+        requestID := c.Param("requestId")
+
+        analytics, err := h.biddingService.GetSupplyPathAnalyticsService().GetBidPathAnalytics(requestID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusNotFound, gin.H{
+                        "error":     "Bid path analytics not found",
+                        "requestId": requestID,
+                        "details":   err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, analytics)</span>
+}
+
+// GetServicePerformance returns performance metrics for a specific service
+func (h *AnalyticsHandler) GetServicePerformance(c *gin.Context) <span class="cov8" title="1">{
+        serviceName := c.Query("serviceName")
+        timeRange := c.DefaultQuery("timeRange", "1h")
+
+        if serviceName == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "serviceName parameter is required",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">metrics, err := h.biddingService.GetSupplyPathAnalyticsService().GetServicePerformance(serviceName, timeRange)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":       "Failed to get service performance",
+                        "serviceName": serviceName,
+                        "details":     err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, metrics)</span>
+}
+
+// GetDirectPublisherAnalysis returns analysis of direct publisher relationship opportunities
+func (h *AnalyticsHandler) GetDirectPublisherAnalysis(c *gin.Context) <span class="cov8" title="1">{
+        timeRange := c.DefaultQuery("timeRange", "1h")
+
+        analysis, err := h.biddingService.GetSupplyPathAnalyticsService().AnalyzeDirectPublisherOpportunities(timeRange)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get direct publisher analysis",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, analysis)</span>
+}
+
+// GetCostBenefitAnalysis returns detailed cost-benefit analysis for optimization scenarios
+func (h *AnalyticsHandler) GetCostBenefitAnalysis(c *gin.Context) <span class="cov8" title="1">{
+        timeRange := c.DefaultQuery("timeRange", "1h")
+
+        analysis, err := h.biddingService.GetSupplyPathAnalyticsService().CalculateCostBenefitAnalysis(timeRange)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get cost-benefit analysis",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, analysis)</span>
+}
+
+// TrackClick handles click beacon requests from ad markup.
+// URL: GET /api/analytics/track/click?campaign_id=XXX&amp;request_id=YYY&amp;user_id=ZZZ
+// Increments the per-campaign daily click counter used for CTR calculation.
+// Also records click for CTA (click-through attribution), retargeting, and multi-touch attribution.
+func (h *AnalyticsHandler) TrackClick(c *gin.Context) <span class="cov8" title="1">{
+        campaignID := c.Query("campaign_id")
+        if campaignID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "campaign_id is required"})
+                return
+        }</span>
+
+        // Record in Redis for CTR calculation
+        <span class="cov8" title="1">if err := h.biddingService.TrackClick(campaignID); err != nil </span><span class="cov0" title="0">{
+                // Non-fatal: log and continue; don't fail the redirect
+                c.Header("X-Track-Error", err.Error())
+        }</span>
+
+        // Record for click-through attribution, retargeting, and MTA if user_id provided
+        <span class="cov8" title="1">userID := c.Query("user_id")
+        requestID := c.Query("request_id")
+        if userID != "" </span><span class="cov8" title="1">{
+                // Fire and forget - don't block pixel response
+                go func() </span><span class="cov8" title="1">{
+                        if requestID != "" </span><span class="cov8" title="1">{
+                                _ = h.biddingService.RecordClick(userID, campaignID, requestID)
+                                // Record touchpoint for multi-touch attribution
+                                _ = h.biddingService.RecordTouchpoint(userID, campaignID, "click", requestID)
+                        }</span>
+                        // Record click event for retargeting
+                        <span class="cov8" title="1">_ = h.biddingService.RecordUserEvent(userID, campaignID, "click")</span>
+                }()
+        }
+
+        // Increment Prometheus event counter
+        <span class="cov8" title="1">metrics.EventsTotal.WithLabelValues("click", campaignID).Inc()
+
+        // Return 204 or redirect; ad markup typically expects a redirect to the landing page
+        redirectURL := c.Query("redirect")
+        if redirectURL != "" </span><span class="cov8" title="1">{
+                c.Redirect(http.StatusFound, redirectURL)
+                return
+        }</span>
+        <span class="cov8" title="1">c.Status(http.StatusNoContent)</span>
+}
+
+// TrackImpression handles impression beacon requests from ad markup.
+// URL: GET /api/analytics/track/impression?campaign_id=XXX&amp;request_id=YYY&amp;user_id=ZZZ&amp;price=0.0025
+// Increments the per-campaign daily impression counter used for CTR and win-rate calculation.
+// Also records impression for VTA (view-through attribution), retargeting, and multi-touch attribution.
+func (h *AnalyticsHandler) TrackImpression(c *gin.Context) <span class="cov8" title="1">{
+        campaignID := c.Query("campaign_id")
+        if campaignID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "campaign_id is required"})
+                return
+        }</span>
+
+        // Record in Redis for CTR calculation
+        <span class="cov8" title="1">if err := h.biddingService.TrackImpression(campaignID); err != nil </span><span class="cov0" title="0">{
+                c.Header("X-Track-Error", err.Error())
+        }</span>
+
+        // Record for view-through attribution, retargeting, and MTA if user_id provided
+        <span class="cov8" title="1">userID := c.Query("user_id")
+        requestID := c.Query("request_id")
+        if userID != "" </span><span class="cov8" title="1">{
+                // Fire and forget - don't block pixel response
+                go func() </span><span class="cov8" title="1">{
+                        if requestID != "" </span><span class="cov8" title="1">{
+                                _ = h.biddingService.RecordImpression(userID, campaignID, requestID)
+                                // Record touchpoint for multi-touch attribution
+                                _ = h.biddingService.RecordTouchpoint(userID, campaignID, "impression", requestID)
+                        }</span>
+                        // Record impression event for retargeting
+                        <span class="cov8" title="1">_ = h.biddingService.RecordUserEvent(userID, campaignID, "impression")</span>
+                }()
+        }
+
+        // Increment Prometheus event counter
+        <span class="cov8" title="1">metrics.EventsTotal.WithLabelValues("impression", campaignID).Inc()
+
+        // Return 1x1 transparent GIF pixel
+        c.Data(http.StatusOK, "image/gif", []byte{
+                0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00,
+                0x80, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x21,
+                0xF9, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x00,
+                0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44,
+                0x01, 0x00, 0x3B,
+        })</span>
+}
+
+// GetBidLandscape returns bid/win distribution across price buckets for today.
+// URL: GET /api/analytics/bid-landscape
+// Returns: { "0.50-1.00": { "bids": 450, "wins": 120, "winRate": 0.267 }, ... }
+// Use case: Help advertisers understand "bid $X to win Y% of auctions"
+func (h *AnalyticsHandler) GetBidLandscape(c *gin.Context) <span class="cov8" title="1">{
+        landscape, err := h.biddingService.GetBidLandscape()
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get bid landscape",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Calculate win rates for each bucket
+        <span class="cov8" title="1">response := make(map[string]gin.H)
+        for bucket, stats := range landscape </span><span class="cov0" title="0">{
+                bids := stats["bids"]
+                wins := stats["wins"]
+                winRate := 0.0
+                if bids &gt; 0 </span><span class="cov0" title="0">{
+                        winRate = float64(wins) / float64(bids)
+                }</span>
+                <span class="cov0" title="0">response[bucket] = gin.H{
+                        "bids":    bids,
+                        "wins":    wins,
+                        "winRate": winRate,
+                }</span>
+        }
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "date":      "today",
+                "landscape": response,
+        })</span>
+}
+
+// GetAutoBidRecommendations returns bid optimization recommendations based on real-time performance.
+// URL: GET /api/analytics/auto-bid-recommendations
+// Returns: Array of campaigns with bid adjustment recommendations
+func (h *AnalyticsHandler) GetAutoBidRecommendations(c *gin.Context) <span class="cov8" title="1">{
+        recommendations, err := h.biddingService.GetAutoBidRecommendations()
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get auto-bid recommendations",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "timestamp":       time.Now(),
+                "recommendations": recommendations,
+                "count":           len(recommendations),
+        })</span>
+}
+
+// GetSegmentPerformance returns performance metrics by segment (device/os/geo).
+// URL: GET /api/analytics/segment-performance?type=device
+// Returns: { "mobile": { "imps": 5000, "clicks": 150, "ctr": 0.03 }, ... }
+func (h *AnalyticsHandler) GetSegmentPerformance(c *gin.Context) <span class="cov8" title="1">{
+        segmentType := c.Query("type")
+        if segmentType == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "type parameter is required (device, os, or geo)",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">if segmentType != "device" &amp;&amp; segmentType != "os" &amp;&amp; segmentType != "geo" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "type must be one of: device, os, geo",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">performance, err := h.biddingService.GetSegmentPerformance(segmentType)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get segment performance",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Calculate CTR for each segment
+        <span class="cov8" title="1">response := make(map[string]gin.H)
+        for segment, metrics := range performance </span><span class="cov0" title="0">{
+                imps := metrics["imps"]
+                clicks := metrics["clicks"]
+                ctr := 0.0
+                if imps &gt; 0 </span><span class="cov0" title="0">{
+                        ctr = float64(clicks) / float64(imps)
+                }</span>
+                <span class="cov0" title="0">response[segment] = gin.H{
+                        "impressions": imps,
+                        "clicks":      clicks,
+                        "ctr":         ctr,
+                }</span>
+        }
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "date":        "today",
+                "segmentType": segmentType,
+                "performance": response,
+        })</span>
+}
+
+// GetOptimalBidFloor returns the recommended bid floor for a publisher based on historical win rates.
+// URL: GET /api/analytics/optimal-bid-floor?publisher_id=pub123&amp;target_win_rate=0.6
+// Returns: { "publisherId": "pub123", "targetWinRate": 0.6, "recommendedFloor": 1.50 }
+func (h *AnalyticsHandler) GetOptimalBidFloor(c *gin.Context) <span class="cov8" title="1">{
+        publisherID := c.Query("publisher_id")
+        if publisherID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "publisher_id parameter is required",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">targetWinRateStr := c.DefaultQuery("target_win_rate", "0.6")
+        var targetWinRate float64
+        if _, err := fmt.Sscanf(targetWinRateStr, "%f", &amp;targetWinRate); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "invalid target_win_rate parameter",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">if targetWinRate &lt; 0.1 || targetWinRate &gt; 0.95 </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error": "target_win_rate must be between 0.1 and 0.95",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">optimalFloor, err := h.biddingService.GetOptimalBidFloor(publisherID, targetWinRate)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to calculate optimal bid floor",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "publisherId":      publisherID,
+                "targetWinRate":    targetWinRate,
+                "recommendedFloor": optimalFloor,
+                "timestamp":        time.Now(),
+        })</span>
+}
+
+// TrackConversion handles conversion postback and performs attribution
+// URL: POST /api/analytics/track/conversion
+// Body: { "user_id": "xyz", "campaign_id": "abc", "conversion_type": "purchase", "value": 29.99 }
+// Returns: Attribution result (CTA, VTA, or no attribution)
+// Also records conversion event for retargeting (can target converters or exclude them)
+func (h *AnalyticsHandler) TrackConversion(c *gin.Context) <span class="cov8" title="1">{
+        var req struct {
+                UserID         string  `json:"user_id" binding:"required"`
+                CampaignID     string  `json:"campaign_id" binding:"required"`
+                ConversionType string  `json:"conversion_type"` // e.g., "purchase", "signup", "lead"
+                Value          float64 `json:"value"`           // Conversion value in dollars
+        }
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Get attribution
+        <span class="cov8" title="1">attrType, requestID, err := h.biddingService.GetAttribution(req.UserID, req.CampaignID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get attribution",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Record conversion metrics and retargeting event
+        <span class="cov8" title="1">if attrType != "none" </span><span class="cov8" title="1">{
+                metrics.EventsTotal.WithLabelValues("conversion_"+attrType, req.CampaignID).Inc()
+                // Record conversion event for retargeting (allows targeting or excluding converters)
+                go func() </span><span class="cov8" title="1">{
+                        _ = h.biddingService.RecordUserEvent(req.UserID, req.CampaignID, "conversion")
+                }</span>()
+        }
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "attribution":     attrType,
+                "requestId":       requestID,
+                "campaignId":      req.CampaignID,
+                "conversionType":  req.ConversionType,
+                "conversionValue": req.Value,
+                "timestamp":       time.Now(),
+        })</span>
+}
+
+// GetMultiTouchAttribution returns attribution credit distributed across touchpoints
+// URL: GET /api/analytics/multi-touch-attribution?user_id=XXX&amp;campaign_id=YYY&amp;model=linear
+// Supported models: linear, time_decay, position_based, first_touch, last_touch
+// Returns: Array of touchpoints with attributed credit (sum = 1.0)
+func (h *AnalyticsHandler) GetMultiTouchAttribution(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Query("user_id")
+        campaignID := c.Query("campaign_id")
+        modelType := c.DefaultQuery("model", "linear")
+
+        if userID == "" || campaignID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id and campaign_id are required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">credits, err := h.biddingService.GetMultiTouchAttribution(userID, campaignID, modelType)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to get attribution",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Calculate total credit (should be 1.0)
+        <span class="cov8" title="1">totalCredit := 0.0
+        for _, credit := range credits </span><span class="cov0" title="0">{
+                totalCredit += credit.Credit
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "userId":      userID,
+                "campaignId":  campaignID,
+                "model":       modelType,
+                "touchpoints": len(credits),
+                "totalCredit": totalCredit,
+                "attribution": credits,
+                "timestamp":   time.Now(),
+        })</span>
+}
+
+// LinkDevices links multiple device IDs under a primary user ID for cross-device targeting
+// URL: POST /api/analytics/cross-device/link
+// Body: {"primary_user_id": "user123", "device_ids": ["mobile_abc", "desktop_xyz", "ctv_123"]}
+func (h *AnalyticsHandler) LinkDevices(c *gin.Context) <span class="cov8" title="1">{
+        var req struct {
+                PrimaryUserID string   `json:"primary_user_id" binding:"required"`
+                DeviceIDs     []string `json:"device_ids" binding:"required"`
+        }
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if len(req.DeviceIDs) == 0 </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "at least one device_id required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">err := h.biddingService.LinkUserDevices(req.PrimaryUserID, req.DeviceIDs)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "status":        "linked",
+                "primaryUserId": req.PrimaryUserID,
+                "linkedDevices": req.DeviceIDs,
+                "timestamp":     time.Now(),
+        })</span>
+}
+
+// GetDeviceGraph returns all linked devices for a user
+// URL: GET /api/analytics/cross-device/graph?user_id=XXX
+func (h *AnalyticsHandler) GetDeviceGraph(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Query("user_id")
+        if userID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">graph, err := h.biddingService.GetUserDeviceGraph(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{
+                "primaryUserId": graph.PrimaryUserID,
+                "linkedDevices": graph.LinkedDevices,
+                "deviceCount":   graph.DeviceCount,
+                "timestamp":     time.Now(),
+        })</span>
+}
+
+// GetCrossDeviceFrequency returns aggregated impression frequency across all linked devices
+// URL: GET /api/analytics/cross-device/frequency?user_id=XXX&amp;campaign_id=YYY
+func (h *AnalyticsHandler) GetCrossDeviceFrequency(c *gin.Context) <span class="cov8" title="1">{
+        userID := c.Query("user_id")
+        campaignID := c.Query("campaign_id")
+
+        if userID == "" || campaignID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "user_id and campaign_id are required"})
+                return
+        }</span>
+
+        // First resolve to primary user ID
+        <span class="cov8" title="1">graph, err := h.biddingService.GetUserDeviceGraph(userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Get unified frequency
+        <span class="cov8" title="1">freq := h.biddingService.GetCrossDeviceFrequency(graph.PrimaryUserID, campaignID)
+
+        c.JSON(http.StatusOK, gin.H{
+                "userId":        userID,
+                "primaryUserId": graph.PrimaryUserID,
+                "campaignId":    campaignID,
+                "unifiedFreq":   freq,
+                "deviceCount":   graph.DeviceCount,
+                "linkedDevices": graph.LinkedDevices,
+                "timestamp":     time.Now(),
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package handler
+
+import (
+        "net/http"
+        "strings"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/prometheus/client_golang/prometheus"
+        "github.com/taskirx/go-bidding-engine/internal/model"
+        "github.com/taskirx/go-bidding-engine/internal/service"
+        "github.com/taskirx/go-bidding-engine/pkg/metrics"
+)
+
+// BidHandler handles HTTP bid requests
+type BidHandler struct {
+        biddingService *service.BiddingService
+}
+
+// NewBidHandler creates a new bid handler
+func NewBidHandler(biddingService *service.BiddingService) *BidHandler <span class="cov8" title="1">{
+        return &amp;BidHandler{
+                biddingService: biddingService,
+        }
+}</span>
+
+// HandleBid processes a bid request
+func (h *BidHandler) HandleBid(c *gin.Context) <span class="cov8" title="1">{
+        timer := prometheus.NewTimer(metrics.BidLatency)
+        defer timer.ObserveDuration()
+        metrics.BidRequestsTotal.Inc()
+
+        var req model.BidRequest
+
+        if err := c.ShouldBindJSON(&amp;req); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{
+                        "error":   "Invalid request format",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        // Increment metrics based on format (Legacy)
+        <span class="cov8" title="1">for _, format := range req.AdSlot.Formats </span><span class="cov8" title="1">{
+                metrics.BidRequestsByFormat.WithLabelValues(format).Inc()
+                h.biddingService.IncrementFormatStats(format)
+        }</span>
+
+        // Set timestamp if not provided
+        <span class="cov8" title="1">if req.Timestamp.IsZero() </span><span class="cov8" title="1">{
+                req.Timestamp = time.Now()
+        }</span>
+
+        // Generate request ID if not provided
+        <span class="cov8" title="1">if req.ID == "" </span><span class="cov0" title="0">{
+                req.ID = model.GenerateRequestID()
+        }</span>
+
+        // Process bid
+        <span class="cov8" title="1">response, err := h.biddingService.ProcessBid(&amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                // Return no-bid response
+                c.JSON(http.StatusOK, model.NoBidResponse{
+                        RequestID: req.ID,
+                        Reason:    err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, response)</span>
+}
+
+// HandleOpenRTB processes standard OpenRTB 2.5/2.6 requests
+func (h *BidHandler) HandleOpenRTB(c *gin.Context) <span class="cov8" title="1">{
+        timer := prometheus.NewTimer(metrics.BidLatency)
+        defer timer.ObserveDuration()
+        metrics.BidRequestsTotal.Inc()
+
+        var ortbReq model.OpenRTBRequest
+        if err := c.ShouldBindJSON(&amp;ortbReq); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OpenRTB request", "details": err.Error()})
+                return
+        }</span>
+
+        // 1. Normalize OpenRTB to Internal Model
+        <span class="cov8" title="1">internalReq := h.normalizeOpenRTB(&amp;ortbReq)
+
+        // Increment metrics based on format
+        for _, format := range internalReq.AdSlot.Formats </span><span class="cov8" title="1">{
+                metrics.BidRequestsByFormat.WithLabelValues(format).Inc()
+                h.biddingService.IncrementFormatStats(format)
+        }</span>
+
+        // 2. Process Bid using existing engine logic
+        <span class="cov8" title="1">response, err := h.biddingService.ProcessBid(internalReq)
+
+        if err != nil </span><span class="cov8" title="1">{
+                // OpenRTB No-Bid Response (Empty 204 or specific JSON)
+                // Standard is 204 No Content
+                c.Status(http.StatusNoContent)
+                return
+        }</span>
+
+        // 3. Convert Internal Response to OpenRTB Response
+        <span class="cov0" title="0">ortbRes := h.convertToOpenRTBResponse(response, &amp;ortbReq)
+        c.JSON(http.StatusOK, ortbRes)</span>
+}
+
+// normalizeOpenRTB converts OpenRTB request to internal format
+func (h *BidHandler) normalizeOpenRTB(req *model.OpenRTBRequest) *model.BidRequest <span class="cov8" title="1">{
+        // Basic mapping logic
+        internal := &amp;model.BidRequest{
+                ID:        req.ID,
+                Timestamp: time.Now(),
+                // PublisherID logic: From Site.ID or App.ID
+                PublisherID: "unknown",
+                AdSlot: model.AdSlot{
+                        ID:      "unknown",
+                        Formats: []string{},
+                },
+                Device: model.InternalDevice{
+                        Type: "mobile", // Default
+                        Geo:  model.InternalGeo{},
+                },
+                User: model.InternalUser{},
+        }
+
+        if req.Site != nil </span><span class="cov8" title="1">{
+                internal.PublisherID = req.Site.ID
+                internal.Device.Type = "desktop" // Assume desktop for site
+        }</span> else<span class="cov8" title="1"> if req.App != nil </span><span class="cov8" title="1">{
+                internal.PublisherID = req.App.ID
+                internal.Device.Type = "mobile" // Assume mobile for app
+        }</span>
+
+        <span class="cov8" title="1">if len(req.Imp) &gt; 0 </span><span class="cov8" title="1">{
+                imp := req.Imp[0] // Simplify: handle first impression only for now
+                internal.AdSlot.ID = imp.ID
+
+                // Map bid floor from OpenRTB impression
+                internal.AdSlot.BidFloor = imp.BidFloor
+                if imp.BidFloorCur != "" </span><span class="cov8" title="1">{
+                        internal.AdSlot.BidFloorCur = imp.BidFloorCur
+                }</span> else<span class="cov8" title="1"> {
+                        internal.AdSlot.BidFloorCur = "USD"
+                }</span>
+
+                // PMP Support
+                <span class="cov8" title="1">if imp.Pmp != nil </span><span class="cov8" title="1">{
+                        internal.Pmp = imp.Pmp
+                }</span>
+
+                <span class="cov8" title="1">if imp.Banner != nil </span><span class="cov8" title="1">{
+                        internal.AdSlot.Formats = append(internal.AdSlot.Formats, "banner")
+                        internal.AdSlot.Dimensions = []int{imp.Banner.W, imp.Banner.H}
+                }</span>
+                <span class="cov8" title="1">if imp.Video != nil </span><span class="cov8" title="1">{
+                        internal.AdSlot.Formats = append(internal.AdSlot.Formats, "video")
+                }</span>
+                <span class="cov8" title="1">if imp.Audio != nil </span><span class="cov8" title="1">{
+                        internal.AdSlot.Formats = append(internal.AdSlot.Formats, "audio")
+                }</span>
+                <span class="cov8" title="1">if imp.Native != nil </span><span class="cov8" title="1">{
+                        internal.AdSlot.Formats = append(internal.AdSlot.Formats, "native")
+                        // Store raw Native Request payload in Context for later use
+                        if internal.Context == nil </span><span class="cov8" title="1">{
+                                internal.Context = make(map[string]interface{})
+                        }</span>
+                        <span class="cov8" title="1">internal.Context["native_request"] = imp.Native.Request</span>
+                }
+                // OpenRTB 2.5: "instl": 1 means interstitial/fullscreen
+                <span class="cov8" title="1">if imp.Instl == 1 </span><span class="cov8" title="1">{
+                        internal.AdSlot.Formats = append(internal.AdSlot.Formats, "interstitial")
+                        // Interstitials often imply Rich Media or full-screen Video support
+                        // We can also infer "rich_media" compatibility
+                        internal.AdSlot.Formats = append(internal.AdSlot.Formats, "rich_media")
+                }</span>
+        }
+
+        <span class="cov8" title="1">if req.Device != nil </span><span class="cov8" title="1">{
+                internal.Device.IP = req.Device.IP
+                internal.Device.UserAgent = req.Device.UA
+                internal.Device.OS = req.Device.OS
+                internal.Device.Model = req.Device.Model
+                internal.Device.Make = req.Device.Make
+
+                if req.Device.Geo != nil </span><span class="cov8" title="1">{
+                        internal.Device.Geo.Country = req.Device.Geo.Country
+                        internal.Device.Geo.City = req.Device.Geo.City
+                        internal.Device.Geo.Lat = req.Device.Geo.Lat
+                        internal.Device.Geo.Lon = req.Device.Geo.Lon
+
+                        // Also set User Country from Device Geo if not already set (common practice)
+                        if internal.User.Country == "" </span><span class="cov8" title="1">{
+                                internal.User.Country = req.Device.Geo.Country
+                        }</span>
+                }
+
+                // Map Devicetype ID (OpenRTB 2.5) to internal string
+                // 1=Mobile/Tablet, 2=PC, 3=TV, 4=Phone, 5=Tablet, 6=Connected Device, 7=Set Top Box
+                <span class="cov8" title="1">switch req.Device.DeviceType </span>{
+                case 2:<span class="cov8" title="1">
+                        internal.Device.Type = "desktop"</span>
+                case 1, 4:<span class="cov8" title="1">
+                        internal.Device.Type = "mobile"</span>
+                case 5:<span class="cov8" title="1">
+                        internal.Device.Type = "tablet"</span>
+                case 3, 7:<span class="cov8" title="1">
+                        internal.Device.Type = "ctv"</span>
+                case 6:<span class="cov8" title="1">
+                        internal.Device.Type = "connected_device"</span>
+                default:<span class="cov8" title="1">
+                        // Fallback logic if DeviceType is missing (using UA or assumed from Site/App earlier)
+                        if internal.Device.Type == "" </span><span class="cov0" title="0">{
+                                internal.Device.Type = "mobile"
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">if req.User != nil </span><span class="cov8" title="1">{
+                internal.User.ID = req.User.ID
+                internal.User.Gender = req.User.Gender
+                if req.User.Yob &gt; 0 </span><span class="cov8" title="1">{
+                        internal.User.Age = time.Now().Year() - req.User.Yob
+                }</span>
+                // Map Keywords (comma separated)
+                <span class="cov8" title="1">if req.User.Keywords != "" </span><span class="cov8" title="1">{
+                        parts := strings.Split(req.User.Keywords, ",")
+                        for _, p := range parts </span><span class="cov8" title="1">{
+                                if p != "" </span><span class="cov8" title="1">{
+                                        internal.User.Categories = append(internal.User.Categories, strings.TrimSpace(p))
+                                }</span>
+                        }
+                }
+                // Map Data Segments (e.g., from DMP)
+                <span class="cov8" title="1">if len(req.User.Data) &gt; 0 </span><span class="cov8" title="1">{
+                        for _, data := range req.User.Data </span><span class="cov8" title="1">{
+                                for _, segment := range data.Segment </span><span class="cov8" title="1">{
+                                        if segment.ID != "" </span><span class="cov8" title="1">{
+                                                internal.User.Categories = append(internal.User.Categories, segment.ID)
+                                        }</span>
+                                        // Also add segment Value as category if useful? Or just ID.
+                                        // Often ID is the segment ID.
+                                }
+                        }
+                }
+        }
+
+        <span class="cov8" title="1">return internal</span>
+}
+
+// convertToOpenRTBResponse converts internal response to OpenRTB
+func (h *BidHandler) convertToOpenRTBResponse(res *model.BidResponse, req *model.OpenRTBRequest) map[string]interface{} <span class="cov8" title="1">{
+        // Standard OpenRTB Response Structure
+        return map[string]interface{}{
+                "id": res.RequestID,
+                "seatbid": []map[string]interface{}{
+                        {
+                                "bid": []map[string]interface{}{
+                                        {
+                                                "id":    model.GenerateRequestID(),
+                                                "impid": req.Imp[0].ID, // Match request imp ID
+                                                "price": res.BidPrice,
+                                                "adm":   res.AdMarkup,
+                                                "crid":  res.CreativeURL,
+                                                "iurl":  res.ImpressionURL,
+                                        },
+                                },
+                        },
+                },
+                "cur": "USD",
+        }
+}</span>
+
+// HandleTrack processes tracking pixels and events
+func (h *BidHandler) HandleTrack(c *gin.Context) <span class="cov8" title="1">{
+        eventType := c.Query("event") // "impression", "click", "video_start", "expand", etc.
+        campaignID := c.Query("id")   // Campaign ID
+
+        if eventType == "" || campaignID == "" </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Missing event or id"})
+                return
+        }</span>
+
+        // Record Metric based on type
+        <span class="cov8" title="1">switch eventType </span>{
+        case "impression", "click", "view":<span class="cov8" title="1">
+                metrics.EventsTotal.WithLabelValues(eventType, campaignID).Inc()</span>
+        case "start", "first_quartile", "midpoint", "third_quartile", "complete":<span class="cov8" title="1">
+                metrics.VideoEventsTotal.WithLabelValues(eventType, campaignID).Inc()</span>
+        case "expand", "collapse", "interact":<span class="cov8" title="1">
+                metrics.RichMediaEventsTotal.WithLabelValues(eventType, campaignID).Inc()</span>
+        default:<span class="cov8" title="1">
+                // Generic event
+                metrics.EventsTotal.WithLabelValues(eventType, campaignID).Inc()</span>
+        }
+
+        // Return 1x1 GIF for pixels
+        <span class="cov8" title="1">if c.Query("pixel") == "1" </span><span class="cov8" title="1">{
+                c.Data(http.StatusOK, "image/gif", []byte{
+                        0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00,
+                        0x80, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x21,
+                        0xF9, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x00,
+                        0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x02, 0x02, 0x44,
+                        0x01, 0x00, 0x3B,
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.Status(http.StatusNoContent)</span>
+}
+
+// HandleHealth returns service health status
+func (h *BidHandler) HandleHealth(c *gin.Context) <span class="cov8" title="1">{
+        c.JSON(http.StatusOK, gin.H{
+                "status":    "healthy",
+                "service":   "go-bidding-engine",
+                "timestamp": time.Now(),
+        })
+}</span>
+
+// HandleMetrics returns service metrics
+func (h *BidHandler) HandleMetrics(c *gin.Context) <span class="cov8" title="1">{
+        metrics, err := h.biddingService.GetMetrics()
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error": "Failed to get metrics",
+                })
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, metrics)</span>
+}
+
+// HandleRefresh refreshes campaigns from backend
+func (h *BidHandler) HandleRefresh(c *gin.Context) <span class="cov8" title="1">{
+        backendURL := c.Query("backend_url")
+        if backendURL == "" </span><span class="cov8" title="1">{
+                backendURL = h.biddingService.GetBackendBaseURL()
+        }</span>
+
+        <span class="cov8" title="1">if err := h.biddingService.RefreshCampaigns(backendURL); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusInternalServerError, gin.H{
+                        "error":   "Failed to refresh campaigns",
+                        "details": err.Error(),
+                })
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, gin.H{
+                "message":   "Campaigns refreshed successfully",
+                "timestamp": time.Now(),
+        })</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

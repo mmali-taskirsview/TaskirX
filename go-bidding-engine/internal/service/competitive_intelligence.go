@@ -74,7 +74,7 @@ func (s *CompetitiveIntelligenceService) AnalyzeCompetition(campaign *model.Camp
 	s.analyzeSegmentCompetition(segmentKey, result)
 
 	// Track known competitors if configured
-	if config.TrackCompetitors != nil && len(config.TrackCompetitors) > 0 {
+	if len(config.TrackCompetitors) > 0 {
 		s.analyzeKnownCompetitors(config.TrackCompetitors, result)
 	}
 

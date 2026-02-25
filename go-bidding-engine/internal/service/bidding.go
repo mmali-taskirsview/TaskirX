@@ -4310,7 +4310,7 @@ type performanceData struct {
 }
 
 // getHistoricalPerformance retrieves campaign performance data
-func (s *BiddingService) getHistoricalPerformance(campaignID string, req *model.BidRequest) performanceData {
+func (s *BiddingService) getHistoricalPerformance(campaignID string, _ *model.BidRequest) performanceData {
 	data := performanceData{
 		ctr:         0.01, // Default 1% CTR
 		cvr:         0.02, // Default 2% CVR
@@ -4470,7 +4470,7 @@ func (s *BiddingService) predictCVR(campaign *model.Campaign, req *model.BidRequ
 }
 
 // predictViewability predicts viewability rate
-func (s *BiddingService) predictViewability(campaign *model.Campaign, req *model.BidRequest, perf performanceData) float64 {
+func (s *BiddingService) predictViewability(_ *model.Campaign, req *model.BidRequest, perf performanceData) float64 {
 	baseView := perf.viewability
 	if baseView == 0 {
 		baseView = 0.60 // Default 60%
@@ -4557,13 +4557,14 @@ func (s *BiddingService) optimizeForCPC(campaign *model.Campaign, req *model.Bid
 }
 
 // optimizeForCPM simple CPM optimization
-func (s *BiddingService) optimizeForCPM(campaign *model.Campaign, req *model.BidRequest, pg *model.PerformanceGoals, perf performanceData) float64 {
+func (s *BiddingService) optimizeForCPM(_ *model.Campaign, req *model.BidRequest, pg *model.PerformanceGoals, perf performanceData) float64 {
 	if pg.TargetCPM <= 0 {
 		return 1.0
 	}
 
 	// Adjust based on predicted viewability
-	viewRate := s.predictViewability(campaign, req, perf)
+	// Using empty campaign struct just to satisfy signature since it's unused in predictViewability
+	viewRate := s.predictViewability(nil, req, perf)
 
 	// Higher viewability = willing to pay more
 	if viewRate >= 0.8 {
@@ -4598,7 +4599,7 @@ func (s *BiddingService) optimizeForViewability(campaign *model.Campaign, req *m
 }
 
 // optimizeForCompletion optimizes for video completion goal
-func (s *BiddingService) optimizeForCompletion(campaign *model.Campaign, req *model.BidRequest, pg *model.PerformanceGoals, perf performanceData) float64 {
+func (s *BiddingService) optimizeForCompletion(_ *model.Campaign, req *model.BidRequest, pg *model.PerformanceGoals, perf performanceData) float64 {
 	if pg.CompletionGoal <= 0 {
 		return 1.0
 	}
@@ -5141,7 +5142,7 @@ func (s *BiddingService) optimizeForCPIAAP(campaign *model.Campaign, req *model.
 }
 
 // optimizeForCTV optimizes bid for Connected TV campaigns
-func (s *BiddingService) optimizeForCTV(campaign *model.Campaign, req *model.BidRequest, pg *model.PerformanceGoals, perf performanceData) float64 {
+func (s *BiddingService) optimizeForCTV(_ *model.Campaign, req *model.BidRequest, pg *model.PerformanceGoals, perf performanceData) float64 {
 	if !s.isCTVInventory(req) {
 		return 0.5 // Significant penalty for non-CTV when CTV is goal
 	}
@@ -7712,7 +7713,7 @@ func (s *BiddingService) ResolveCrossDeviceUser(deviceID string, additionalSigna
 
 // findDeterministicLink attempts to find deterministic signals to link devices
 // Uses email hash, phone hash, login ID, or other authenticated identifiers
-func (s *BiddingService) findDeterministicLink(deviceID string, signals map[string]string) string {
+func (s *BiddingService) findDeterministicLink(_ string, signals map[string]string) string {
 	if signals == nil {
 		return ""
 	}

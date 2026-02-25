@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -161,7 +162,7 @@ func TestBidCacheEdge_ConcurrentAccess(t *testing.T) {
 		go func(id int) {
 			for j := 0; j < 100; j++ {
 				bid := &CachedBid{Price: float64(id * j)}
-				svc.Set(nil, "concurrent-key-"+string(rune('0'+id)), bid)
+				svc.Set(context.Background(), "concurrent-key-"+string(rune('0'+id)), bid)
 			}
 			done <- true
 		}(i)
@@ -171,7 +172,7 @@ func TestBidCacheEdge_ConcurrentAccess(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			for j := 0; j < 100; j++ {
-				svc.Get(nil, "concurrent-key-"+string(rune('0'+id)))
+				svc.Get(context.Background(), "concurrent-key-"+string(rune('0'+id)))
 			}
 			done <- true
 		}(i)
@@ -317,10 +318,10 @@ func TestIntegration_S2SCache(t *testing.T) {
 		"partner": "partner-cached",
 		"slot":    "slot-001",
 	})
-	cacheSvc.Set(nil, cacheKey, cachedBid)
+	cacheSvc.Set(context.Background(), cacheKey, cachedBid)
 
 	// Verify cache hit
-	retrieved, found := cacheSvc.Get(nil, cacheKey)
+	retrieved, found := cacheSvc.Get(context.Background(), cacheKey)
 	if !found {
 		t.Error("Expected cache hit")
 	}

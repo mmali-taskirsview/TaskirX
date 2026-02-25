@@ -360,7 +360,7 @@ func (s *DynamicBidService) clampMultiplier(multiplier float64) float64 {
 	return multiplier
 }
 
-func (s *DynamicBidService) calculateConfidence(campaignID, publisherID string) float64 {
+func (s *DynamicBidService) calculateConfidence(_, publisherID string) float64 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -405,7 +405,7 @@ func (s *DynamicBidService) predictWinRate(bidPrice float64, publisherID string)
 	return 0.15
 }
 
-func (s *DynamicBidService) predictROI(campaign *model.Campaign, bidPrice float64, winRate float64) float64 {
+func (s *DynamicBidService) predictROI(_ *model.Campaign, bidPrice float64, winRate float64) float64 {
 	// Simplified ROI prediction
 	// ROI = (Expected Revenue - Cost) / Cost
 

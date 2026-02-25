@@ -12,51 +12,51 @@ import (
 // PerformancePredictionService provides ML-based performance prediction
 // for campaigns, creatives, and ad placements
 type PerformancePredictionService struct {
-	cache             cache.Cache
-	historicalData    sync.Map // key -> *PerformanceRecord
-	predictions       sync.Map // predictionID -> *PredictionResult
-	modelWeights      *PredictionModelWeights
-	featureStats      *FeatureStatistics
-	mu                sync.RWMutex
-	config            PredictionConfig
+	cache          cache.Cache
+	historicalData sync.Map // key -> *PerformanceRecord
+	predictions    sync.Map // predictionID -> *PredictionResult
+	modelWeights   *PredictionModelWeights
+	featureStats   *FeatureStatistics
+	mu             sync.RWMutex
+	config         PredictionConfig
 }
 
 // PredictionConfig holds configuration for performance prediction
 type PredictionConfig struct {
-	MinHistoricalSamples int     `json:"min_historical_samples"`
-	ConfidenceThreshold  float64 `json:"confidence_threshold"`
-	PredictionHorizon    int     `json:"prediction_horizon_hours"`
-	ModelUpdateInterval  time.Duration `json:"model_update_interval"`
+	MinHistoricalSamples int                `json:"min_historical_samples"`
+	ConfidenceThreshold  float64            `json:"confidence_threshold"`
+	PredictionHorizon    int                `json:"prediction_horizon_hours"`
+	ModelUpdateInterval  time.Duration      `json:"model_update_interval"`
 	FeatureImportance    map[string]float64 `json:"feature_importance"`
-	EnableRealTimeUpdate bool    `json:"enable_real_time_update"`
+	EnableRealTimeUpdate bool               `json:"enable_real_time_update"`
 }
 
 // PerformanceRecord holds historical performance data
 type PerformanceRecord struct {
-	EntityID       string            `json:"entity_id"`
-	EntityType     string            `json:"entity_type"` // campaign, creative, placement
-	Timestamp      time.Time         `json:"timestamp"`
-	Impressions    int64             `json:"impressions"`
-	Clicks         int64             `json:"clicks"`
-	Conversions    int64             `json:"conversions"`
-	Revenue        float64           `json:"revenue"`
-	Spend          float64           `json:"spend"`
-	CTR            float64           `json:"ctr"`
-	CVR            float64           `json:"cvr"`
-	CPC            float64           `json:"cpc"`
-	CPM            float64           `json:"cpm"`
-	ROAS           float64           `json:"roas"`
-	Features       map[string]float64 `json:"features"`
+	EntityID    string             `json:"entity_id"`
+	EntityType  string             `json:"entity_type"` // campaign, creative, placement
+	Timestamp   time.Time          `json:"timestamp"`
+	Impressions int64              `json:"impressions"`
+	Clicks      int64              `json:"clicks"`
+	Conversions int64              `json:"conversions"`
+	Revenue     float64            `json:"revenue"`
+	Spend       float64            `json:"spend"`
+	CTR         float64            `json:"ctr"`
+	CVR         float64            `json:"cvr"`
+	CPC         float64            `json:"cpc"`
+	CPM         float64            `json:"cpm"`
+	ROAS        float64            `json:"roas"`
+	Features    map[string]float64 `json:"features"`
 }
 
 // PredictionModelWeights holds the learned model weights
 type PredictionModelWeights struct {
-	CTRWeights        map[string]float64 `json:"ctr_weights"`
-	CVRWeights        map[string]float64 `json:"cvr_weights"`
-	ROASWeights       map[string]float64 `json:"roas_weights"`
-	Intercepts        map[string]float64 `json:"intercepts"`
-	LastTrainedAt     time.Time          `json:"last_trained_at"`
-	TrainingSamples   int                `json:"training_samples"`
+	CTRWeights      map[string]float64 `json:"ctr_weights"`
+	CVRWeights      map[string]float64 `json:"cvr_weights"`
+	ROASWeights     map[string]float64 `json:"roas_weights"`
+	Intercepts      map[string]float64 `json:"intercepts"`
+	LastTrainedAt   time.Time          `json:"last_trained_at"`
+	TrainingSamples int                `json:"training_samples"`
 }
 
 // FeatureStatistics holds normalization statistics
@@ -69,12 +69,12 @@ type FeatureStatistics struct {
 
 // PredictionRequest represents a prediction request
 type PredictionRequest struct {
-	EntityID     string            `json:"entity_id"`
-	EntityType   string            `json:"entity_type"`
-	Features     map[string]float64 `json:"features"`
-	Context      PredictionContext `json:"context"`
-	Horizon      int               `json:"horizon"` // Hours ahead to predict
-	Metrics      []string          `json:"metrics"` // Which metrics to predict
+	EntityID   string             `json:"entity_id"`
+	EntityType string             `json:"entity_type"`
+	Features   map[string]float64 `json:"features"`
+	Context    PredictionContext  `json:"context"`
+	Horizon    int                `json:"horizon"` // Hours ahead to predict
+	Metrics    []string           `json:"metrics"` // Which metrics to predict
 }
 
 // PredictionContext provides context for prediction
@@ -91,28 +91,28 @@ type PredictionContext struct {
 
 // PredictionResult holds the prediction output
 type PredictionResult struct {
-	ID                string                    `json:"id"`
-	EntityID          string                    `json:"entity_id"`
-	EntityType        string                    `json:"entity_type"`
-	PredictedAt       time.Time                 `json:"predicted_at"`
-	HorizonHours      int                       `json:"horizon_hours"`
+	ID                string                       `json:"id"`
+	EntityID          string                       `json:"entity_id"`
+	EntityType        string                       `json:"entity_type"`
+	PredictedAt       time.Time                    `json:"predicted_at"`
+	HorizonHours      int                          `json:"horizon_hours"`
 	Predictions       map[string]*MetricPrediction `json:"predictions"`
-	Confidence        float64                   `json:"confidence"`
-	FeatureImportance map[string]float64        `json:"feature_importance"`
-	Recommendations   []PredictionRecommendation `json:"recommendations"`
+	Confidence        float64                      `json:"confidence"`
+	FeatureImportance map[string]float64           `json:"feature_importance"`
+	Recommendations   []PredictionRecommendation   `json:"recommendations"`
 }
 
 // MetricPrediction holds prediction for a single metric
 type MetricPrediction struct {
-	Metric          string  `json:"metric"`
-	PredictedValue  float64 `json:"predicted_value"`
-	LowerBound      float64 `json:"lower_bound"`
-	UpperBound      float64 `json:"upper_bound"`
-	Confidence      float64 `json:"confidence"`
-	TrendDirection  string  `json:"trend_direction"` // up, down, stable
-	TrendStrength   float64 `json:"trend_strength"`  // 0-1
-	HistoricalMean  float64 `json:"historical_mean"`
-	PercentChange   float64 `json:"percent_change"`
+	Metric         string  `json:"metric"`
+	PredictedValue float64 `json:"predicted_value"`
+	LowerBound     float64 `json:"lower_bound"`
+	UpperBound     float64 `json:"upper_bound"`
+	Confidence     float64 `json:"confidence"`
+	TrendDirection string  `json:"trend_direction"` // up, down, stable
+	TrendStrength  float64 `json:"trend_strength"`  // 0-1
+	HistoricalMean float64 `json:"historical_mean"`
+	PercentChange  float64 `json:"percent_change"`
 }
 
 // PredictionRecommendation provides actionable recommendations
@@ -126,33 +126,33 @@ type PredictionRecommendation struct {
 
 // PerformanceForecast holds multi-period forecast
 type PerformanceForecast struct {
-	EntityID    string                       `json:"entity_id"`
-	EntityType  string                       `json:"entity_type"`
-	StartTime   time.Time                    `json:"start_time"`
-	EndTime     time.Time                    `json:"end_time"`
-	Intervals   []ForecastInterval           `json:"intervals"`
-	Summary     ForecastSummary              `json:"summary"`
+	EntityID   string             `json:"entity_id"`
+	EntityType string             `json:"entity_type"`
+	StartTime  time.Time          `json:"start_time"`
+	EndTime    time.Time          `json:"end_time"`
+	Intervals  []ForecastInterval `json:"intervals"`
+	Summary    ForecastSummary    `json:"summary"`
 }
 
 // ForecastInterval holds prediction for a time interval
 type ForecastInterval struct {
-	StartTime      time.Time                 `json:"start_time"`
-	EndTime        time.Time                 `json:"end_time"`
-	Predictions    map[string]float64        `json:"predictions"`
-	ConfidenceBands map[string][2]float64    `json:"confidence_bands"` // [lower, upper]
+	StartTime       time.Time             `json:"start_time"`
+	EndTime         time.Time             `json:"end_time"`
+	Predictions     map[string]float64    `json:"predictions"`
+	ConfidenceBands map[string][2]float64 `json:"confidence_bands"` // [lower, upper]
 }
 
 // ForecastSummary provides summary statistics
 type ForecastSummary struct {
-	TotalImpressions    int64   `json:"total_impressions"`
-	TotalClicks         int64   `json:"total_clicks"`
-	TotalConversions    int64   `json:"total_conversions"`
-	TotalRevenue        float64 `json:"total_revenue"`
-	TotalSpend          float64 `json:"total_spend"`
-	ExpectedCTR         float64 `json:"expected_ctr"`
-	ExpectedCVR         float64 `json:"expected_cvr"`
-	ExpectedROAS        float64 `json:"expected_roas"`
-	RiskLevel           string  `json:"risk_level"`
+	TotalImpressions int64   `json:"total_impressions"`
+	TotalClicks      int64   `json:"total_clicks"`
+	TotalConversions int64   `json:"total_conversions"`
+	TotalRevenue     float64 `json:"total_revenue"`
+	TotalSpend       float64 `json:"total_spend"`
+	ExpectedCTR      float64 `json:"expected_ctr"`
+	ExpectedCVR      float64 `json:"expected_cvr"`
+	ExpectedROAS     float64 `json:"expected_roas"`
+	RiskLevel        string  `json:"risk_level"`
 }
 
 // NewPerformancePredictionService creates a new prediction service
@@ -177,13 +177,13 @@ func NewPerformancePredictionService(c cache.Cache) *PerformancePredictionServic
 			PredictionHorizon:    24,
 			ModelUpdateInterval:  time.Hour,
 			FeatureImportance: map[string]float64{
-				"historical_ctr":  0.25,
-				"historical_cvr":  0.20,
-				"time_of_day":     0.10,
-				"device_type":     0.10,
-				"ad_format":       0.10,
-				"bid_price":       0.15,
-				"seasonality":     0.10,
+				"historical_ctr": 0.25,
+				"historical_cvr": 0.20,
+				"time_of_day":    0.10,
+				"device_type":    0.10,
+				"ad_format":      0.10,
+				"bid_price":      0.15,
+				"seasonality":    0.10,
 			},
 			EnableRealTimeUpdate: true,
 		},
@@ -204,12 +204,12 @@ func defaultCTRWeights() map[string]float64 {
 
 func defaultCVRWeights() map[string]float64 {
 	return map[string]float64{
-		"historical_cvr":    0.35,
-		"historical_ctr":    0.15,
-		"landing_quality":   0.15,
-		"audience_match":    0.15,
-		"time_factor":       0.10,
-		"device_factor":     0.10,
+		"historical_cvr":  0.35,
+		"historical_ctr":  0.15,
+		"landing_quality": 0.15,
+		"audience_match":  0.15,
+		"time_factor":     0.10,
+		"device_factor":   0.10,
 	}
 }
 
@@ -425,13 +425,13 @@ func (s *PerformancePredictionService) GetPredictionAccuracy(entityID string, lo
 // GetStats returns prediction service statistics
 func (s *PerformancePredictionService) GetStats() map[string]any {
 	stats := map[string]any{
-		"total_records":           0,
-		"total_predictions":       0,
-		"model_last_trained":      s.modelWeights.LastTrainedAt,
-		"training_samples":        s.modelWeights.TrainingSamples,
-		"confidence_threshold":    s.config.ConfidenceThreshold,
-		"prediction_horizon":      s.config.PredictionHorizon,
-		"records_by_entity_type":  make(map[string]int),
+		"total_records":          0,
+		"total_predictions":      0,
+		"model_last_trained":     s.modelWeights.LastTrainedAt,
+		"training_samples":       s.modelWeights.TrainingSamples,
+		"confidence_threshold":   s.config.ConfidenceThreshold,
+		"prediction_horizon":     s.config.PredictionHorizon,
+		"records_by_entity_type": make(map[string]int),
 	}
 
 	recordsByType := make(map[string]int)
@@ -558,7 +558,7 @@ func (s *PerformancePredictionService) extractFeaturesWithContext(records []*Per
 	return features
 }
 
-func (s *PerformancePredictionService) predictMetric(metric string, features map[string]float64, records []*PerformanceRecord, ctx PredictionContext) *MetricPrediction {
+func (s *PerformancePredictionService) predictMetric(metric string, features map[string]float64, records []*PerformanceRecord, _ PredictionContext) *MetricPrediction {
 	var weights map[string]float64
 	var intercept float64
 
@@ -639,15 +639,15 @@ func (s *PerformancePredictionService) predictMetric(metric string, features map
 	}
 
 	return &MetricPrediction{
-		Metric:          metric,
-		PredictedValue:  prediction,
-		LowerBound:      lowerBound,
-		UpperBound:      upperBound,
-		Confidence:      s.calculateMetricConfidence(len(records), metric),
-		TrendDirection:  trend,
-		TrendStrength:   trendStrength,
-		HistoricalMean:  historicalMean,
-		PercentChange:   percentChange,
+		Metric:         metric,
+		PredictedValue: prediction,
+		LowerBound:     lowerBound,
+		UpperBound:     upperBound,
+		Confidence:     s.calculateMetricConfidence(len(records), metric),
+		TrendDirection: trend,
+		TrendStrength:  trendStrength,
+		HistoricalMean: historicalMean,
+		PercentChange:  percentChange,
 	}
 }
 

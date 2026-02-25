@@ -594,6 +594,7 @@ func TestCreativeOpt_AlternativeCreatives(t *testing.T) {
 	svc := NewCreativeOptimizationService(nil)
 	campaign := createCreativeOptCampaign()
 	campaign.Targeting.CreativeOptimization.ExplorationRate = 0.0
+	campaign.Targeting.CreativeOptimization.MinImpressions = 10
 	campaign.Targeting.CreativeOptimization.CreativePool = []model.CreativeVariant{
 		{ID: "creative-1", Status: "active"},
 		{ID: "creative-2", Status: "active"},
@@ -602,24 +603,28 @@ func TestCreativeOpt_AlternativeCreatives(t *testing.T) {
 	}
 	req := createCreativeOptRequest()
 
-	// Add performance data for all creatives
-	for i := 0; i < 200; i++ {
+	// Add performance data for all creatives (well above MinImpressions=10)
+	for i := 0; i < 500; i++ {
 		svc.RecordImpression("creative-1", "banner")
 		svc.RecordImpression("creative-2", "banner")
 		svc.RecordImpression("creative-3", "banner")
 		svc.RecordImpression("creative-4", "banner")
 	}
-	for i := 0; i < 40; i++ {
-		svc.RecordClick("creative-1", "banner") // Best
+	// creative-1: CTR=0.20 (best)
+	for i := 0; i < 100; i++ {
+		svc.RecordClick("creative-1", "banner")
 	}
+	// creative-2: CTR=0.06
 	for i := 0; i < 30; i++ {
 		svc.RecordClick("creative-2", "banner")
 	}
+	// creative-3: CTR=0.04
 	for i := 0; i < 20; i++ {
 		svc.RecordClick("creative-3", "banner")
 	}
+	// creative-4: CTR=0.02 (worst)
 	for i := 0; i < 10; i++ {
-		svc.RecordClick("creative-4", "banner") // Worst
+		svc.RecordClick("creative-4", "banner")
 	}
 
 	result := svc.SelectCreative(campaign, req)

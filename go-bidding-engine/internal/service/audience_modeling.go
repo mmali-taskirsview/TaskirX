@@ -140,7 +140,7 @@ func (a *AudienceModelingService) evaluateSuppression(campaign *model.Campaign, 
 
 // evaluateLookalike determines if a user is similar to seed audience and calculates
 // a similarity score and bid multiplier
-func (a *AudienceModelingService) evaluateLookalike(campaign *model.Campaign, req *model.BidRequest, am *model.AudienceModeling, userSegments []string) model.AudienceModelingResult {
+func (a *AudienceModelingService) evaluateLookalike(_ *model.Campaign, req *model.BidRequest, am *model.AudienceModeling, userSegments []string) model.AudienceModelingResult {
 	result := model.AudienceModelingResult{
 		Multiplier: 1.0,
 	}
@@ -279,7 +279,7 @@ func (a *AudienceModelingService) demographicSimilarity(req *model.BidRequest) f
 }
 
 // interestSimilarity scores interest/segment overlap with seed audience
-func (a *AudienceModelingService) interestSimilarity(req *model.BidRequest, userSegments, seedSegments []string) float64 {
+func (a *AudienceModelingService) interestSimilarity(_ *model.BidRequest, userSegments, seedSegments []string) float64 {
 	if len(userSegments) == 0 || len(seedSegments) == 0 {
 		return 0.3 // Low base score with no data
 	}
@@ -418,7 +418,7 @@ func (a *AudienceModelingService) deviceSimilarity(req *model.BidRequest) float6
 }
 
 // evaluatePropensityScore calculates a user's propensity score and maps it to a bid multiplier
-func (a *AudienceModelingService) evaluatePropensityScore(campaign *model.Campaign, req *model.BidRequest, am *model.AudienceModeling) model.AudienceModelingResult {
+func (a *AudienceModelingService) evaluatePropensityScore(_ *model.Campaign, req *model.BidRequest, am *model.AudienceModeling) model.AudienceModelingResult {
 	result := model.AudienceModelingResult{
 		Multiplier: 1.0,
 	}

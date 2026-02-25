@@ -170,7 +170,7 @@ type hourlyPerformance struct {
 }
 
 // getHourlyPerformance retrieves performance metrics for a specific hour
-func (d *DaypartingService) getHourlyPerformance(campaignID string, hour, lookbackDays int) hourlyPerformance {
+func (d *DaypartingService) getHourlyPerformance(campaignID string, hour, _ int) hourlyPerformance {
 	perf := hourlyPerformance{}
 
 	// Cache key format: daypart_perf:{campaignID}:{hour}
@@ -231,7 +231,7 @@ func (d *DaypartingService) getAveragePerformance(campaignID string, lookbackDay
 }
 
 // getDayOfWeekModifier returns a bid modifier for the current day of week
-func (d *DaypartingService) getDayOfWeekModifier(campaignID string, dayOfWeek, lookbackDays int, avgPerf hourlyPerformance) float64 {
+func (d *DaypartingService) getDayOfWeekModifier(campaignID string, dayOfWeek int, _ int, avgPerf hourlyPerformance) float64 {
 	dayKey := fmt.Sprintf("daypart_dow:%s:%d", campaignID, dayOfWeek)
 	cached, err := d.cache.Get(dayKey)
 	if err != nil || cached == "" {

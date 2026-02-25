@@ -22,14 +22,14 @@ type UnifiedIDService struct {
 }
 
 type identityNode struct {
-	PrimaryID   string
-	Provider    string
-	LinkedIDs   []linkedIdentity
-	Segments    []string
-	Attributes  map[string]string
-	DeviceTypes []string
-	Confidence  float64
-	LastUpdated time.Time
+	PrimaryID    string
+	Provider     string
+	LinkedIDs    []linkedIdentity
+	Segments     []string
+	Attributes   map[string]string
+	DeviceTypes  []string
+	Confidence   float64
+	LastUpdated  time.Time
 	ConsentGiven bool
 }
 
@@ -42,11 +42,11 @@ type linkedIdentity struct {
 }
 
 type providerStat struct {
-	TotalLookups   int
-	SuccessCount   int
-	AvgLatencyMs   float64
-	LastError      string
-	LastErrorTime  time.Time
+	TotalLookups  int
+	SuccessCount  int
+	AvgLatencyMs  float64
+	LastError     string
+	LastErrorTime time.Time
 }
 
 // NewUnifiedIDService creates a new unified ID service
@@ -143,7 +143,7 @@ func (s *UnifiedIDService) ResolveIdentity(campaign *model.Campaign, request *mo
 func (s *UnifiedIDService) checkConsent(request *model.BidRequest) bool {
 	// Check GDPR consent in user data
 	// In production, check request.Regs.GDPR and request.User.Consent
-	
+
 	// For internal BidRequest, check context
 	if request.Context != nil {
 		if consent, ok := request.Context["gdpr_consent"].(bool); ok {
@@ -273,7 +273,7 @@ func (s *UnifiedIDService) shouldMatch(id string, matchRate float64) bool {
 	return val < matchRate
 }
 
-func (s *UnifiedIDService) buildResultFromNode(node *identityNode, config *model.UnifiedIDConfig, result *model.UnifiedIDResult) *model.UnifiedIDResult {
+func (s *UnifiedIDService) buildResultFromNode(node *identityNode, _ *model.UnifiedIDConfig, result *model.UnifiedIDResult) *model.UnifiedIDResult {
 	result.Resolved = true
 	result.PrimaryID = &model.UnifiedID{
 		Provider:      node.Provider,
@@ -339,7 +339,7 @@ func (s *UnifiedIDService) enrichWithLinkedIDs(result *model.UnifiedIDResult, in
 	}
 }
 
-func (s *UnifiedIDService) enrichProfile(result *model.UnifiedIDResult, resolvedID *model.UnifiedID) {
+func (s *UnifiedIDService) enrichProfile(result *model.UnifiedIDResult, _ *model.UnifiedID) {
 	// In production, this would fetch audience segments from DMP
 	result.EnrichedProfile = true
 
