@@ -1837,3 +1837,432 @@ func TestHandleGetPGDeal_MissingID(t *testing.T) {
 		t.Errorf("Expected status 404, got %d", w.Code)
 	}
 }
+
+// ============================================================================
+// CHURN PREDICTION - STATS TEST
+// ============================================================================
+
+func TestHandleGetChurnStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/churn/stats", handler.HandleGetChurnStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/churn/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ============================================================================
+// A/B TESTING - FULL SUITE
+// ============================================================================
+
+func TestHandleCreateExperiment(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments", handler.HandleCreateExperiment)
+
+	reqBody := map[string]interface{}{
+		"name":        "Test Experiment",
+		"description": "A test A/B experiment",
+		"variants": []map[string]interface{}{
+			{"id": "control", "name": "Control", "traffic_percent": 50.0},
+			{"id": "treatment", "name": "Treatment", "traffic_percent": 50.0},
+		},
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 201 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleCreateExperiment_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments", handler.HandleCreateExperiment)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleGetExperiment(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/experiments/:experiment_id", handler.HandleGetExperiment)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/experiments/exp-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 200 or 404 depending on experiment existence
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 200 or 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleListExperiments(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/experiments", handler.HandleListExperiments)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/experiments", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleListExperiments_WithStatus(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/experiments", handler.HandleListExperiments)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/experiments?status=active", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetVariantForUser(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/experiments/:experiment_id/variant/:user_id", handler.HandleGetVariantForUser)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/experiments/exp-001/variant/user-123", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 200 or 400 depending on experiment existence
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleRecordABEvent_WithPathParam(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/ab/experiments/:experiment_id/events", handler.HandleRecordABEvent)
+
+	reqBody := ABEventRequest{
+		VariantID: "variant-A",
+		EventType: "click",
+		Value:     1.0,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/ab/experiments/exp-001/events", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 200 or 400 depending on experiment
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetABTestingStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/ab/stats", handler.HandleGetABTestingStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/ab/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ============================================================================
+// DCO - ADDITIONAL TESTS
+// ============================================================================
+
+func TestHandleRecordDCOClick(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/click/:combination_id", handler.HandleRecordDCOClick)
+
+	reqBody := map[string]string{"user_id": "user-123"}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/click/combo-123", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleRecordDCOConversion(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/dco/conversion/:combination_id", handler.HandleRecordDCOConversion)
+
+	reqBody := map[string]float64{"revenue": 10.50}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/dco/conversion/combo-123", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetTopCombinations(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dco/templates/:template_id/combinations", handler.HandleGetTopCombinations)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dco/templates/template-1/combinations?limit=5", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetDCOStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/dco/stats", handler.HandleGetDCOStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/dco/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ============================================================================
+// PERFORMANCE PREDICTION - ADDITIONAL TESTS
+// ============================================================================
+
+func TestHandlePredictPerformance(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/performance/predict", handler.HandlePredictPerformance)
+
+	reqBody := map[string]interface{}{
+		"entity_id":   "camp-123",
+		"entity_type": "campaign",
+		"metric":      "ctr",
+		"horizon":     24,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/performance/predict", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandlePredictPerformance_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/performance/predict", handler.HandlePredictPerformance)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/performance/predict", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleForecastPerformance_GET(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/performance/forecast", handler.HandleForecastPerformance)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/performance/forecast?entity_id=camp-123&entity_type=campaign&hours=24", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleForecastPerformance_MissingParams(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/performance/forecast", handler.HandleForecastPerformance)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/performance/forecast", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetPredictionAccuracy(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/performance/accuracy/:entity_id", handler.HandleGetPredictionAccuracy)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/performance/accuracy/camp-123", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetPredictionStats(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/performance/stats", handler.HandleGetPredictionStats)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/performance/stats", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ============================================================================
+// S2S BIDDING - ADDITIONAL TESTS
+// ============================================================================
+
+func TestHandleGetS2SPartner(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.GET("/api/advanced/s2s/partners/:id", handler.HandleGetS2SPartner)
+
+	req, _ := http.NewRequest("GET", "/api/advanced/s2s/partners/partner-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 200 or 404 depending on partner existence
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 200 or 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleRemoveS2SPartner(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.DELETE("/api/advanced/s2s/partners/:id", handler.HandleRemoveS2SPartner)
+
+	req, _ := http.NewRequest("DELETE", "/api/advanced/s2s/partners/partner-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// 200 or 404 depending on partner existence
+	if w.Code != http.StatusOK && w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 200 or 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleS2SBidRequest(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/s2s/bid", handler.HandleS2SBidRequest)
+
+	reqBody := map[string]interface{}{
+		"request_id":   "req-001",
+		"publisher_id": "pub-001",
+		"bid_floor":    0.5,
+		"imp": []map[string]interface{}{
+			{"id": "imp-001", "banner": map[string]interface{}{"w": 300, "h": 250}},
+		},
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/s2s/bid", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK && w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 200 or 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleS2SBidRequest_InvalidJSON(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/s2s/bid", handler.HandleS2SBidRequest)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/s2s/bid", bytes.NewBufferString("{invalid}"))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+// ============================================================================
+// BID CACHE - ADDITIONAL TESTS
+// ============================================================================
+
+func TestHandleInvalidateBidCachePartner(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.DELETE("/api/advanced/cache/partner/:partner_id", handler.HandleInvalidateBidCachePartner)
+
+	req, _ := http.NewRequest("DELETE", "/api/advanced/cache/partner/partner-001", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleCleanExpiredBidCache(t *testing.T) {
+	handler, router := setupTestHandler()
+	router.POST("/api/advanced/cache/clean", handler.HandleCleanExpiredBidCache)
+
+	req, _ := http.NewRequest("POST", "/api/advanced/cache/clean", nil)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+}
