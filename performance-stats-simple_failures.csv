@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+POST,POST /bid (video),CatchResponseError('Status 0'),169
+POST,POST /bid (basic),CatchResponseError('Status 0'),346
+POST,POST /bid (native),CatchResponseError('Status 0'),105
+GET,GET /health,CatchResponseError('Status 0'),40

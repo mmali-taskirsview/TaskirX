@@ -1,0 +1,21 @@
+{
+  "id": "test-bid-001",
+  "publisher_id": "pub-test-001",
+  "ad_slot": {
+    "id": "slot-001",
+    "dimensions": [300, 250],
+    "formats": ["banner"],
+    "position": "above-fold"
+  },
+  "user": {
+    "id": "user-001",
+    "country": "US"
+  },
+  "device": {
+    "type": "mobile",
+    "os": "iOS"
+  },
+  "context": {
+    "site_domain": "test.com"
+  }
+}
